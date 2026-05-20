@@ -12,9 +12,16 @@ export default function QuotesPage() {
 
   const [quotes, setQuotes] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [selectedSupplier, setSelectedSupplier] = useState("");
-  const [supplierPrice, setSupplierPrice] = useState("");
-  const [availability, setAvailability] = useState("");
+
+  const [selectedSupplier, setSelectedSupplier] =
+    useState("");
+
+  const [supplierPrice, setSupplierPrice] =
+    useState("");
+
+  const [availability, setAvailability] =
+    useState("");
+
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -23,16 +30,22 @@ export default function QuotesPage() {
   }, []);
 
   async function fetchSuppliers() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("suppliers")
       .select("*")
-      .eq("active", true);
+      .eq("active", true)
+      .order("name");
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     setSuppliers(data || []);
   }
 
   async function fetchQuotes() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("supplier_quotes")
       .select(`
         *,
@@ -41,14 +54,26 @@ export default function QuotesPage() {
         )
       `)
       .eq("request_id", requestId)
-      .order("created_at", { ascending: false });
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
 
     setQuotes(data || []);
   }
 
   async function saveQuote() {
-    if (!selectedSupplier || !supplierPrice) {
-      alert("Supplier and price required");
+    if (
+      !selectedSupplier ||
+      !supplierPrice
+    ) {
+      alert(
+        "Supplier and supplier price required"
+      );
       return;
     }
 
@@ -62,7 +87,8 @@ export default function QuotesPage() {
           request_id: requestId,
           supplier_id: selectedSupplier,
           supplier_price: supplierPrice,
-          marked_up_price: markedUpPrice,
+          marked_up_price:
+            markedUpPrice.toFixed(2),
           availability,
           notes,
         },
@@ -84,22 +110,28 @@ export default function QuotesPage() {
 
   return (
     <main className="min-h-screen bg-gray-100">
+
       <header className="bg-black text-white px-6 py-4 flex justify-between items-center">
+
         <h1 className="text-2xl font-bold">
           Supplier Quotes
         </h1>
 
         <button
-          onClick={() => router.push("/admin")}
+          onClick={() =>
+            router.push("/admin")
+          }
           className="bg-gray-700 px-4 py-2 rounded-xl"
         >
           Back to Admin
         </button>
+
       </header>
 
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
 
         <div className="bg-white rounded-2xl shadow p-6 mb-8">
+
           <h2 className="text-xl font-bold mb-4">
             Add Supplier Quote
           </h2>
@@ -109,7 +141,9 @@ export default function QuotesPage() {
             <select
               value={selectedSupplier}
               onChange={(e) =>
-                setSelectedSupplier(e.target.value)
+                setSelectedSupplier(
+                  e.target.value
+                )
               }
               className="border p-3 rounded-xl"
             >
@@ -132,7 +166,9 @@ export default function QuotesPage() {
               placeholder="Supplier Price"
               value={supplierPrice}
               onChange={(e) =>
-                setSupplierPrice(e.target.value)
+                setSupplierPrice(
+                  e.target.value
+                )
               }
               className="border p-3 rounded-xl"
             />
@@ -141,7 +177,9 @@ export default function QuotesPage() {
               placeholder="Availability"
               value={availability}
               onChange={(e) =>
-                setAvailability(e.target.value)
+                setAvailability(
+                  e.target.value
+                )
               }
               className="border p-3 rounded-xl"
             />
@@ -154,6 +192,7 @@ export default function QuotesPage() {
               }
               className="border p-3 rounded-xl"
             />
+
           </div>
 
           <button
@@ -162,46 +201,137 @@ export default function QuotesPage() {
           >
             Save Quote
           </button>
+
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6 mb-8">
+
+          <h2 className="text-xl font-bold mb-4">
+            Contact Suppliers
+          </h2>
+
+          <div className="grid md:grid-cols-2 gap-4">
+
+            {suppliers.map((supplier) => {
+
+              const message =
+                encodeURIComponent(
+`Hi,
+
+Looking for price and availability please.
+
+Request ID: ${requestId}
+
+Please send:
+- Price
+- Availability
+- Warranty if any
+
+Thanks,
+Cape Parts Finder`
+                );
+
+              return (
+                <div
+                  key={supplier.id}
+                  className="border rounded-2xl p-4 flex justify-between items-center"
+                >
+
+                  <div>
+                    <h3 className="font-bold">
+                      {supplier.name}
+                    </h3>
+
+                    <p className="text-sm text-gray-500">
+                      {
+                        supplier.whatsapp_number
+                      }
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/${supplier.whatsapp_number}?text=${message}`
+                      )
+                    }
+                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
+                  >
+                    Request Quote
+                  </button>
+
+                </div>
+              );
+            })}
+
+          </div>
+
         </div>
 
         <div className="space-y-4">
+
+          {quotes.length === 0 && (
+            <div className="bg-white rounded-2xl shadow p-8 text-center text-gray-500">
+              No supplier quotes added yet.
+            </div>
+          )}
+
           {quotes.map((quote) => (
             <div
               key={quote.id}
               className="bg-white rounded-2xl shadow p-6"
             >
+
               <div className="flex justify-between">
+
                 <div>
+
                   <h2 className="text-xl font-bold">
-                    {quote.suppliers?.name}
+                    {
+                      quote.suppliers?.name
+                    }
                   </h2>
 
-                  <p>
-                    <strong>Supplier Price:</strong> R
+                  <p className="mt-2">
+                    <strong>
+                      Supplier Price:
+                    </strong>{" "}
+                    R
                     {quote.supplier_price}
                   </p>
 
                   <p>
-                    <strong>Your Price:</strong> R
+                    <strong>
+                      Your Price:
+                    </strong>{" "}
+                    R
                     {quote.marked_up_price}
                   </p>
 
                   <p>
-                    <strong>Availability:</strong>{" "}
-                    {quote.availability || "-"}
+                    <strong>
+                      Availability:
+                    </strong>{" "}
+                    {quote.availability ||
+                      "-"}
                   </p>
 
                   <p>
                     <strong>Notes:</strong>{" "}
                     {quote.notes || "-"}
                   </p>
+
                 </div>
+
               </div>
+
             </div>
           ))}
+
         </div>
 
       </div>
+
     </main>
   );
 }
