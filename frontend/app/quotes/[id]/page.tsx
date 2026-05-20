@@ -51,6 +51,13 @@ export default function QuotesPage() {
         *,
         suppliers (
           name
+        ),
+        parts_requests (
+          customer_name,
+          vehicle_make,
+          vehicle_model,
+          vehicle_year,
+          part_needed
         )
       `)
       .eq("request_id", requestId)
@@ -106,6 +113,100 @@ export default function QuotesPage() {
     setNotes("");
 
     fetchQuotes();
+  }
+
+  function copyQuote() {
+    if (quotes.length === 0) {
+      alert("No quotes to copy");
+      return;
+    }
+
+    const text = `Hi ${
+      quotes[0]?.parts_requests
+        ?.customer_name || "Customer"
+    },
+
+We found the following aftermarket options for your request:
+
+${quotes
+  .map(
+    (quote, index) => `
+OPTION ${index + 1}
+
+Brand/Supplier:
+${quote.suppliers?.name}
+
+Price:
+R${quote.marked_up_price}
+
+Availability:
+${quote.availability || "Available on request"}
+
+Notes:
+${quote.notes || "Aftermarket replacement part"}
+
+-----------------------------------
+`
+  )
+  .join("\n")}
+
+Please let us know which option you'd like to proceed with.
+
+All pricing includes sourcing and handling.
+
+Thank you,
+Cape Parts Finder`;
+
+    navigator.clipboard.writeText(text);
+
+    alert("Quote copied to clipboard");
+  }
+
+  function openCustomerWhatsApp() {
+    if (quotes.length === 0) {
+      alert("No quotes available");
+      return;
+    }
+
+    const message = encodeURIComponent(`Hi ${
+      quotes[0]?.parts_requests
+        ?.customer_name || "Customer"
+    },
+
+We found the following aftermarket options for your request:
+
+${quotes
+  .map(
+    (quote, index) => `
+OPTION ${index + 1}
+
+Brand/Supplier:
+${quote.suppliers?.name}
+
+Price:
+R${quote.marked_up_price}
+
+Availability:
+${quote.availability || "Available on request"}
+
+Notes:
+${quote.notes || "Aftermarket replacement part"}
+
+-----------------------------------
+`
+  )
+  .join("\n")}
+
+Please let us know which option you'd like to proceed with.
+
+All pricing includes sourcing and handling.
+
+Thank you,
+Cape Parts Finder`);
+
+    window.open(
+      `https://wa.me/?text=${message}`
+    );
   }
 
   return (
@@ -263,6 +364,81 @@ Cape Parts Finder`
                 </div>
               );
             })}
+
+          </div>
+
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6 mb-8">
+
+          <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
+
+            <h2 className="text-xl font-bold">
+              Customer Quote Preview
+            </h2>
+
+            <div className="flex gap-3">
+
+              <button
+                onClick={copyQuote}
+                className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                Copy Quote
+              </button>
+
+              <button
+                onClick={
+                  openCustomerWhatsApp
+                }
+                className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm"
+              >
+                Send WhatsApp
+              </button>
+
+            </div>
+
+          </div>
+
+          <div className="bg-gray-100 rounded-xl p-4 whitespace-pre-wrap text-sm">
+
+            {quotes.length === 0
+              ? "No quotes added yet."
+              : `Hi ${
+                  quotes[0]?.parts_requests
+                    ?.customer_name ||
+                  "Customer"
+                },
+
+We found the following aftermarket options for your request:
+
+${quotes
+  .map(
+    (quote, index) => `
+OPTION ${index + 1}
+
+Brand/Supplier:
+${quote.suppliers?.name}
+
+Price:
+R${quote.marked_up_price}
+
+Availability:
+${quote.availability || "Available on request"}
+
+Notes:
+${quote.notes || "Aftermarket replacement part"}
+
+-----------------------------------
+`
+  )
+  .join("\n")}
+
+Please let us know which option you'd like to proceed with.
+
+All pricing includes sourcing and handling.
+
+Thank you,
+Cape Parts Finder`}
 
           </div>
 
