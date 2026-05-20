@@ -27,7 +27,6 @@ export default function AdminPage() {
       .from("parts_requests")
       .select("*")
       .order("created_at", { ascending: false });
-
     if (error) {
       console.error(error);
     } else {
@@ -40,7 +39,6 @@ export default function AdminPage() {
       .from("parts_requests")
       .update({ status })
       .eq("id", id);
-
     if (error) {
       alert("Failed to update status");
     } else {
@@ -54,7 +52,6 @@ export default function AdminPage() {
       .from("parts_requests")
       .delete()
       .eq("id", id);
-
     if (error) {
       alert("Failed to delete request");
     } else {
@@ -73,7 +70,6 @@ export default function AdminPage() {
       "Vehicle Model", "Year", "VIN", "Engine", "Part Needed",
       "Preference", "Extra Details", "Status", "Date"
     ];
-
     const rows = filteredRequests.map((r) => [
       r.customer_name, r.phone_number, r.email, r.area,
       r.vehicle_make, r.vehicle_model, r.vehicle_year,
@@ -81,11 +77,9 @@ export default function AdminPage() {
       r.part_preference, r.extra_details, r.status,
       new Date(r.created_at).toLocaleDateString("en-ZA")
     ]);
-
     const csv = [headers, ...rows]
       .map((row) => row.map((cell) => `"${cell || ""}"`).join(","))
       .join("\n");
-
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -98,10 +92,8 @@ export default function AdminPage() {
     const matchesSearch = `${request.customer_name} ${request.vehicle_make} ${request.vehicle_model} ${request.part_needed}`
       .toLowerCase()
       .includes(search.toLowerCase());
-
     const matchesStatus =
       statusFilter === "All" || (request.status || "New") === statusFilter;
-
     return matchesSearch && matchesStatus;
   });
 
@@ -125,8 +117,6 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-gray-100">
-
-      {/* HEADER */}
       <header className="bg-black text-white px-8 py-4 flex justify-between items-center shadow-lg">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🔧</span>
@@ -140,7 +130,7 @@ export default function AdminPage() {
             onClick={exportToCSV}
             className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
           >
-            📥 Export CSV
+            Export CSV
           </button>
           <button
             onClick={logout}
@@ -152,8 +142,6 @@ export default function AdminPage() {
       </header>
 
       <div className="max-w-7xl mx-auto p-8">
-
-        {/* STATS ROW */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-2xl shadow text-center">
             <p className="text-3xl font-bold">{statusCounts.All}</p>
@@ -173,7 +161,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* SEARCH AND FILTER */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <input
             type="text"
@@ -187,7 +174,7 @@ export default function AdminPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="p-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-black"
           >
-            <option value="All">All Status ({statusCounts.All})</option>
+            <option value="All">All ({statusCounts.All})</option>
             <option value="New">New ({statusCounts.New})</option>
             <option value="Searching">Searching ({statusCounts.Searching})</option>
             <option value="Quoted">Quoted ({statusCounts.Quoted})</option>
@@ -197,12 +184,10 @@ export default function AdminPage() {
           </select>
         </div>
 
-        {/* RESULTS COUNT */}
         <p className="text-gray-500 text-sm mb-4">
           Showing {filteredRequests.length} of {requests.length} requests
         </p>
 
-        {/* REQUESTS LIST */}
         <div className="space-y-6">
           {filteredRequests.length === 0 && (
             <div className="text-center text-gray-500 py-12 bg-white rounded-2xl">
@@ -211,22 +196,19 @@ export default function AdminPage() {
           )}
 
           {filteredRequests.map((request) => (
-            <div
-              key={request.id}
-              className="bg-white p-6 rounded-2xl shadow border"
-            >
+            <div key={request.id} className="bg-white p-6 rounded-2xl shadow border">
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h2 className="text-2xl font-bold">{request.customer_name}</h2>
                   <p className="text-gray-400 text-xs mt-1">
-                    📅 {new Date(request.created_at).toLocaleString("en-ZA")}
+                    {new Date(request.created_at).toLocaleString("en-ZA")}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <select
                     value={request.status || "New"}
                     onChange={(e) => updateStatus(request.id, e.target.value)}
-                    className="border p-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                    className="border p-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black"
                   >
                     <option>New</option>
                     <option>Searching</option>
@@ -239,33 +221,63 @@ export default function AdminPage() {
                     onClick={() => deleteRequest(request.id)}
                     className="text-red-400 hover:text-red-600 text-sm px-3 py-2 border border-red-200 rounded-xl hover:bg-red-50 transition"
                   >
-                    🗑️ Delete
+                    Delete
                   </button>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
-                  <p><strong>📞 Phone:</strong> {request.phone_number}</p>
-                  <p><strong>📧 Email:</strong> {request.email}</p>
-                  <p><strong>📍 Area:</strong> {request.area}</p>
-                  <p><strong>🔑 VIN:</strong> {request.vin_number}</p>
-                  <p><strong>⚙️ Engine:</strong> {request.engine_size}</p>
+                  <p><strong>Phone:</strong> {request.phone_number}</p>
+                  <p><strong>Email:</strong> {request.email}</p>
+                  <p><strong>Area:</strong> {request.area}</p>
+                  <p><strong>VIN:</strong> {request.vin_number}</p>
+                  <p><strong>Engine:</strong> {request.engine_size}</p>
                 </div>
                 <div className="space-y-1">
-                  <p><strong>🚗 Vehicle:</strong> {request.vehicle_make} {request.vehicle_model} {request.vehicle_year}</p>
-                  <p><strong>🔧 Part:</strong> {request.part_needed}</p>
-                  <p><strong>⭐ Preference:</strong> {request.part_preference}</p>
+                  <p><strong>Vehicle:</strong> {request.vehicle_make} {request.vehicle_model} {request.vehicle_year}</p>
+                  <p><strong>Part:</strong> {request.part_needed}</p>
+                  <p><strong>Preference:</strong> {request.part_preference}</p>
                 </div>
               </div>
 
               {request.extra_details && (
                 <div className="mt-4 bg-gray-50 p-3 rounded-xl text-sm">
-                  <p className="font-bold mb-1">📝 Extra Details:</p>
+                  <p className="font-bold mb-1">Extra Details:</p>
                   <p className="text-gray-700">{request.extra_details}</p>
                 </div>
               )}
 
               <div className="mt-6 flex gap-3 flex-wrap">
                 
-                  href={`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=Hi ${request.customer_name}, we found your ${request.vehicle_make} ${reque
+                  href={`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=Hi ${request.customer_name}, we found your ${request.vehicle_make} ${request.vehicle_model} ${request.part_needed} request on Cape Parts Finder. We have some options for you!`}
+                  target="_blank"
+                  className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
+                >
+                  WhatsApp Customer
+                </a>
+                
+                  href={`mailto:${request.email}?subject=Your Parts Request - Cape Parts Finder&body=Hi ${request.customer_name}, regarding your request for ${request.part_needed}...`}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-600 transition"
+                >
+                  Email Customer
+                </a>
+              </div>
+
+              {request.photo_url && (
+                <div className="mt-6">
+                  <p className="font-bold mb-2 text-sm">Uploaded Photo</p>
+                  <img
+                    src={request.photo_url}
+                    alt="Uploaded"
+                    className="w-64 rounded-xl border"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
