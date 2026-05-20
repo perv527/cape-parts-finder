@@ -250,14 +250,15 @@ export default function AdminPage() {
 
               <div className="mt-6 flex gap-3 flex-wrap">
                 
-                  href={`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=Hi ${request.customer_name}, we found your ${request.vehicle_make} ${request.vehicle_model} ${request.part_needed} request on Cape Parts Finder. We have some options for you!`}
+                  href={`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=Hi ${request.customer_name}, we found your ${request.vehicle_make} ${request.vehicle_model} ${request.part_needed} request on Cape Parts Finder!`}
                   target="_blank"
+                  rel="noreferrer"
                   className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
                 >
                   WhatsApp Customer
                 </a>
                 
-                  href={`mailto:${request.email}?subject=Your Parts Request - Cape Parts Finder&body=Hi ${request.customer_name}, regarding your request for ${request.part_needed}...`}
+                  href={`mailto:${request.email}`}
                   className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-600 transition"
                 >
                   Email Customer
