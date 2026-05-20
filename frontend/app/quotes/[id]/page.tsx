@@ -117,6 +117,65 @@ export default function QuotesPage() {
     fetchQuotes();
   }
 
+  async function convertToSale(
+    quote: any
+  ) {
+    const customer =
+      quote.parts_requests;
+
+    const supplierPrice =
+      Number(
+        quote.supplier_price
+      );
+
+    const sellingPrice =
+      Number(
+        quote.marked_up_price
+      );
+
+    const profit =
+      sellingPrice -
+      supplierPrice;
+
+    const { error } = await supabase
+      .from("sales")
+      .insert([
+        {
+          request_id: requestId,
+          supplier_quote_id:
+            quote.id,
+
+          customer_name:
+            customer?.customer_name,
+
+          customer_phone:
+            customer?.phone_number,
+
+          supplier_price:
+            supplierPrice,
+
+          selling_price:
+            sellingPrice,
+
+          profit,
+
+          status: "Completed",
+        },
+      ]);
+
+    if (error) {
+      console.error(error);
+      alert(
+        "Failed to convert sale"
+      );
+      return;
+    }
+
+    alert(
+      "Sale saved successfully"
+    );
+  }
+
   function generateQuoteText() {
     if (quotes.length === 0) {
       return "";
@@ -152,10 +211,16 @@ Price:
 R${quote.marked_up_price}
 
 Availability:
-${quote.availability || "Available on request"}
+${
+  quote.availability ||
+  "Available on request"
+}
 
 Notes:
-${quote.notes || "Aftermarket replacement part"}
+${
+  quote.notes ||
+  "Aftermarket replacement part"
+}
 
 -----------------------------------
 `
@@ -180,19 +245,25 @@ Cape Parts Finder`;
       generateQuoteText()
     );
 
-    alert("Quote copied to clipboard");
+    alert(
+      "Quote copied to clipboard"
+    );
   }
 
   function openCustomerWhatsApp() {
     if (quotes.length === 0) {
-      alert("No quotes available");
+      alert(
+        "No quotes available"
+      );
       return;
     }
 
     const customer =
       quotes[0]?.parts_requests;
 
-    if (!customer?.phone_number) {
+    if (
+      !customer?.phone_number
+    ) {
       alert(
         "Customer phone number missing"
       );
@@ -217,7 +288,9 @@ Cape Parts Finder`;
 
   function sendCustomerEmail() {
     if (quotes.length === 0) {
-      alert("No quotes available");
+      alert(
+        "No quotes available"
+      );
       return;
     }
 
@@ -225,7 +298,9 @@ Cape Parts Finder`;
       quotes[0]?.parts_requests;
 
     if (!customer?.email) {
-      alert("Customer email missing");
+      alert(
+        "Customer email missing"
+      );
       return;
     }
 
@@ -275,7 +350,9 @@ Cape Parts Finder`;
           <div className="grid md:grid-cols-2 gap-4">
 
             <select
-              value={selectedSupplier}
+              value={
+                selectedSupplier
+              }
               onChange={(e) =>
                 setSelectedSupplier(
                   e.target.value
@@ -287,14 +364,22 @@ Cape Parts Finder`;
                 Select Supplier
               </option>
 
-              {suppliers.map((supplier) => (
-                <option
-                  key={supplier.id}
-                  value={supplier.id}
-                >
-                  {supplier.name}
-                </option>
-              ))}
+              {suppliers.map(
+                (supplier) => (
+                  <option
+                    key={
+                      supplier.id
+                    }
+                    value={
+                      supplier.id
+                    }
+                  >
+                    {
+                      supplier.name
+                    }
+                  </option>
+                )
+              )}
             </select>
 
             <input
@@ -324,7 +409,9 @@ Cape Parts Finder`;
               placeholder="Notes"
               value={notes}
               onChange={(e) =>
-                setNotes(e.target.value)
+                setNotes(
+                  e.target.value
+                )
               }
               className="border p-3 rounded-xl"
             />
@@ -348,10 +435,11 @@ Cape Parts Finder`;
 
           <div className="grid md:grid-cols-2 gap-4">
 
-            {suppliers.map((supplier) => {
+            {suppliers.map(
+              (supplier) => {
 
-              const message =
-                encodeURIComponent(
+                const message =
+                  encodeURIComponent(
 `Hi,
 
 Looking for price and availability please.
@@ -365,42 +453,47 @@ Please send:
 
 Thanks,
 Cape Parts Finder`
-                );
+                  );
 
-              return (
-                <div
-                  key={supplier.id}
-                  className="border rounded-2xl p-4 flex justify-between items-center"
-                >
+                return (
+                  <div
+                    key={
+                      supplier.id
+                    }
+                    className="border rounded-2xl p-4 flex justify-between items-center"
+                  >
 
-                  <div>
+                    <div>
 
-                    <h3 className="font-bold">
-                      {supplier.name}
-                    </h3>
+                      <h3 className="font-bold">
+                        {
+                          supplier.name
+                        }
+                      </h3>
 
-                    <p className="text-sm text-gray-500">
-                      {
-                        supplier.whatsapp_number
+                      <p className="text-sm text-gray-500">
+                        {
+                          supplier.whatsapp_number
+                        }
+                      </p>
+
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        window.open(
+                          `https://wa.me/${supplier.whatsapp_number}?text=${message}`
+                        )
                       }
-                    </p>
+                      className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
+                    >
+                      Request Quote
+                    </button>
 
                   </div>
-
-                  <button
-                    onClick={() =>
-                      window.open(
-                        `https://wa.me/${supplier.whatsapp_number}?text=${message}`
-                      )
-                    }
-                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
-                  >
-                    Request Quote
-                  </button>
-
-                </div>
-              );
-            })}
+                );
+              }
+            )}
 
           </div>
 
@@ -433,7 +526,9 @@ Cape Parts Finder`
               </button>
 
               <button
-                onClick={sendCustomerEmail}
+                onClick={
+                  sendCustomerEmail
+                }
                 className="bg-black text-white px-4 py-2 rounded-xl text-sm"
               >
                 Send Email
@@ -455,9 +550,11 @@ Cape Parts Finder`
 
         <div className="space-y-4">
 
-          {quotes.length === 0 && (
+          {quotes.length ===
+            0 && (
             <div className="bg-white rounded-2xl shadow p-8 text-center text-gray-500">
-              No supplier quotes added yet.
+              No supplier quotes
+              added yet.
             </div>
           )}
 
@@ -473,7 +570,9 @@ Cape Parts Finder`
 
                   <h2 className="text-xl font-bold">
                     {
-                      quote.suppliers?.name
+                      quote
+                        .suppliers
+                        ?.name
                     }
                   </h2>
 
@@ -482,7 +581,9 @@ Cape Parts Finder`
                       Supplier Price:
                     </strong>{" "}
                     R
-                    {quote.supplier_price}
+                    {
+                      quote.supplier_price
+                    }
                   </p>
 
                   <p>
@@ -490,7 +591,9 @@ Cape Parts Finder`
                       Your Price:
                     </strong>{" "}
                     R
-                    {quote.marked_up_price}
+                    {
+                      quote.marked_up_price
+                    }
                   </p>
 
                   <p>
@@ -499,12 +602,32 @@ Cape Parts Finder`
                     </strong>{" "}
                     {quote.availability ||
                       "-"}
+
                   </p>
 
                   <p>
-                    <strong>Notes:</strong>{" "}
-                    {quote.notes || "-"}
+                    <strong>
+                      Notes:
+                    </strong>{" "}
+                    {quote.notes ||
+                      "-"}
+
                   </p>
+
+                  <div className="mt-4 flex gap-3">
+
+                    <button
+                      onClick={() =>
+                        convertToSale(
+                          quote
+                        )
+                      }
+                      className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm"
+                    >
+                      Convert To Sale
+                    </button>
+
+                  </div>
 
                 </div>
 
