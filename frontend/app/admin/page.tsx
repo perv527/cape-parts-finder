@@ -78,7 +78,7 @@ export default function AdminPage() {
       new Date(r.created_at).toLocaleDateString("en-ZA")
     ]);
     const csv = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell || ""}"`).join(","))
+      .map((row) => row.map((cell) => String(cell || "").replace(/"/g, '""')).map((cell) => '"' + cell + '"').join(","))
       .join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -250,7 +250,7 @@ export default function AdminPage() {
 
               <div className="mt-6 flex gap-3 flex-wrap">
                 
-                  href={`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=Hi ${request.customer_name}, we found your ${request.vehicle_make} ${request.vehicle_model} ${request.part_needed} request on Cape Parts Finder!`}
+                  href={"https://wa.me/" + request.phone_number.replace(/\D/g, "")}
                   target="_blank"
                   rel="noreferrer"
                   className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
@@ -258,7 +258,7 @@ export default function AdminPage() {
                   WhatsApp Customer
                 </a>
                 
-                  href={`mailto:${request.email}`}
+                  href={"mailto:" + request.email}
                   className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-blue-600 transition"
                 >
                   Email Customer
