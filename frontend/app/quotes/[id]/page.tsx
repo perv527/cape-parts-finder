@@ -54,6 +54,8 @@ export default function QuotesPage() {
         ),
         parts_requests (
           customer_name,
+          phone_number,
+          email,
           vehicle_make,
           vehicle_model,
           vehicle_year,
@@ -115,18 +117,28 @@ export default function QuotesPage() {
     fetchQuotes();
   }
 
-  function copyQuote() {
+  function generateQuoteText() {
     if (quotes.length === 0) {
-      alert("No quotes to copy");
-      return;
+      return "";
     }
 
-    const text = `Hi ${
-      quotes[0]?.parts_requests
-        ?.customer_name || "Customer"
+    const customer =
+      quotes[0]?.parts_requests;
+
+    return `Hi ${
+      customer?.customer_name ||
+      "Customer"
     },
 
 We found the following aftermarket options for your request:
+
+Vehicle:
+${customer?.vehicle_make || ""}
+${customer?.vehicle_model || ""}
+${customer?.vehicle_year || ""}
+
+Part Requested:
+${customer?.part_needed || ""}
 
 ${quotes
   .map(
@@ -156,8 +168,17 @@ All pricing includes sourcing and handling.
 
 Thank you,
 Cape Parts Finder`;
+  }
 
-    navigator.clipboard.writeText(text);
+  function copyQuote() {
+    if (quotes.length === 0) {
+      alert("No quotes to copy");
+      return;
+    }
+
+    navigator.clipboard.writeText(
+      generateQuoteText()
+    );
 
     alert("Quote copied to clipboard");
   }
@@ -168,44 +189,58 @@ Cape Parts Finder`;
       return;
     }
 
-    const message = encodeURIComponent(`Hi ${
-      quotes[0]?.parts_requests
-        ?.customer_name || "Customer"
-    },
+    const customer =
+      quotes[0]?.parts_requests;
 
-We found the following aftermarket options for your request:
+    if (!customer?.phone_number) {
+      alert(
+        "Customer phone number missing"
+      );
+      return;
+    }
 
-${quotes
-  .map(
-    (quote, index) => `
-OPTION ${index + 1}
+    const cleanNumber =
+      customer.phone_number.replace(
+        /\D/g,
+        ""
+      );
 
-Brand/Supplier:
-${quote.suppliers?.name}
-
-Price:
-R${quote.marked_up_price}
-
-Availability:
-${quote.availability || "Available on request"}
-
-Notes:
-${quote.notes || "Aftermarket replacement part"}
-
------------------------------------
-`
-  )
-  .join("\n")}
-
-Please let us know which option you'd like to proceed with.
-
-All pricing includes sourcing and handling.
-
-Thank you,
-Cape Parts Finder`);
+    const message =
+      encodeURIComponent(
+        generateQuoteText()
+      );
 
     window.open(
-      `https://wa.me/?text=${message}`
+      `https://wa.me/${cleanNumber}?text=${message}`
+    );
+  }
+
+  function sendCustomerEmail() {
+    if (quotes.length === 0) {
+      alert("No quotes available");
+      return;
+    }
+
+    const customer =
+      quotes[0]?.parts_requests;
+
+    if (!customer?.email) {
+      alert("Customer email missing");
+      return;
+    }
+
+    const subject =
+      encodeURIComponent(
+        "Cape Parts Finder Quote"
+      );
+
+    const body =
+      encodeURIComponent(
+        generateQuoteText()
+      );
+
+    window.open(
+      `mailto:${customer.email}?subject=${subject}&body=${body}`
     );
   }
 
@@ -339,6 +374,7 @@ Cape Parts Finder`
                 >
 
                   <div>
+
                     <h3 className="font-bold">
                       {supplier.name}
                     </h3>
@@ -348,6 +384,7 @@ Cape Parts Finder`
                         supplier.whatsapp_number
                       }
                     </p>
+
                   </div>
 
                   <button
@@ -377,7 +414,7 @@ Cape Parts Finder`
               Customer Quote Preview
             </h2>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
 
               <button
                 onClick={copyQuote}
@@ -395,6 +432,13 @@ Cape Parts Finder`
                 Send WhatsApp
               </button>
 
+              <button
+                onClick={sendCustomerEmail}
+                className="bg-black text-white px-4 py-2 rounded-xl text-sm"
+              >
+                Send Email
+              </button>
+
             </div>
 
           </div>
@@ -403,42 +447,7 @@ Cape Parts Finder`
 
             {quotes.length === 0
               ? "No quotes added yet."
-              : `Hi ${
-                  quotes[0]?.parts_requests
-                    ?.customer_name ||
-                  "Customer"
-                },
-
-We found the following aftermarket options for your request:
-
-${quotes
-  .map(
-    (quote, index) => `
-OPTION ${index + 1}
-
-Brand/Supplier:
-${quote.suppliers?.name}
-
-Price:
-R${quote.marked_up_price}
-
-Availability:
-${quote.availability || "Available on request"}
-
-Notes:
-${quote.notes || "Aftermarket replacement part"}
-
------------------------------------
-`
-  )
-  .join("\n")}
-
-Please let us know which option you'd like to proceed with.
-
-All pricing includes sourcing and handling.
-
-Thank you,
-Cape Parts Finder`}
+              : generateQuoteText()}
 
           </div>
 
