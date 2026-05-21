@@ -61,7 +61,9 @@ export default function SuppliersPage() {
         .update(formData)
         .eq("id", editingId);
     } else {
-      await supabase.from("suppliers").insert([formData]);
+      await supabase
+        .from("suppliers")
+        .insert([formData]);
     }
 
     resetForm();
@@ -69,16 +71,24 @@ export default function SuppliersPage() {
   }
 
   async function deleteSupplier(id: number) {
-    const confirmed = confirm("Delete this supplier?");
+    const confirmed = confirm(
+      "Delete this supplier?"
+    );
 
     if (!confirmed) return;
 
-    await supabase.from("suppliers").delete().eq("id", id);
+    await supabase
+      .from("suppliers")
+      .delete()
+      .eq("id", id);
 
     fetchSuppliers();
   }
 
-  async function toggleActive(id: number, active: boolean) {
+  async function toggleActive(
+    id: number,
+    active: boolean
+  ) {
     await supabase
       .from("suppliers")
       .update({ active: !active })
@@ -90,11 +100,14 @@ export default function SuppliersPage() {
   function editSupplier(supplier: any) {
     setFormData({
       name: supplier.name || "",
-      contact_person: supplier.contact_person || "",
-      whatsapp_number: supplier.whatsapp_number || "",
+      contact_person:
+        supplier.contact_person || "",
+      whatsapp_number:
+        supplier.whatsapp_number || "",
       email: supplier.email || "",
       area: supplier.area || "",
-      speciality: supplier.speciality || "",
+      speciality:
+        supplier.speciality || "",
     });
 
     setEditingId(supplier.id);
@@ -127,43 +140,74 @@ export default function SuppliersPage() {
   if (!authChecked) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white">Loading...</p>
+        <p className="text-white">
+          Loading...
+        </p>
       </main>
     );
   }
 
   return (
     <main className="min-h-screen bg-gray-100">
-      <header className="bg-black text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">
-          Suppliers
-        </h1>
 
-        <div className="flex gap-3">
+      <header className="bg-black text-white px-6 py-4 flex justify-between items-center">
+
+        <div>
+          <h1 className="text-2xl font-bold">
+            Suppliers
+          </h1>
+
+          <p className="text-sm text-gray-400">
+            Manage supplier contacts
+          </p>
+        </div>
+
+        <div className="flex gap-3 flex-wrap">
+
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() =>
+              router.push("/admin")
+            }
             className="bg-gray-700 px-4 py-2 rounded-xl"
           >
             Admin
           </button>
 
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() =>
+              router.push("/sales")
+            }
+            className="bg-gray-700 px-4 py-2 rounded-xl"
+          >
+            Sales
+          </button>
+
+          <button
+            onClick={() =>
+              setShowForm(true)
+            }
             className="bg-green-500 px-4 py-2 rounded-xl"
           >
             Add Supplier
           </button>
+
         </div>
+
       </header>
 
       <div className="max-w-6xl mx-auto p-6">
+
         {showForm && (
           <div className="bg-white rounded-2xl p-6 shadow mb-6">
+
             <h2 className="text-xl font-bold mb-4">
-              {editingId ? "Edit Supplier" : "Add Supplier"}
+              {editingId
+                ? "Edit Supplier"
+                : "Add Supplier"}
             </h2>
 
             <div className="grid md:grid-cols-2 gap-4">
+
               <input
                 name="name"
                 placeholder="Business Name"
@@ -211,14 +255,18 @@ export default function SuppliersPage() {
                 onChange={handleChange}
                 className="border p-3 rounded-xl"
               />
+
             </div>
 
             <div className="flex gap-3 mt-4">
+
               <button
                 onClick={saveSupplier}
                 className="bg-black text-white px-6 py-3 rounded-xl"
               >
-                Save
+                {editingId
+                  ? "Update Supplier"
+                  : "Save Supplier"}
               </button>
 
               <button
@@ -227,51 +275,103 @@ export default function SuppliersPage() {
               >
                 Cancel
               </button>
+
             </div>
+
           </div>
         )}
 
         <div className="space-y-4">
+
+          {suppliers.length === 0 && (
+            <div className="bg-white rounded-2xl shadow p-10 text-center text-gray-500">
+              No suppliers added yet.
+            </div>
+          )}
+
           {suppliers.map((supplier) => (
             <div
               key={supplier.id}
-              className="bg-white rounded-2xl p-6 shadow"
+              className="bg-white rounded-2xl p-6 shadow border"
             >
-              <div className="flex justify-between">
+
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+
                 <div>
-                  <h2 className="text-xl font-bold">
-                    {supplier.name}
-                  </h2>
 
-                  <p>
-                    <strong>Contact:</strong>{" "}
-                    {supplier.contact_person || "-"}
-                  </p>
+                  <div className="flex items-center gap-3 mb-3">
 
-                  <p>
-                    <strong>WhatsApp:</strong>{" "}
-                    {supplier.whatsapp_number}
-                  </p>
+                    <h2 className="text-xl font-bold">
+                      {supplier.name}
+                    </h2>
 
-                  <p>
-                    <strong>Email:</strong>{" "}
-                    {supplier.email || "-"}
-                  </p>
+                    <span
+                      className={`text-xs px-3 py-1 rounded-full ${
+                        supplier.active
+                          ? "bg-green-100 text-green-600"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {supplier.active
+                        ? "Active"
+                        : "Inactive"}
+                    </span>
 
-                  <p>
-                    <strong>Area:</strong>{" "}
-                    {supplier.area || "-"}
-                  </p>
+                  </div>
 
-                  <p>
-                    <strong>Speciality:</strong>{" "}
-                    {supplier.speciality || "-"}
-                  </p>
+                  <div className="space-y-1 text-sm">
+
+                    <p>
+                      <strong>
+                        Contact:
+                      </strong>{" "}
+                      {supplier.contact_person ||
+                        "-"}
+                    </p>
+
+                    <p>
+                      <strong>
+                        WhatsApp:
+                      </strong>{" "}
+                      {
+                        supplier.whatsapp_number
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Email:
+                      </strong>{" "}
+                      {supplier.email || "-"}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Area:
+                      </strong>{" "}
+                      {supplier.area || "-"}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Speciality:
+                      </strong>{" "}
+                      {supplier.speciality ||
+                        "-"}
+                    </p>
+
+                  </div>
+
                 </div>
 
                 <div className="flex flex-col gap-2">
+
                   <button
-                    onClick={() => editSupplier(supplier)}
+                    onClick={() =>
+                      editSupplier(
+                        supplier
+                      )
+                    }
                     className="bg-blue-500 text-white px-4 py-2 rounded-xl"
                   >
                     Edit
@@ -284,25 +384,54 @@ export default function SuppliersPage() {
                         supplier.active
                       )
                     }
-                    className="bg-yellow-500 text-white px-4 py-2 rounded-xl"
+                    className={`px-4 py-2 rounded-xl text-white ${
+                      supplier.active
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
                   >
-                    Toggle
+                    {supplier.active
+                      ? "Deactivate"
+                      : "Activate"}
                   </button>
 
                   <button
                     onClick={() =>
-                      deleteSupplier(supplier.id)
+                      deleteSupplier(
+                        supplier.id
+                      )
                     }
                     className="bg-red-500 text-white px-4 py-2 rounded-xl"
                   >
                     Delete
                   </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        "https://wa.me/" +
+                          supplier.whatsapp_number.replace(
+                            /\D/g,
+                            ""
+                          )
+                      )
+                    }
+                    className="bg-green-600 text-white px-4 py-2 rounded-xl"
+                  >
+                    WhatsApp
+                  </button>
+
                 </div>
+
               </div>
+
             </div>
           ))}
+
         </div>
+
       </div>
+
     </main>
   );
 }
