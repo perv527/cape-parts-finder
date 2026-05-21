@@ -209,10 +209,12 @@ export default function AdminPage() {
 
   if (!authChecked) {
     return (
-      <main className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-white text-xl">
-          Loading...
-        </p>
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white px-8 py-6 rounded-2xl shadow-lg">
+          <p className="text-gray-700 text-lg font-medium">
+            Loading Dashboard...
+          </p>
+        </div>
       </main>
     );
   }
@@ -220,158 +222,164 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-gray-100">
 
-      <header className="bg-black text-white px-8 py-4 flex justify-between items-center">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
-        <div>
-          <h1 className="text-2xl font-bold">
-            Cape Parts Finder
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Cape Parts Finder
+            </h1>
 
-          <p className="text-sm text-gray-400">
-            Admin Dashboard
-          </p>
+            <p className="text-sm text-gray-500 mt-1">
+              Admin Dashboard
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+
+            <button
+              onClick={() => router.push("/admin")}
+              className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Dashboard
+            </button>
+
+            <button
+              onClick={() => router.push("/suppliers")}
+              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Suppliers
+            </button>
+
+            <button
+              onClick={() => router.push("/sales")}
+              className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Sales
+            </button>
+
+            <button
+              onClick={exportToCSV}
+              className="bg-gray-800 hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Export CSV
+            </button>
+
+            <button
+              onClick={logout}
+              className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-5 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Logout
+            </button>
+
+          </div>
+
         </div>
-
-        <div className="flex gap-3 flex-wrap">
-
-          <button
-            onClick={() => router.push("/admin")}
-            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Admin
-          </button>
-
-          <button
-            onClick={() => router.push("/suppliers")}
-            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Suppliers
-          </button>
-
-          <button
-            onClick={() => router.push("/sales")}
-            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Sales
-          </button>
-
-          <button
-            onClick={exportToCSV}
-            className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Export CSV
-          </button>
-
-          <button
-            onClick={logout}
-            className="bg-red-500 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Logout
-          </button>
-
-        </div>
-
       </header>
 
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
 
-          <div className="bg-white p-4 rounded-2xl shadow text-center">
-            <p className="text-3xl font-bold">
-              {counts.All}
-            </p>
-
-            <p className="text-gray-500 text-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 mb-2">
               Total Requests
             </p>
+
+            <h2 className="text-4xl font-bold text-gray-900">
+              {counts.All}
+            </h2>
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-2xl shadow text-center">
-            <p className="text-3xl font-bold text-blue-600">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 mb-2">
+              New Requests
+            </p>
+
+            <h2 className="text-4xl font-bold text-gray-900">
               {counts.New}
-            </p>
-
-            <p className="text-gray-500 text-sm">
-              New
-            </p>
+            </h2>
           </div>
 
-          <div className="bg-yellow-50 p-4 rounded-2xl shadow text-center">
-            <p className="text-3xl font-bold text-yellow-600">
-              {counts.Searching +
-                counts.Quoted}
-            </p>
-
-            <p className="text-gray-500 text-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 mb-2">
               In Progress
             </p>
+
+            <h2 className="text-4xl font-bold text-gray-900">
+              {counts.Searching +
+                counts.Quoted}
+            </h2>
           </div>
 
-          <div className="bg-green-50 p-4 rounded-2xl shadow text-center">
-            <p className="text-3xl font-bold text-green-600">
-              {counts.Delivered}
-            </p>
-
-            <p className="text-gray-500 text-sm">
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-500 mb-2">
               Delivered
             </p>
+
+            <h2 className="text-4xl font-bold text-gray-900">
+              {counts.Delivered}
+            </h2>
           </div>
 
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-200 mb-8">
 
-          <input
-            type="text"
-            placeholder="Search requests..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="flex-1 p-4 rounded-xl border"
-          />
+          <div className="flex flex-col lg:flex-row gap-4">
 
-          <select
-            value={statusFilter}
-            onChange={(e) =>
-              setStatusFilter(
-                e.target.value
-              )
-            }
-            className="p-4 rounded-xl border"
-          >
-            <option value="All">
-              All ({counts.All})
-            </option>
+            <input
+              type="text"
+              placeholder="Search by customer, vehicle or part..."
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              className="flex-1 border border-gray-300 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-gray-300"
+            />
 
-            <option value="New">
-              New ({counts.New})
-            </option>
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(
+                  e.target.value
+                )
+              }
+              className="border border-gray-300 rounded-2xl px-5 py-4 outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              <option value="All">
+                All ({counts.All})
+              </option>
 
-            <option value="Searching">
-              Searching (
-              {counts.Searching})
-            </option>
+              <option value="New">
+                New ({counts.New})
+              </option>
 
-            <option value="Quoted">
-              Quoted ({counts.Quoted})
-            </option>
+              <option value="Searching">
+                Searching (
+                {counts.Searching})
+              </option>
 
-            <option value="Ordered">
-              Ordered ({counts.Ordered})
-            </option>
+              <option value="Quoted">
+                Quoted ({counts.Quoted})
+              </option>
 
-            <option value="Delivered">
-              Delivered (
-              {counts.Delivered})
-            </option>
+              <option value="Ordered">
+                Ordered ({counts.Ordered})
+              </option>
 
-            <option value="Closed">
-              Closed ({counts.Closed})
-            </option>
+              <option value="Delivered">
+                Delivered (
+                {counts.Delivered})
+              </option>
 
-          </select>
+              <option value="Closed">
+                Closed ({counts.Closed})
+              </option>
+
+            </select>
+
+          </div>
 
         </div>
 
@@ -381,246 +389,276 @@ export default function AdminPage() {
             (request) => (
               <div
                 key={request.id}
-                className="bg-white p-6 rounded-2xl shadow border"
+                className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden"
               >
 
-                <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+                <div className="p-6 border-b border-gray-100">
 
-                  <div>
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
 
-                    <h2 className="text-2xl font-bold">
-                      {
-                        request.customer_name
-                      }
-                    </h2>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {
+                          request.customer_name
+                        }
+                      </h2>
 
-                    <p className="text-gray-400 text-xs">
-                      {new Date(
-                        request.created_at
-                      ).toLocaleString(
-                        "en-ZA"
-                      )}
-                    </p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {new Date(
+                          request.created_at
+                        ).toLocaleString(
+                          "en-ZA"
+                        )}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+
+                      <select
+                        value={
+                          request.status ||
+                          "New"
+                        }
+                        onChange={(e) =>
+                          updateStatus(
+                            request.id,
+                            e.target.value
+                          )
+                        }
+                        className="border border-gray-300 bg-white px-4 py-2.5 rounded-xl text-sm"
+                      >
+                        <option>
+                          New
+                        </option>
+
+                        <option>
+                          Searching
+                        </option>
+
+                        <option>
+                          Quoted
+                        </option>
+
+                        <option>
+                          Ordered
+                        </option>
+
+                        <option>
+                          Delivered
+                        </option>
+
+                        <option>
+                          Closed
+                        </option>
+
+                      </select>
+
+                      <button
+                        onClick={() =>
+                          deleteRequest(
+                            request.id
+                          )
+                        }
+                        className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-medium transition"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
 
                   </div>
 
-                  <div className="flex gap-3">
+                </div>
 
-                    <select
-                      value={
-                        request.status ||
-                        "New"
-                      }
-                      onChange={(e) =>
-                        updateStatus(
-                          request.id,
-                          e.target.value
-                        )
-                      }
-                      className="border p-2 rounded-xl text-sm"
-                    >
-                      <option>
-                        New
-                      </option>
+                <div className="p-6">
 
-                      <option>
-                        Searching
-                      </option>
+                  <div className="grid lg:grid-cols-2 gap-8 text-sm">
 
-                      <option>
-                        Quoted
-                      </option>
+                    <div className="space-y-3">
 
-                      <option>
-                        Ordered
-                      </option>
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Phone
+                        </p>
 
-                      <option>
-                        Delivered
-                      </option>
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.phone_number
+                          }
+                        </p>
+                      </div>
 
-                      <option>
-                        Closed
-                      </option>
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Email
+                        </p>
 
-                    </select>
+                        <p className="font-medium text-gray-900">
+                          {request.email}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Area
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {request.area}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          VIN
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.vin_number
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Engine
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.engine_size
+                          }
+                        </p>
+                      </div>
+
+                    </div>
+
+                    <div className="space-y-3">
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Vehicle
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.vehicle_make
+                          }{" "}
+                          {
+                            request.vehicle_model
+                          }{" "}
+                          {
+                            request.vehicle_year
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Part Needed
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.part_needed
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-400 text-xs uppercase tracking-wide">
+                          Preference
+                        </p>
+
+                        <p className="font-medium text-gray-900">
+                          {
+                            request.part_preference
+                          }
+                        </p>
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {request.extra_details && (
+                    <div className="mt-6 bg-gray-50 border border-gray-200 rounded-2xl p-5">
+
+                      <p className="text-sm font-semibold text-gray-900 mb-2">
+                        Extra Details
+                      </p>
+
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {
+                          request.extra_details
+                        }
+                      </p>
+
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex flex-wrap gap-3">
 
                     <button
                       onClick={() =>
-                        deleteRequest(
-                          request.id
+                        router.push(
+                          `/quotes/${request.id}`
                         )
                       }
-                      className="text-red-500 border border-red-200 px-3 py-2 rounded-xl text-sm"
+                      className="bg-gray-900 hover:bg-black text-white px-5 py-3 rounded-xl text-sm font-medium transition"
                     >
-                      Delete
+                      View Quotes
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        window.open(
+                          "https://wa.me/" +
+                            request.phone_number.replace(
+                              /\D/g,
+                              ""
+                            )
+                        )
+                      }
+                      className="bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 px-5 py-3 rounded-xl text-sm font-medium transition"
+                    >
+                      WhatsApp
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        window.open(
+                          "mailto:" +
+                            request.email
+                        )
+                      }
+                      className="bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 px-5 py-3 rounded-xl text-sm font-medium transition"
+                    >
+                      Email
                     </button>
 
                   </div>
 
-                </div>
+                  {request.photo_url && (
+                    <div className="mt-6">
 
-                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <p className="text-sm font-semibold text-gray-900 mb-3">
+                        Uploaded Photo
+                      </p>
 
-                  <div>
+                      <img
+                        src={
+                          request.photo_url
+                        }
+                        alt="Uploaded"
+                        className="w-72 rounded-2xl border border-gray-200 shadow-sm"
+                      />
 
-                    <p>
-                      <strong>
-                        Phone:
-                      </strong>{" "}
-                      {
-                        request.phone_number
-                      }
-                    </p>
-
-                    <p>
-                      <strong>
-                        Email:
-                      </strong>{" "}
-                      {request.email}
-                    </p>
-
-                    <p>
-                      <strong>
-                        Area:
-                      </strong>{" "}
-                      {request.area}
-                    </p>
-
-                    <p>
-                      <strong>
-                        VIN:
-                      </strong>{" "}
-                      {
-                        request.vin_number
-                      }
-                    </p>
-
-                    <p>
-                      <strong>
-                        Engine:
-                      </strong>{" "}
-                      {
-                        request.engine_size
-                      }
-                    </p>
-
-                  </div>
-
-                  <div>
-
-                    <p>
-                      <strong>
-                        Vehicle:
-                      </strong>{" "}
-                      {
-                        request.vehicle_make
-                      }{" "}
-                      {
-                        request.vehicle_model
-                      }{" "}
-                      {
-                        request.vehicle_year
-                      }
-                    </p>
-
-                    <p>
-                      <strong>
-                        Part Needed:
-                      </strong>{" "}
-                      {
-                        request.part_needed
-                      }
-                    </p>
-
-                    <p>
-                      <strong>
-                        Preference:
-                      </strong>{" "}
-                      {
-                        request.part_preference
-                      }
-                    </p>
-
-                  </div>
+                    </div>
+                  )}
 
                 </div>
-
-                {request.extra_details && (
-                  <div className="mt-4 bg-gray-50 p-3 rounded-xl text-sm">
-
-                    <p className="font-bold mb-1">
-                      Extra Details
-                    </p>
-
-                    <p>
-                      {
-                        request.extra_details
-                      }
-                    </p>
-
-                  </div>
-                )}
-
-                <div className="mt-4 flex flex-wrap gap-3">
-
-                  <button
-                    onClick={() =>
-                      router.push(
-                        `/quotes/${request.id}`
-                      )
-                    }
-                    className="bg-black text-white px-4 py-2 rounded-xl text-sm"
-                  >
-                    View Quotes
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      window.open(
-                        "https://wa.me/" +
-                          request.phone_number.replace(
-                            /\D/g,
-                            ""
-                          )
-                      )
-                    }
-                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
-                  >
-                    WhatsApp
-                  </button>
-
-                  <button
-                    onClick={() =>
-                      window.open(
-                        "mailto:" +
-                          request.email
-                      )
-                    }
-                    className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm"
-                  >
-                    Email
-                  </button>
-
-                </div>
-
-                {request.photo_url && (
-                  <div className="mt-4">
-
-                    <p className="font-bold text-sm mb-2">
-                      Uploaded Photo
-                    </p>
-
-                    <img
-                      src={
-                        request.photo_url
-                      }
-                      alt="Uploaded"
-                      className="w-64 rounded-xl border"
-                    />
-
-                  </div>
-                )}
 
               </div>
             )
