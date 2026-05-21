@@ -11,21 +11,27 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
     useState("All");
+
   const [authChecked, setAuthChecked] =
     useState(false);
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }) => {
-        if (!session) {
-          router.push("/login");
-        } else {
-          fetchRequests();
-          setAuthChecked(true);
-        }
-      });
+    checkAuth();
   }, []);
+
+  async function checkAuth() {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    fetchRequests();
+    setAuthChecked(true);
+  }
 
   async function fetchRequests() {
     const { data, error } = await supabase
@@ -37,9 +43,10 @@ export default function AdminPage() {
 
     if (error) {
       console.error(error);
-    } else {
-      setRequests(data || []);
+      return;
     }
+
+    setRequests(data || []);
   }
 
   async function updateStatus(
@@ -53,14 +60,15 @@ export default function AdminPage() {
 
     if (error) {
       alert("Failed to update status");
-    } else {
-      fetchRequests();
+      return;
     }
+
+    fetchRequests();
   }
 
   async function deleteRequest(id: number) {
     const confirmed = confirm(
-      "Are you sure you want to delete this request?"
+      "Delete this request?"
     );
 
     if (!confirmed) return;
@@ -72,9 +80,10 @@ export default function AdminPage() {
 
     if (error) {
       alert("Failed to delete request");
-    } else {
-      fetchRequests();
+      return;
     }
+
+    fetchRequests();
   }
 
   async function logout() {
@@ -114,15 +123,15 @@ export default function AdminPage() {
       r.part_preference,
       r.extra_details,
       r.status,
-      new Date(r.created_at).toLocaleDateString(
-        "en-ZA"
-      ),
+      new Date(
+        r.created_at
+      ).toLocaleDateString("en-ZA"),
     ]);
 
     const csv = [headers, ...rows]
       .map((row) =>
         row
-          .map((c) => '"' + (c || "") + '"')
+          .map((c) => `"${c || ""}"`)
           .join(",")
       )
       .join("\n");
@@ -131,17 +140,19 @@ export default function AdminPage() {
       type: "text/csv",
     });
 
-    const url = URL.createObjectURL(blob);
+    const url =
+      window.URL.createObjectURL(blob);
 
     const a = document.createElement("a");
 
     a.href = url;
     a.download = "parts-requests.csv";
+
     a.click();
   }
 
-  const filteredRequests = requests.filter(
-    (r) => {
+  const filteredRequests =
+    requests.filter((r) => {
       const matchesSearch = (
         r.customer_name +
         " " +
@@ -156,21 +167,26 @@ export default function AdminPage() {
 
       const matchesStatus =
         statusFilter === "All" ||
-        (r.status || "New") === statusFilter;
+        (r.status || "New") ===
+          statusFilter;
 
-      return matchesSearch && matchesStatus;
-    }
-  );
+      return (
+        matchesSearch && matchesStatus
+      );
+    });
 
   const counts = {
     All: requests.length,
 
     New: requests.filter(
-      (r) => !r.status || r.status === "New"
+      (r) =>
+        !r.status ||
+        r.status === "New"
     ).length,
 
     Searching: requests.filter(
-      (r) => r.status === "Searching"
+      (r) =>
+        r.status === "Searching"
     ).length,
 
     Quoted: requests.filter(
@@ -182,7 +198,8 @@ export default function AdminPage() {
     ).length,
 
     Delivered: requests.filter(
-      (r) => r.status === "Delivered"
+      (r) =>
+        r.status === "Delivered"
     ).length,
 
     Closed: requests.filter(
@@ -206,25 +223,16 @@ export default function AdminPage() {
       <header className="bg-black text-white px-8 py-4 flex justify-between items-center">
 
         <div>
-          <h1 className="text-xl font-bold">
-            Cape Parts Finder - Admin
+          <h1 className="text-2xl font-bold">
+            Cape Parts Finder
           </h1>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-sm text-gray-400">
             Admin Dashboard
           </p>
         </div>
 
         <div className="flex gap-4">
-
-          <button
-            onClick={() =>
-              router.push("/suppliers")
-            }
-            className="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm"
-          >
-            Suppliers
-          </button>
 
           <button
             onClick={exportToCSV}
@@ -241,6 +249,7 @@ export default function AdminPage() {
           </button>
 
         </div>
+
       </header>
 
       <div className="max-w-7xl mx-auto p-8">
@@ -251,8 +260,9 @@ export default function AdminPage() {
             <p className="text-3xl font-bold">
               {counts.All}
             </p>
+
             <p className="text-gray-500 text-sm">
-              Total
+              Total Requests
             </p>
           </div>
 
@@ -260,6 +270,7 @@ export default function AdminPage() {
             <p className="text-3xl font-bold text-blue-600">
               {counts.New}
             </p>
+
             <p className="text-gray-500 text-sm">
               New
             </p>
@@ -270,6 +281,7 @@ export default function AdminPage() {
               {counts.Searching +
                 counts.Quoted}
             </p>
+
             <p className="text-gray-500 text-sm">
               In Progress
             </p>
@@ -279,6 +291,7 @@ export default function AdminPage() {
             <p className="text-3xl font-bold text-green-600">
               {counts.Delivered}
             </p>
+
             <p className="text-gray-500 text-sm">
               Delivered
             </p>
@@ -290,7 +303,7 @@ export default function AdminPage() {
 
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search requests..."
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
@@ -301,7 +314,9 @@ export default function AdminPage() {
           <select
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(e.target.value)
+              setStatusFilter(
+                e.target.value
+              )
             }
             className="p-4 rounded-xl border"
           >
@@ -314,7 +329,8 @@ export default function AdminPage() {
             </option>
 
             <option value="Searching">
-              Searching ({counts.Searching})
+              Searching (
+              {counts.Searching})
             </option>
 
             <option value="Quoted">
@@ -326,201 +342,268 @@ export default function AdminPage() {
             </option>
 
             <option value="Delivered">
-              Delivered ({counts.Delivered})
+              Delivered (
+              {counts.Delivered})
             </option>
 
             <option value="Closed">
               Closed ({counts.Closed})
             </option>
+
           </select>
 
         </div>
 
         <div className="space-y-6">
 
-          {filteredRequests.map((request) => (
-            <div
-              key={request.id}
-              className="bg-white p-6 rounded-2xl shadow border"
-            >
+          {filteredRequests.map(
+            (request) => (
+              <div
+                key={request.id}
+                className="bg-white p-6 rounded-2xl shadow border"
+              >
 
-              <div className="flex justify-between items-start mb-4">
+                <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
 
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {request.customer_name}
-                  </h2>
+                  <div>
 
-                  <p className="text-gray-400 text-xs">
-                    {new Date(
-                      request.created_at
-                    ).toLocaleString("en-ZA")}
-                  </p>
+                    <h2 className="text-2xl font-bold">
+                      {
+                        request.customer_name
+                      }
+                    </h2>
+
+                    <p className="text-gray-400 text-xs">
+                      {new Date(
+                        request.created_at
+                      ).toLocaleString(
+                        "en-ZA"
+                      )}
+                    </p>
+
+                  </div>
+
+                  <div className="flex gap-3">
+
+                    <select
+                      value={
+                        request.status ||
+                        "New"
+                      }
+                      onChange={(e) =>
+                        updateStatus(
+                          request.id,
+                          e.target.value
+                        )
+                      }
+                      className="border p-2 rounded-xl text-sm"
+                    >
+                      <option>
+                        New
+                      </option>
+
+                      <option>
+                        Searching
+                      </option>
+
+                      <option>
+                        Quoted
+                      </option>
+
+                      <option>
+                        Ordered
+                      </option>
+
+                      <option>
+                        Delivered
+                      </option>
+
+                      <option>
+                        Closed
+                      </option>
+
+                    </select>
+
+                    <button
+                      onClick={() =>
+                        deleteRequest(
+                          request.id
+                        )
+                      }
+                      className="text-red-500 border border-red-200 px-3 py-2 rounded-xl text-sm"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
                 </div>
 
-                <div className="flex gap-3">
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
 
-                  <select
-                    value={
-                      request.status || "New"
-                    }
-                    onChange={(e) =>
-                      updateStatus(
-                        request.id,
-                        e.target.value
+                  <div>
+
+                    <p>
+                      <strong>
+                        Phone:
+                      </strong>{" "}
+                      {
+                        request.phone_number
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Email:
+                      </strong>{" "}
+                      {request.email}
+                    </p>
+
+                    <p>
+                      <strong>
+                        Area:
+                      </strong>{" "}
+                      {request.area}
+                    </p>
+
+                    <p>
+                      <strong>
+                        VIN:
+                      </strong>{" "}
+                      {
+                        request.vin_number
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Engine:
+                      </strong>{" "}
+                      {
+                        request.engine_size
+                      }
+                    </p>
+
+                  </div>
+
+                  <div>
+
+                    <p>
+                      <strong>
+                        Vehicle:
+                      </strong>{" "}
+                      {
+                        request.vehicle_make
+                      }{" "}
+                      {
+                        request.vehicle_model
+                      }{" "}
+                      {
+                        request.vehicle_year
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Part Needed:
+                      </strong>{" "}
+                      {
+                        request.part_needed
+                      }
+                    </p>
+
+                    <p>
+                      <strong>
+                        Preference:
+                      </strong>{" "}
+                      {
+                        request.part_preference
+                      }
+                    </p>
+
+                  </div>
+
+                </div>
+
+                {request.extra_details && (
+                  <div className="mt-4 bg-gray-50 p-3 rounded-xl text-sm">
+
+                    <p className="font-bold mb-1">
+                      Extra Details
+                    </p>
+
+                    <p>
+                      {
+                        request.extra_details
+                      }
+                    </p>
+
+                  </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-3">
+
+                  <button
+                    onClick={() =>
+                      router.push(
+                        `/quotes/${request.id}`
                       )
                     }
-                    className="border p-2 rounded-xl text-sm"
+                    className="bg-black text-white px-4 py-2 rounded-xl text-sm"
                   >
-                    <option>New</option>
-                    <option>
-                      Searching
-                    </option>
-                    <option>Quoted</option>
-                    <option>Ordered</option>
-                    <option>
-                      Delivered
-                    </option>
-                    <option>Closed</option>
-                  </select>
+                    View Quotes
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        "https://wa.me/" +
+                          request.phone_number.replace(
+                            /\D/g,
+                            ""
+                          )
+                      )
+                    }
+                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
+                  >
+                    WhatsApp
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        "mailto:" +
+                          request.email
+                      )
+                    }
+                    className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm"
+                  >
+                    Email
+                  </button>
 
                 </div>
+
+                {request.photo_url && (
+                  <div className="mt-4">
+
+                    <p className="font-bold text-sm mb-2">
+                      Uploaded Photo
+                    </p>
+
+                    <img
+                      src={
+                        request.photo_url
+                      }
+                      alt="Uploaded"
+                      className="w-64 rounded-xl border"
+                    />
+
+                  </div>
+                )}
 
               </div>
-
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-
-                <div>
-                  <p>
-                    <strong>Phone:</strong>{" "}
-                    {request.phone_number}
-                  </p>
-
-                  <p>
-                    <strong>Email:</strong>{" "}
-                    {request.email}
-                  </p>
-
-                  <p>
-                    <strong>Area:</strong>{" "}
-                    {request.area}
-                  </p>
-
-                  <p>
-                    <strong>VIN:</strong>{" "}
-                    {request.vin_number}
-                  </p>
-
-                  <p>
-                    <strong>Engine:</strong>{" "}
-                    {request.engine_size}
-                  </p>
-                </div>
-
-                <div>
-                  <p>
-                    <strong>Vehicle:</strong>{" "}
-                    {request.vehicle_make}{" "}
-                    {request.vehicle_model}{" "}
-                    {request.vehicle_year}
-                  </p>
-
-                  <p>
-                    <strong>Part:</strong>{" "}
-                    {request.part_needed}
-                  </p>
-
-                  <p>
-                    <strong>Preference:</strong>{" "}
-                    {request.part_preference}
-                  </p>
-                </div>
-
-              </div>
-
-              {request.extra_details && (
-                <div className="mt-4 bg-gray-50 p-3 rounded-xl text-sm">
-
-                  <p className="font-bold">
-                    Extra Details:
-                  </p>
-
-                  <p>
-                    {request.extra_details}
-                  </p>
-
-                </div>
-              )}
-
-              <div className="mt-4 flex flex-wrap gap-3">
-
-                <button
-                  onClick={() =>
-                    window.open(
-                      "https://wa.me/" +
-                        request.phone_number.replace(
-                          /\D/g,
-                          ""
-                        )
-                    )
-                  }
-                  className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
-                >
-                  WhatsApp
-                </button>
-
-                <button
-                  onClick={() =>
-                    window.open(
-                      "mailto:" +
-                        request.email
-                    )
-                  }
-                  className="bg-blue-500 text-white px-4 py-2 rounded-xl text-sm"
-                >
-                  Email
-                </button>
-
-                <button
-                  onClick={() =>
-                    router.push(
-                      `/quotes/${request.id}`
-                    )
-                  }
-                  className="bg-purple-600 text-white px-4 py-2 rounded-xl text-sm"
-                >
-                  Manage Quotes
-                </button>
-
-                <button
-                  onClick={() =>
-                    deleteRequest(request.id)
-                  }
-                  className="bg-red-500 text-white px-4 py-2 rounded-xl text-sm"
-                >
-                  Delete
-                </button>
-
-              </div>
-
-              {request.photo_url && (
-                <div className="mt-4">
-
-                  <p className="font-bold text-sm mb-2">
-                    Photo:
-                  </p>
-
-                  <img
-                    src={request.photo_url}
-                    alt="Uploaded"
-                    className="w-64 rounded-xl border"
-                  />
-
-                </div>
-              )}
-
-            </div>
-          ))}
+            )
+          )}
 
         </div>
 
