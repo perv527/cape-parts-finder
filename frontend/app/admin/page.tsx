@@ -232,7 +232,28 @@ export default function AdminPage() {
           </p>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex gap-3 flex-wrap">
+
+          <button
+            onClick={() => router.push("/admin")}
+            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
+          >
+            Admin
+          </button>
+
+          <button
+            onClick={() => router.push("/suppliers")}
+            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
+          >
+            Suppliers
+          </button>
+
+          <button
+            onClick={() => router.push("/sales")}
+            className="bg-gray-700 text-white px-4 py-2 rounded-xl text-sm"
+          >
+            Sales
+          </button>
 
           <button
             onClick={exportToCSV}
