@@ -16,14 +16,14 @@ export default function QuotesPage() {
   // Add quote form
   const [price, setPrice] = useState("");
   const [supplierId, setSupplierId] = useState("");
-  const [notes: note, setNote] = useState("");
+  const [note, setNote] = useState("");
   const [quoteImage, setQuoteImage] = useState<File | null>(null);
   const [uploadingQuote, setUploadingQuote] = useState(false);
 
   // Supplier confirmation image upload
   const [confirmModal, setConfirmModal] = useState<any>(null);
   const [confirmImage, setConfirmImage] = useState<File | null>(null);
-  const [confirmnotes: note, setConfirmNote] = useState("");
+  const [confirmNote, setConfirmNote] = useState("");
   const [uploadingConfirm, setUploadingConfirm] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
@@ -79,8 +79,7 @@ export default function QuotesPage() {
         supplier_id: supplierId,
         supplier_price: numericPrice,
         marked_up_price: sellPrice,
-          marked_up_price: sellPrice,
-        notes: notes: note,
+        notes: note,
         quote_image_url: imageUrl,
       }]);
 
@@ -103,7 +102,7 @@ export default function QuotesPage() {
       const imageUrl = await uploadImage(confirmImage, "supplier-confirmations");
       await supabase.from("supplier_quotes").update({
         supplier_confirmation_image: imageUrl,
-        supplier_confirmation_note: confirmnotes: note,
+        supplier_confirmation_note: confirmNote,
         supplier_confirmed: true,
       }).eq("id", confirmModal.id);
 
@@ -127,14 +126,11 @@ export default function QuotesPage() {
       request_id: request.id,
       supplier_quote_id: quote.id,
       customer_name: request.customer_name,
-      vehicle: request.vehicle_make + " " + request.vehicle_model,
-      part_name: request.part_needed,
-      cost_price: quote.supplier_price,
-      sell_price: quote.marked_up_price,
+      customer_phone: request.phone_number,
       supplier_price: quote.supplier_price,
       selling_price: quote.marked_up_price,
       profit: Number(quote.marked_up_price) - Number(quote.supplier_price),
-      status: "Pending",
+      status: "Completed",
     }]);
     if (error) { alert("Failed to create sale"); return; }
     await supabase.from("parts_requests").update({ status: "Ordered" }).eq("id", request.id);
@@ -514,4 +510,10 @@ export default function QuotesPage() {
     </main>
   );
 }
+
+
+
+
+
+
 
