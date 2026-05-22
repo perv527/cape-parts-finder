@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -16,14 +16,14 @@ export default function QuotesPage() {
   // Add quote form
   const [price, setPrice] = useState("");
   const [supplierId, setSupplierId] = useState("");
-  const [note, setNote] = useState("");
+  const [notes: note, setNote] = useState("");
   const [quoteImage, setQuoteImage] = useState<File | null>(null);
   const [uploadingQuote, setUploadingQuote] = useState(false);
 
   // Supplier confirmation image upload
   const [confirmModal, setConfirmModal] = useState<any>(null);
   const [confirmImage, setConfirmImage] = useState<File | null>(null);
-  const [confirmNote, setConfirmNote] = useState("");
+  const [confirmnotes: note, setConfirmNote] = useState("");
   const [uploadingConfirm, setUploadingConfirm] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
@@ -77,9 +77,10 @@ export default function QuotesPage() {
       const { error } = await supabase.from("supplier_quotes").insert([{
         request_id: requestId,
         supplier_id: supplierId,
-        price: numericPrice,
-        sell_price: sellPrice,
-        note,
+        supplier_price: numericPrice,
+        marked_up_price: sellPrice,
+          marked_up_price: sellPrice,
+        notes: notes: note,
         quote_image_url: imageUrl,
       }]);
 
@@ -102,7 +103,7 @@ export default function QuotesPage() {
       const imageUrl = await uploadImage(confirmImage, "supplier-confirmations");
       await supabase.from("supplier_quotes").update({
         supplier_confirmation_image: imageUrl,
-        supplier_confirmation_note: confirmNote,
+        supplier_confirmation_note: confirmnotes: note,
         supplier_confirmed: true,
       }).eq("id", confirmModal.id);
 
@@ -128,11 +129,11 @@ export default function QuotesPage() {
       customer_name: request.customer_name,
       vehicle: request.vehicle_make + " " + request.vehicle_model,
       part_name: request.part_needed,
-      cost_price: quote.price,
-      sell_price: quote.sell_price,
-      supplier_price: quote.price,
-      selling_price: quote.sell_price,
-      profit: Number(quote.sell_price) - Number(quote.price),
+      cost_price: quote.supplier_price,
+      sell_price: quote.marked_up_price,
+      supplier_price: quote.supplier_price,
+      selling_price: quote.marked_up_price,
+      profit: Number(quote.marked_up_price) - Number(quote.supplier_price),
       status: "Pending",
     }]);
     if (error) { alert("Failed to create sale"); return; }
@@ -142,14 +143,14 @@ export default function QuotesPage() {
   }
 
   function sendCustomerWhatsApp(quote: any) {
-    const message = `Hi ${request.customer_name},\n\nWe found your requested part!\n\nVehicle: ${request.vehicle_make} ${request.vehicle_model}\nPart: ${request.part_needed}\n\nPrice: R${quote.sell_price}\n\nPlease reply to confirm and we will proceed.\n\nCape Parts Finder`;
+    const message = `Hi ${request.customer_name},\n\nWe found your requested part!\n\nVehicle: ${request.vehicle_make} ${request.vehicle_model}\nPart: ${request.part_needed}\n\nPrice: R${quote.marked_up_price}\n\nPlease reply to confirm and we will proceed.\n\nCape Parts Finder`;
     const phone = request.phone_number.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
   }
 
   function sendCustomerWhatsAppWithImage(quote: any) {
     const imageUrl = quote.supplier_confirmation_image || quote.quote_image_url;
-    const message = `Hi ${request.customer_name},\n\nHere is the confirmation for your part:\n\nVehicle: ${request.vehicle_make} ${request.vehicle_model}\nPart: ${request.part_needed}\nPrice: R${quote.sell_price}\n\nImage: ${imageUrl}\n\nPlease confirm to proceed.\n\nCape Parts Finder`;
+    const message = `Hi ${request.customer_name},\n\nHere is the confirmation for your part:\n\nVehicle: ${request.vehicle_make} ${request.vehicle_model}\nPart: ${request.part_needed}\nPrice: R${quote.marked_up_price}\n\nImage: ${imageUrl}\n\nPlease confirm to proceed.\n\nCape Parts Finder`;
     const phone = request.phone_number.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
   }
@@ -168,7 +169,7 @@ export default function QuotesPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF9]">
 
-      {/* ── TOP NAV ── */}
+      {/* â”€â”€ TOP NAV â”€â”€ */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -199,7 +200,7 @@ export default function QuotesPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-7">
 
-        {/* ── REQUEST SUMMARY ── */}
+        {/* â”€â”€ REQUEST SUMMARY â”€â”€ */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -209,7 +210,7 @@ export default function QuotesPage() {
               <div>
                 <h1 className="font-bold text-[18px] text-gray-900">{request.customer_name}</h1>
                 <p className="text-[13px] text-gray-400 mt-0.5">
-                  {request.vehicle_year} {request.vehicle_make} {request.vehicle_model} · {request.part_needed}
+                  {request.vehicle_year} {request.vehicle_make} {request.vehicle_model} Â· {request.part_needed}
                 </p>
               </div>
             </div>
@@ -234,7 +235,7 @@ export default function QuotesPage() {
           )}
         </div>
 
-        {/* ── ADD QUOTE FORM ── */}
+        {/* â”€â”€ ADD QUOTE FORM â”€â”€ */}
         <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-6 shadow-sm">
           <h2 className="font-bold text-[16px] text-gray-900 mb-4">Add Supplier Quote</h2>
 
@@ -302,11 +303,11 @@ export default function QuotesPage() {
           </button>
         </div>
 
-        {/* ── QUOTES LIST ── */}
+        {/* â”€â”€ QUOTES LIST â”€â”€ */}
         <div className="space-y-4">
           {quotes.length === 0 && (
             <div className="bg-white border border-gray-100 rounded-xl p-10 text-center text-gray-400 text-sm">
-              No quotes yet — add one above
+              No quotes yet â€” add one above
             </div>
           )}
 
@@ -334,29 +335,29 @@ export default function QuotesPage() {
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
                     <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Supplier Cost</p>
-                    <p className="text-[22px] font-bold text-gray-900 mt-1">R{quote.price}</p>
+                    <p className="text-[22px] font-bold text-gray-900 mt-1">R{quote.supplier_price}</p>
                   </div>
                   <div className="bg-green-50 border border-green-100 rounded-xl p-4">
                     <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wide">Customer Price</p>
-                    <p className="text-[22px] font-bold text-green-700 mt-1">R{quote.sell_price}</p>
+                    <p className="text-[22px] font-bold text-green-700 mt-1">R{quote.marked_up_price}</p>
                   </div>
                 </div>
 
-                {quote.note && (
+                {quote.notes && (
                   <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-4">
                     <p className="text-[12px] font-semibold text-orange-700 mb-1">Note</p>
                     <p className="text-sm text-gray-700">{quote.note}</p>
                   </div>
                 )}
 
-                {/* ── IMAGE FLOW ── */}
+                {/* â”€â”€ IMAGE FLOW â”€â”€ */}
                 <div className="grid md:grid-cols-3 gap-3 mb-4">
 
                   {/* Your quote image sent to supplier */}
                   {quote.quote_image_url && (
                     <div className="border border-gray-100 rounded-xl p-3">
                       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                        📤 Sent to Supplier
+                        ðŸ“¤ Sent to Supplier
                       </p>
                       <img src={quote.quote_image_url} alt="Quote sent" className="w-full rounded-lg border border-gray-200 cursor-pointer"
                         onClick={() => window.open(quote.quote_image_url)} />
@@ -367,7 +368,7 @@ export default function QuotesPage() {
                   {quote.supplier_confirmation_image && (
                     <div className="border border-green-100 rounded-xl p-3 bg-green-50">
                       <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wide mb-2">
-                        ✅ Supplier Confirmed
+                        âœ… Supplier Confirmed
                       </p>
                       <img src={quote.supplier_confirmation_image} alt="Supplier confirmation" className="w-full rounded-lg border border-green-200 cursor-pointer"
                         onClick={() => window.open(quote.supplier_confirmation_image)} />
@@ -381,7 +382,7 @@ export default function QuotesPage() {
                   {request.photo_url && (
                     <div className="border border-blue-100 rounded-xl p-3 bg-blue-50">
                       <p className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide mb-2">
-                        📷 Customer Photo
+                        ðŸ“· Customer Photo
                       </p>
                       <img src={request.photo_url} alt="Customer photo" className="w-full rounded-lg border border-blue-200 cursor-pointer"
                         onClick={() => window.open(request.photo_url)} />
@@ -389,7 +390,7 @@ export default function QuotesPage() {
                   )}
                 </div>
 
-                {/* ── ACTION BUTTONS ── */}
+                {/* â”€â”€ ACTION BUTTONS â”€â”€ */}
                 <div className="flex flex-wrap gap-2.5">
 
                   {/* Send to customer via WhatsApp */}
@@ -452,7 +453,7 @@ export default function QuotesPage() {
         </div>
       </div>
 
-      {/* ── SUPPLIER CONFIRMATION MODAL ── */}
+      {/* â”€â”€ SUPPLIER CONFIRMATION MODAL â”€â”€ */}
       {confirmModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
@@ -461,7 +462,7 @@ export default function QuotesPage() {
                 <h2 className="font-bold text-[16px] text-gray-900">Supplier Confirmation</h2>
                 <p className="text-[12px] text-gray-400 mt-0.5">From: {confirmModal.suppliers?.name}</p>
               </div>
-              <button onClick={() => setConfirmModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
+              <button onClick={() => setConfirmModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">Ã—</button>
             </div>
             <div className="p-5 space-y-4">
               <div>
@@ -513,3 +514,4 @@ export default function QuotesPage() {
     </main>
   );
 }
+
