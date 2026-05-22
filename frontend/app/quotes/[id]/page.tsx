@@ -7,27 +7,26 @@ import { supabase } from "@/lib/supabase";
 export default function QuotesPage() {
   const params = useParams();
   const router = useRouter();
+
   const requestId = params.id;
 
+  const [request, setRequest] = useState<any>(null);
   const [quotes, setQuotes] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [request, setRequest] = useState<any>(null);
-  const [selectedSupplier, setSelectedSupplier] = useState("");
-  const [supplierPrice, setSupplierPrice] = useState("");
-  const [availability, setAvailability] = useState("");
-  const [notes, setNotes] = useState("");
+
+  const [price, setPrice] = useState("");
+  const [supplierId, setSupplierId] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-      fetchRequest();
-      fetchSuppliers();
-      fetchQuotes();
-    });
+    fetchData();
   }, []);
+
+  async function fetchData() {
+    await fetchRequest();
+    await fetchQuotes();
+    await fetchSuppliers();
+  }
 
   async function fetchRequest() {
     const { data } = await supabase
@@ -35,7 +34,30 @@ export default function QuotesPage() {
       .select("*")
       .eq("id", requestId)
       .single();
-    setRequest(data);
+
+    if (data) {
+      setRequest(data);
+    }
+  }
+
+  async function fetchQuotes() {
+    const { data } = await supabase
+      .from("supplier_quotes")
+      .select(`
+        *,
+        suppliers (
+          name,
+          whatsapp_number
+        )
+      `)
+      .eq("request_id", requestId)
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (data) {
+      setQuotes(data);
+    }
   }
 
   async function fetchSuppliers() {
@@ -44,244 +66,390 @@ export default function QuotesPage() {
       .select("*")
       .eq("active", true)
       .order("name");
-    setSuppliers(data || []);
-  }
 
-  async function fetchQuotes() {
-    const { data } = await supabase
-      .from("supplier_quotes")
-      .select("*, suppliers(name)")
-      .eq("request_id", requestId)
-      .order("created_at", { ascending: false });
-    setQuotes(data || []);
+    if (data) {
+      setSuppliers(data);
+    }
   }
 
   async function saveQuote() {
-    if (!selectedSupplier || !supplierPrice) {
-      alert("Supplier and price are required.");
+    if (!supplierId || !price) {
+      alert("Supplier and price required");
       return;
     }
-    const markedUpPrice = (Number(supplierPrice) * 1.2).toFixed(2);
+
+    const numericPrice = Number(price);
+
+    const sellPrice = (
+      numericPrice * 1.2
+    ).toFixed(2);
+
     const { error } = await supabase
       .from("supplier_quotes")
-      .insert([{
-        request_id: requestId,
-        supplier_id: selectedSupplier,
-        supplier_price: supplierPrice,
-        marked_up_price: markedUpPrice,
-        availability,
-        notes,
-      }]);
+      .insert([
+        {
+          request_id: requestId,
+          supplier_id: supplierId,
+          price: numericPrice,
+          sell_price: sellPrice,
+          note,
+        },
+      ]);
+
     if (error) {
-      alert("Failed to save quote.");
+      alert("Failed to save quote");
       return;
     }
-    setSelectedSupplier("");
-    setSupplierPrice("");
-    setAvailability("");
-    setNotes("");
+
+    await supabase
+      .from("parts_requests")
+      .update({
+        status: "Quoted",
+      })
+      .eq("id", requestId);
+
+    setPrice("");
+    setSupplierId("");
+    setNote("");
+
     fetchQuotes();
+    fetchRequest();
   }
 
   async function deleteQuote(id: number) {
-    if (!confirm("Delete this quote?")) return;
-    await supabase.from("supplier_quotes").delete().eq("id", id);
+    const confirmed = confirm(
+      "Delete this quote?"
+    );
+
+    if (!confirmed) return;
+
+    await supabase
+      .from("supplier_quotes")
+      .delete()
+      .eq("id", id);
+
     fetchQuotes();
   }
 
-  async function convertToSale(quote: any) {
-    const supplierPrice = Number(quote.supplier_price);
-    const sellingPrice = Number(quote.marked_up_price);
-    const profit = sellingPrice - supplierPrice;
+  async function convertToSale(
+    quote: any
+  ) {
+    const confirmed = confirm(
+      "Convert this quote into a sale?"
+    );
+
+    if (!confirmed) return;
+
     const { error } = await supabase
       .from("sales")
-      .insert([{
-        request_id: requestId,
-        supplier_quote_id: quote.id,
-        customer_name: request?.customer_name,
-        customer_phone: request?.phone_number,
-        supplier_price: supplierPrice,
-        selling_price: sellingPrice,
-        profit,
-        status: "Completed",
-      }]);
+      .insert([
+        {
+          request_id: request.id,
+          supplier_quote_id: quote.id,
+          customer_name:
+            request.customer_name,
+          vehicle:
+            request.vehicle_make +
+            " " +
+            request.vehicle_model,
+          part_name:
+            request.part_needed,
+          cost_price: quote.price,
+          sell_price:
+            quote.sell_price,
+          profit:
+            Number(
+              quote.sell_price
+            ) - Number(quote.price),
+          status: "Pending",
+        },
+      ]);
+
     if (error) {
-      alert("Failed to convert to sale.");
+      alert("Failed to create sale");
       return;
     }
+
     await supabase
       .from("parts_requests")
-      .update({ status: "Ordered" })
-      .eq("id", requestId);
-    alert("Sale saved successfully!");
+      .update({
+        status: "Ordered",
+      })
+      .eq("id", request.id);
+
+    alert("Sale created");
+
+    router.push("/sales");
   }
 
-  function generateQuoteText() {
-    if (quotes.length === 0) return "";
-    return `Hi ${request?.customer_name || "Customer"},
+  function sendCustomerWhatsApp(
+    quote: any
+  ) {
+    const message = `Hi ${request.customer_name},
 
-We found the following options for your request:
+We found your requested part.
 
-Vehicle: ${request?.vehicle_make} ${request?.vehicle_model} ${request?.vehicle_year}
-Part Requested: ${request?.part_needed}
+Vehicle:
+${request.vehicle_make} ${request.vehicle_model}
 
-${quotes.map((quote, index) => `OPTION ${index + 1}
-Supplier: ${quote.suppliers?.name}
-Price: R${quote.marked_up_price}
-Availability: ${quote.availability || "Available on request"}
-Notes: ${quote.notes || "Aftermarket replacement part"}
------------------------------------`).join("\n\n")}
+Part:
+${request.part_needed}
 
-Please let us know which option you would like to proceed with.
+Price:
+R${quote.sell_price}
 
-Thank you,
+Please reply if you'd like us to proceed.
+
 Cape Parts Finder`;
+
+    const phone =
+      request.phone_number.replace(
+        /\D/g,
+        ""
+      );
+
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(
+        message
+      )}`
+    );
   }
 
-  function copyQuote() {
-    if (quotes.length === 0) {
-      alert("No quotes to copy.");
-      return;
-    }
-    navigator.clipboard.writeText(generateQuoteText());
-    alert("Quote copied to clipboard!");
-  }
-
-  function sendWhatsApp() {
-    if (!request?.phone_number) {
-      alert("Customer phone number missing.");
-      return;
-    }
-    const clean = request.phone_number.replace(/\D/g, "");
-    const message = encodeURIComponent(generateQuoteText());
-    window.open("https://wa.me/" + clean + "?text=" + message);
-  }
-
-  function sendEmail() {
-    if (!request?.email) {
-      alert("Customer email missing.");
-      return;
-    }
-    const subject = encodeURIComponent("Cape Parts Finder Quote");
-    const body = encodeURIComponent(generateQuoteText());
-    window.open("mailto:" + request.email + "?subject=" + subject + "&body=" + body);
+  if (!request) {
+    return (
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p>Loading...</p>
+      </main>
+    );
   }
 
   return (
     <main className="min-h-screen bg-gray-100">
+
       <header className="bg-black text-white px-6 py-4 flex justify-between items-center">
+
         <div>
-          <h1 className="text-xl font-bold">Supplier Quotes</h1>
-          {request && (
-            <p className="text-xs text-gray-400">
-              {request.customer_name} — {request.vehicle_make} {request.vehicle_model} — {request.part_needed}
-            </p>
-          )}
+          <h1 className="text-2xl font-bold">
+            Supplier Quotes
+          </h1>
+
+          <p className="text-sm text-gray-400">
+            {request.vehicle_make}{" "}
+            {request.vehicle_model}
+          </p>
         </div>
-        <button onClick={() => router.push("/admin")} className="bg-gray-700 px-4 py-2 rounded-xl text-sm">
-          Back to Admin
+
+        <button
+          onClick={() =>
+            router.push("/admin")
+          }
+          className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm transition"
+        >
+          Back
         </button>
+
       </header>
 
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="max-w-5xl mx-auto p-6">
 
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-bold mb-4">Contact Suppliers</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {suppliers.map((supplier) => {
-              const message = encodeURIComponent(
-                "Hi, looking for price and availability please.\n\nPart: " +
-                (request?.part_needed || "") +
-                "\nVehicle: " + (request?.vehicle_make || "") +
-                " " + (request?.vehicle_model || "") +
-                " " + (request?.vehicle_year || "") +
-                "\nVIN: " + (request?.vin_number || "") +
-                "\n\nPlease send price, availability and warranty.\n\nThanks, Cape Parts Finder"
-              );
-              return (
-                <div key={supplier.id} className="border rounded-2xl p-4 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-bold">{supplier.name}</h3>
-                    <p className="text-sm text-gray-500">{supplier.whatsapp_number}</p>
-                    <p className="text-xs text-gray-400">{supplier.area}</p>
-                  </div>
-                  <button
-                    onClick={() => window.open("https://wa.me/" + supplier.whatsapp_number.replace(/\D/g, "") + "?text=" + message)}
-                    className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm"
+        <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
+
+          <h2 className="text-xl font-semibold mb-4">
+            Add Supplier Quote
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-4">
+
+            <select
+              value={supplierId}
+              onChange={(e) =>
+                setSupplierId(
+                  e.target.value
+                )
+              }
+              className="border rounded-xl p-3"
+            >
+              <option value="">
+                Select Supplier
+              </option>
+
+              {suppliers.map(
+                (supplier) => (
+                  <option
+                    key={supplier.id}
+                    value={supplier.id}
                   >
-                    Request Quote
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-xl font-bold mb-4">Add Supplier Quote</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            <select value={selectedSupplier} onChange={(e) => setSelectedSupplier(e.target.value)} className="border p-3 rounded-xl">
-              <option value="">Select Supplier</option>
-              {suppliers.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
+                    {supplier.name}
+                  </option>
+                )
+              )}
             </select>
-            <input type="number" placeholder="Supplier Price (R)" value={supplierPrice} onChange={(e) => setSupplierPrice(e.target.value)} className="border p-3 rounded-xl" />
-            <input placeholder="Availability (e.g. In stock, 2 days)" value={availability} onChange={(e) => setAvailability(e.target.value)} className="border p-3 rounded-xl" />
-            <input placeholder="Notes (e.g. OEM quality, warranty)" value={notes} onChange={(e) => setNotes(e.target.value)} className="border p-3 rounded-xl" />
-          </div>
-          <div className="mt-4">
-            <p className="text-sm text-gray-500 mb-2">
-              {supplierPrice ? "Your selling price: R" + (Number(supplierPrice) * 1.2).toFixed(2) + " (20% markup)" : "Enter supplier price to see markup"}
-            </p>
-            <button onClick={saveQuote} className="bg-black text-white px-6 py-3 rounded-xl font-bold">Save Quote</button>
-          </div>
-        </div>
 
-        {quotes.length > 0 && (
-          <div className="bg-white rounded-2xl shadow p-6">
-            <div className="flex flex-wrap gap-4 justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Customer Quote Preview</h2>
-              <div className="flex flex-wrap gap-3">
-                <button onClick={copyQuote} className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm">Copy Quote</button>
-                <button onClick={sendWhatsApp} className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm">Send WhatsApp</button>
-                <button onClick={sendEmail} className="bg-black text-white px-4 py-2 rounded-xl text-sm">Send Email</button>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 whitespace-pre-wrap text-sm font-mono">
-              {generateQuoteText()}
-            </div>
-          </div>
-        )}
+            <input
+              type="number"
+              placeholder="Cost Price"
+              value={price}
+              onChange={(e) =>
+                setPrice(e.target.value)
+              }
+              className="border rounded-xl p-3"
+            />
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold">Saved Quotes ({quotes.length})</h2>
-          {quotes.length === 0 && (
-            <div className="bg-white rounded-2xl shadow p-8 text-center text-gray-500">
-              No quotes added yet. Add supplier quotes above.
+            <input
+              type="text"
+              placeholder="Note"
+              value={note}
+              onChange={(e) =>
+                setNote(e.target.value)
+              }
+              className="border rounded-xl p-3"
+            />
+
+          </div>
+
+          {price && (
+            <div className="mt-4 bg-gray-50 border rounded-xl p-4">
+
+              <p className="text-sm text-gray-500">
+                Supplier Cost
+              </p>
+
+              <p className="text-xl font-bold">
+                R{price}
+              </p>
+
+              <p className="text-sm text-gray-500 mt-3">
+                Customer Price
+                (20% Markup)
+              </p>
+
+              <p className="text-2xl font-bold text-green-600">
+                R
+                {(
+                  Number(price) * 1.2
+                ).toFixed(2)}
+              </p>
+
             </div>
           )}
+
+          <button
+            onClick={saveQuote}
+            className="mt-4 bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-xl transition"
+          >
+            Save Quote
+          </button>
+
+        </div>
+
+        <div className="space-y-4">
+
           {quotes.map((quote) => (
-            <div key={quote.id} className="bg-white rounded-2xl shadow p-6">
-              <div className="flex justify-between items-start">
+            <div
+              key={quote.id}
+              className="bg-white rounded-2xl shadow-sm border p-6"
+            >
+
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
                 <div>
-                  <h3 className="text-xl font-bold">{quote.suppliers?.name}</h3>
-                  <p className="mt-2 text-sm"><strong>Supplier Price:</strong> R{quote.supplier_price}</p>
-                  <p className="text-sm"><strong>Your Selling Price:</strong> R{quote.marked_up_price}</p>
-                  <p className="text-sm"><strong>Profit:</strong> R{(Number(quote.marked_up_price) - Number(quote.supplier_price)).toFixed(2)}</p>
-                  <p className="text-sm"><strong>Availability:</strong> {quote.availability || "-"}</p>
-                  <p className="text-sm"><strong>Notes:</strong> {quote.notes || "-"}</p>
+
+                  <h2 className="text-xl font-semibold">
+                    {
+                      quote.suppliers?.name
+                    }
+                  </h2>
+
+                  <div className="mt-3 space-y-1">
+
+                    <p className="text-sm text-gray-500">
+                      Supplier Cost
+                    </p>
+
+                    <p className="text-xl font-bold">
+                      R{quote.price}
+                    </p>
+
+                    <p className="text-sm text-gray-500 mt-3">
+                      Customer Price
+                    </p>
+
+                    <p className="text-3xl font-bold text-green-600">
+                      R
+                      {quote.sell_price}
+                    </p>
+
+                  </div>
+
+                  {quote.note && (
+                    <p className="text-gray-500 mt-4">
+                      {quote.note}
+                    </p>
+                  )}
+
                 </div>
-                <button onClick={() => deleteQuote(quote.id)} className="text-red-400 border border-red-200 px-3 py-2 rounded-xl text-sm">Delete</button>
+
+                <div className="flex flex-col gap-3">
+
+                  <button
+                    onClick={() =>
+                      sendCustomerWhatsApp(
+                        quote
+                      )
+                    }
+                    className="bg-black text-white px-5 py-3 rounded-xl text-sm hover:bg-gray-800 transition"
+                  >
+                    Send To Customer
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      convertToSale(
+                        quote
+                      )
+                    }
+                    className="border border-gray-300 px-5 py-3 rounded-xl text-sm hover:bg-gray-100 transition"
+                  >
+                    Convert To Sale
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      window.open(
+                        "https://wa.me/" +
+                          quote.suppliers?.whatsapp_number?.replace(
+                            /\D/g,
+                            ""
+                          )
+                      )
+                    }
+                    className="border border-gray-300 px-5 py-3 rounded-xl text-sm hover:bg-gray-100 transition"
+                  >
+                    WhatsApp Supplier
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      deleteQuote(
+                        quote.id
+                      )
+                    }
+                    className="border border-red-200 text-red-500 hover:bg-red-50 px-5 py-3 rounded-xl text-sm transition"
+                  >
+                    Delete Quote
+                  </button>
+
+                </div>
+
               </div>
-              <div className="mt-4">
-                <button onClick={() => convertToSale(quote)} className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold">Convert To Sale</button>
-              </div>
+
             </div>
           ))}
+
         </div>
 
       </div>
+
     </main>
   );
 }
