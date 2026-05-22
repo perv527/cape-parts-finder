@@ -19,6 +19,7 @@ export default function QuotesPage() {
   const [note, setNote] = useState("");
   const [quoteImage, setQuoteImage] = useState<File | null>(null);
   const [uploadingQuote, setUploadingQuote] = useState(false);
+  const [markup, setMarkup] = useState("20");
 
   // Supplier confirmation image upload
   const [confirmModal, setConfirmModal] = useState<any>(null);
@@ -281,14 +282,39 @@ export default function QuotesPage() {
 
           {/* Price preview */}
           {price && (
-            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-3 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Supplier Cost</p>
-                <p className="text-[22px] font-bold text-gray-900 mt-1">R{Number(price).toFixed(2)}</p>
+            <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-3">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Markup %</p>
+                  <div className="flex items-center gap-2">
+                    <input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)}
+                      className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm font-bold text-orange-600 outline-none focus:border-orange-300 text-center"
+                      min="0" max="200" />
+                    <span className="text-gray-400 text-sm">%</span>
+                    <div className="flex gap-1">
+                      {["10","15","20","25","30"].map(m => (
+                        <button key={m} type="button" onClick={() => setMarkup(m)}
+                          className={`px-2 py-1 rounded text-xs font-medium cursor-pointer border transition ${markup === m ? "bg-orange-500 text-white border-orange-500" : "bg-white text-gray-500 border-gray-200 hover:border-orange-300"}`}>
+                          {m}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Customer Price (20% markup)</p>
-                <p className="text-[22px] font-bold text-green-600 mt-1">R{(Number(price) * 1.2).toFixed(2)}</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white border border-gray-100 rounded-lg p-3">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Supplier Cost</p>
+                  <p className="text-[20px] font-bold text-gray-900 mt-1">R{Number(price).toFixed(2)}</p>
+                </div>
+                <div className="bg-white border border-gray-100 rounded-lg p-3">
+                  <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Markup Amount</p>
+                  <p className="text-[20px] font-bold text-orange-500 mt-1">R{(Number(price) * Number(markup) / 100).toFixed(2)}</p>
+                </div>
+                <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                  <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wide">Customer Price</p>
+                  <p className="text-[20px] font-bold text-green-700 mt-1">R{(Number(price) * (1 + Number(markup) / 100)).toFixed(2)}</p>
+                </div>
               </div>
             </div>
           )}
@@ -510,6 +536,8 @@ export default function QuotesPage() {
     </main>
   );
 }
+
+
 
 
 
