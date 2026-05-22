@@ -1,383 +1,416 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
+export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [step, setStep] = useState(1);
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  New:       { bg: "#FFF7ED", text: "#C2410C", dot: "#F97316", border: "#FED7AA" },
-  Searching: { bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6", border: "#BFDBFE" },
-  Quoted:    { bg: "#F0FDF4", text: "#15803D", dot: "#22C55E", border: "#BBF7D0" },
-  Ordered:   { bg: "#FDF4FF", text: "#7E22CE", dot: "#A855F7", border: "#E9D5FF" },
-  Delivered: { bg: "#F0FDFA", text: "#0F766E", dot: "#14B8A6", border: "#99F6E4" },
-  Closed:    { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF", border: "#E5E7EB" },
-};
-
-export default function AdminPage() {
-  const router = useRouter();
-  const [requests, setRequests] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [authChecked, setAuthChecked] = useState(false);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
-
-  useEffect(() => { checkAuth(); }, []);
-
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push("/login"); return; }
-    fetchRequests();
-    setAuthChecked(true);
-  }
-
-  async function fetchRequests() {
-    const { data, error } = await supabase
-      .from("parts_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setRequests(data || []);
-  }
-
-  async function updateStatus(id: number, status: string) {
-    setUpdatingId(id);
-    const { error } = await supabase.from("parts_requests").update({ status }).eq("id", id);
-    if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
-    fetchRequests();
-    setUpdatingId(null);
-  }
-
-  async function deleteRequest(id: number) {
-    if (!confirm("Delete this request?")) return;
-    const { error } = await supabase.from("parts_requests").delete().eq("id", id);
-    if (error) { alert("Failed to delete request"); return; }
-    fetchRequests();
-  }
-
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
-
-  function exportToCSV() {
-    const headers = ["Name","Phone","Email","Area","Make","Model","Year","VIN","Engine","Part","Preference","Details","Status","Date"];
-    const rows = requests.map((r) => [
-      r.customer_name, r.phone_number, r.email, r.area,
-      r.vehicle_make, r.vehicle_model, r.vehicle_year,
-      r.vin_number, r.engine_size, r.part_needed,
-      r.part_preference, r.extra_details, r.status,
-      new Date(r.created_at).toLocaleDateString("en-ZA"),
-    ]);
-    const csv = [headers, ...rows].map((row) => row.map((c) => `"${c || ""}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "parts-requests.csv"; a.click();
-  }
-
-  const filteredRequests = requests.filter((r) => {
-    const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed)
-      .toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
-    return matchesSearch && matchesStatus;
+  const [formData, setFormData] = useState({
+    customer_name: "", phone_number: "", email: "", area: "",
+    vehicle_make: "", vehicle_model: "", vehicle_year: "",
+    vin_number: "", engine_size: "", part_needed: "",
+    part_preference: "", extra_details: "",
   });
 
-  const counts = {
-    All:       requests.length,
-    New:       requests.filter((r) => !r.status || r.status === "New").length,
-    Searching: requests.filter((r) => r.status === "Searching").length,
-    Quoted:    requests.filter((r) => r.status === "Quoted").length,
-    Ordered:   requests.filter((r) => r.status === "Ordered").length,
-    Delivered: requests.filter((r) => r.status === "Delivered").length,
-    Closed:    requests.filter((r) => r.status === "Closed").length,
-  };
-
-  if (!authChecked) {
-    return (
-      <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center">
-        <div className="bg-white px-10 py-7 rounded-2xl border border-gray-100 flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-          <p className="text-gray-700 text-base font-medium">Loading Dashboard...</p>
-        </div>
-      </main>
-    );
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    let photo_url = "";
+    try {
+      if (photo) {
+        const fileName = `${Date.now()}-${photo.name}`;
+        const { error: uploadError } = await supabase.storage.from("parts-photos").upload(fileName, photo);
+        if (!uploadError) {
+          const { data } = supabase.storage.from("parts-photos").getPublicUrl(fileName);
+          photo_url = data.publicUrl;
+        }
+      }
+      const { error } = await supabase.from("parts_requests").insert([{ ...formData, photo_url }]);
+      if (error) {
+        alert("Something went wrong. Please try again.");
+      } else {
+        try {
+          await fetch("/api/send-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+        } catch (emailErr) {
+          console.error("Email failed:", emailErr);
+        }
+        setSuccess(true);
+        setStep(1);
+        setFormData({
+          customer_name: "", phone_number: "", email: "", area: "",
+          vehicle_make: "", vehicle_model: "", vehicle_year: "",
+          vin_number: "", engine_size: "", part_needed: "",
+          part_preference: "", extra_details: "",
+        });
+        setPhoto(null);
+        setTimeout(() => setSuccess(false), 8000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Unexpected error occurred.");
+    }
+    setLoading(false);
+  }
+
+  const inputClass = "w-full border border-gray-200 bg-white px-4 py-3 rounded-xl text-sm text-gray-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition placeholder-gray-400";
+
   return (
-    <main className="min-h-screen bg-[#FAFAF9]">
+    <main className="min-h-screen bg-[#FAFAF9]" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
 
-      {/* ── TOP NAV ── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
+      {/* ── NAV ── */}
+      <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-[10px] bg-orange-500 flex items-center justify-center flex-shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <div>
+            <div className="font-bold text-[15px] text-gray-900 leading-tight">Cape Parts Finder</div>
+            <div className="text-[11px] text-gray-400">Cape Town Vehicle Parts</div>
+          </div>
+        </div>
+        <div className="hidden md:flex items-center gap-6 text-sm text-gray-500">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            Fast Response
+          </span>
+          <span>Free to Use</span>
+          <span>Local Suppliers</span>
+        </div>
+        <a href="#request-form"
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition no-underline">
+          Find My Part
+        </a>
+      </nav>
 
-          {/* Logo */}
+      {/* ── HERO ── */}
+      <section className="relative overflow-hidden bg-gray-900 text-white">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: "radial-gradient(circle at 20% 50%, #F97316 0%, transparent 50%), radial-gradient(circle at 80% 20%, #FB923C 0%, transparent 40%)" }} />
+        <div className="relative max-w-5xl mx-auto px-6 py-20 text-center">
+          <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 text-orange-300 px-4 py-1.5 rounded-full text-sm font-medium mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+            Cape Town's Trusted Parts Network
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-5 leading-tight tracking-tight">
+            Find Any Car Part<br />
+            <span className="text-orange-400">in Cape Town</span>
+          </h1>
+          <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+            Submit your request once. We connect you with trusted local suppliers and get you the best price — fast.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {[
+              { icon: "✓", text: "Free to use" },
+              { icon: "⚡", text: "Same day response" },
+              { icon: "🛡", text: "Verified suppliers" },
+              { icon: "📍", text: "Cape Town based" },
+            ].map((badge, i) => (
+              <div key={i} className="flex items-center gap-2 bg-white/10 border border-white/10 px-4 py-2 rounded-full text-sm text-gray-200">
+                <span>{badge.icon}</span>
+                <span>{badge.text}</span>
+              </div>
+            ))}
+          </div>
+          <a href="#request-form"
+            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition no-underline shadow-lg shadow-orange-500/30">
+            Submit Parts Request
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">How It Works</h2>
+            <p className="text-gray-400 text-sm mt-2">Simple, fast, and completely free</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { step: "01", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>, title: "Submit Request", desc: "Fill in your vehicle and part details. Takes less than 2 minutes." },
+              { step: "02", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>, title: "We Find Suppliers", desc: "We search our network of trusted Cape Town parts suppliers for you." },
+              { step: "03", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>, title: "Get Your Quote", desc: "We contact you via WhatsApp with the best price and availability." },
+            ].map((item, i) => (
+              <div key={i} className="relative bg-[#FAFAF9] border border-gray-100 rounded-2xl p-6">
+                <div className="absolute top-4 right-4 text-[11px] font-bold text-gray-200">{item.step}</div>
+                <div className="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 mb-4">
+                  {item.icon}
+                </div>
+                <h3 className="font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRUST BADGES ── */}
+      <section className="py-10 px-6 bg-orange-500">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
+          {[
+            { value: "500+", label: "Parts Sourced" },
+            { value: "9+", label: "Trusted Suppliers" },
+            { value: "Same Day", label: "Response Time" },
+            { value: "100%", label: "Free Service" },
+          ].map((stat, i) => (
+            <div key={i}>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-orange-100 text-sm mt-1">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── FORM SECTION ── */}
+      <section id="request-form" className="py-16 px-6 bg-[#FAFAF9]">
+        <div className="max-w-3xl mx-auto">
+
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Submit Your Parts Request</h2>
+            <p className="text-gray-400 text-sm mt-2">Fill in the form and we will find your part fast</p>
+          </div>
+
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 p-5 rounded-2xl mb-6 text-center">
+              <div className="text-2xl mb-2">✅</div>
+              <div className="font-bold text-lg">Request Submitted!</div>
+              <div className="text-sm mt-1 text-green-600">We will contact you via WhatsApp shortly with the best price.</div>
+            </div>
+          )}
+
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+
+            {/* Step indicator */}
+            <div className="flex border-b border-gray-100">
+              {[{ num: 1, label: "Your Details" }, { num: 2, label: "Vehicle Info" }, { num: 3, label: "Part Details" }].map((s) => (
+                <button key={s.num} onClick={() => setStep(s.num)}
+                  className={`flex-1 py-3.5 text-sm font-medium transition cursor-pointer border-none ${
+                    step === s.num
+                      ? "bg-orange-50 text-orange-600 border-b-2 border-orange-500"
+                      : "bg-white text-gray-400 hover:text-gray-600"
+                  }`}>
+                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs mr-1.5 ${step === s.num ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                    {s.num}
+                  </span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+
+              {/* Step 1 — Your Details */}
+              {step === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Full Name *</label>
+                      <input type="text" name="customer_name" placeholder="e.g. John Smith"
+                        value={formData.customer_name} onChange={handleChange}
+                        className={inputClass} required />
+                    </div>
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Phone Number *</label>
+                      <input type="text" name="phone_number" placeholder="e.g. 071 234 5678"
+                        value={formData.phone_number} onChange={handleChange}
+                        className={inputClass} required />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Email Address</label>
+                      <input type="email" name="email" placeholder="e.g. john@email.com"
+                        value={formData.email} onChange={handleChange} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Area in Cape Town</label>
+                      <input type="text" name="area" placeholder="e.g. Bellville, Parow..."
+                        value={formData.area} onChange={handleChange} className={inputClass} />
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setStep(2)}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-xl font-semibold text-sm transition cursor-pointer mt-2">
+                    Next: Vehicle Info →
+                  </button>
+                </div>
+              )}
+
+              {/* Step 2 — Vehicle Info */}
+              {step === 2 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Make</label>
+                      <input type="text" name="vehicle_make" placeholder="e.g. Toyota"
+                        value={formData.vehicle_make} onChange={handleChange} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Model</label>
+                      <input type="text" name="vehicle_model" placeholder="e.g. Corolla"
+                        value={formData.vehicle_model} onChange={handleChange} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Year</label>
+                      <input type="text" name="vehicle_year" placeholder="e.g. 2018"
+                        value={formData.vehicle_year} onChange={handleChange} className={inputClass} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">VIN Number</label>
+                      <input type="text" name="vin_number" placeholder="Optional"
+                        value={formData.vin_number} onChange={handleChange} className={inputClass} />
+                    </div>
+                    <div>
+                      <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Engine Size</label>
+                      <input type="text" name="engine_size" placeholder="e.g. 1.6, 2.0"
+                        value={formData.engine_size} onChange={handleChange} className={inputClass} />
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => setStep(1)}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl font-semibold text-sm transition cursor-pointer">
+                      ← Back
+                    </button>
+                    <button type="button" onClick={() => setStep(3)}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-xl font-semibold text-sm transition cursor-pointer">
+                      Next: Part Details →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3 — Part Details */}
+              {step === 3 && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Part Needed *</label>
+                    <input type="text" name="part_needed" placeholder="e.g. Front brake pads, alternator, headlight..."
+                      value={formData.part_needed} onChange={handleChange} className={inputClass} required />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Part Preference</label>
+                    <select name="part_preference" value={formData.part_preference} onChange={handleChange} className={inputClass}>
+                      <option value="">Select preference (optional)</option>
+                      <option>Quality Aftermarket Part</option>
+                      <option>OEM Equivalent Aftermarket Part</option>
+                      <option>Cheapest Reliable Option</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Extra Details</label>
+                    <textarea name="extra_details" placeholder="Any additional info that might help us find the right part..."
+                      value={formData.extra_details} onChange={handleChange}
+                      className={`${inputClass} h-24 resize-none`} />
+                  </div>
+                  <div>
+                    <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">Upload Photo (optional)</label>
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:border-orange-300 transition cursor-pointer"
+                      onClick={() => document.getElementById("photo-upload")?.click()}>
+                      {photo ? (
+                        <div className="flex items-center justify-center gap-3">
+                          <img src={URL.createObjectURL(photo)} alt="Preview" className="w-14 h-14 object-cover rounded-lg" />
+                          <div className="text-left">
+                            <p className="text-sm font-medium text-gray-700">{photo.name}</p>
+                            <p className="text-[12px] text-gray-400">Click to change</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2 text-gray-400">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                          </svg>
+                          <span className="text-sm">Click to upload a photo of the part or damage</span>
+                        </div>
+                      )}
+                    </div>
+                    <input id="photo-upload" type="file" accept="image/*" className="hidden"
+                      onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+                  </div>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => setStep(2)}
+                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3.5 rounded-xl font-semibold text-sm transition cursor-pointer">
+                      ← Back
+                    </button>
+                    <button type="submit" disabled={loading}
+                      className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white py-3.5 rounded-xl font-bold text-sm transition cursor-pointer">
+                      {loading ? "Submitting..." : "Submit Parts Request ✓"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </form>
+          </div>
+
+          <p className="text-center text-gray-400 text-xs mt-4">
+            We typically respond within 1–2 hours during business hours · Cape Town, South Africa
+          </p>
+        </div>
+      </section>
+
+      {/* ── WHY CHOOSE US ── */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 text-center tracking-tight mb-10">Why Cape Parts Finder?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {[
+              { icon: "⚡", title: "Fast Response", desc: "We typically respond within 1–2 hours with the best available price from our supplier network." },
+              { icon: "🛡", title: "Trusted Suppliers", desc: "All our suppliers are vetted and based in Cape Town. No scams, no middlemen markup surprises." },
+              { icon: "💰", title: "Best Price", desc: "We source from multiple suppliers to get you the most competitive price on quality parts." },
+              { icon: "📱", title: "WhatsApp Updates", desc: "Get real-time updates via WhatsApp at every step — from sourcing to delivery confirmation." },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-4 p-5 bg-[#FAFAF9] border border-gray-100 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-xl flex-shrink-0">
+                  {item.icon}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm mb-1">{item.title}</h3>
+                  <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="bg-gray-900 text-gray-400 py-10 px-6">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] bg-orange-500 flex items-center justify-center flex-shrink-0">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
               </svg>
             </div>
             <div>
-              <div className="font-bold text-[15px] text-gray-900 leading-tight">Cape Parts Finder</div>
-              <div className="text-[11px] text-gray-400">Admin Dashboard</div>
+              <div className="font-bold text-white text-sm">Cape Parts Finder</div>
+              <div className="text-xs text-gray-500">Cape Town, South Africa</div>
             </div>
           </div>
-
-          {/* Nav links */}
-          <div className="flex gap-1">
-            <a href="/admin"
-              className="px-4 py-1.5 rounded-lg text-sm no-underline font-semibold bg-orange-50 text-orange-600">
-              Requests
-            </a>
-            <a href="/suppliers"
-              className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50 font-normal">
-              Suppliers
-            </a>
-            <a href="/sales"
-              className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50 font-normal">
-              Sales
-            </a>
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
-            <button onClick={exportToCSV}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 text-[13px] font-medium hover:bg-gray-50 transition cursor-pointer">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Export CSV
-            </button>
-            <button onClick={fetchRequests} title="Refresh"
-              className="w-[34px] h-[34px] flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-            </button>
-            <button onClick={logout}
-              className="px-3.5 py-1.5 rounded-lg border border-red-100 bg-red-50 text-red-600 text-[13px] font-medium hover:bg-red-100 transition cursor-pointer">
-              Logout
-            </button>
-          </div>
-
+          <div className="text-sm text-center">Fast. Reliable. Local.</div>
+          <div className="text-xs">© 2026 Cape Parts Finder</div>
         </div>
-      </header>
+      </footer>
 
-      <div className="max-w-7xl mx-auto px-6 py-7">
-
-        {/* ── PAGE HEADER ── */}
-        <div className="mb-6">
-          <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Parts Requests</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage and track all incoming customer requests</p>
-        </div>
-
-        {/* ── STATS CARDS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
-          {[
-            { label: "Total Requests", value: counts.All,                          accent: "#F97316" },
-            { label: "New",            value: counts.New,                          accent: "#F97316" },
-            { label: "In Progress",    value: counts.Searching + counts.Quoted,    accent: "#3B82F6" },
-            { label: "Delivered",      value: counts.Delivered,                    accent: "#14B8A6" },
-          ].map((card, i) => (
-            <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: card.accent }} />
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{card.label}</p>
-              <p className="text-[38px] font-bold text-gray-900 leading-none mt-2 tracking-tight">{card.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── SEARCH + STATUS FILTER ── */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
-          <div className="flex flex-col lg:flex-row gap-3">
-            <input
-              type="text"
-              placeholder="Search by customer, vehicle or part..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-orange-300 bg-white text-gray-700 cursor-pointer"
-            >
-              <option value="All">All ({counts.All})</option>
-              <option value="New">New ({counts.New})</option>
-              <option value="Searching">Searching ({counts.Searching})</option>
-              <option value="Quoted">Quoted ({counts.Quoted})</option>
-              <option value="Ordered">Ordered ({counts.Ordered})</option>
-              <option value="Delivered">Delivered ({counts.Delivered})</option>
-              <option value="Closed">Closed ({counts.Closed})</option>
-            </select>
-          </div>
-
-          {/* Status pill filters */}
-          <div className="flex gap-1.5 flex-wrap mt-3">
-            {["All", ...STATUS_OPTIONS].map((s) => (
-              <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1 rounded-full text-[12px] transition-all cursor-pointer border ${
-                  statusFilter === s
-                    ? "border-orange-400 bg-orange-50 text-orange-600 font-semibold"
-                    : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-                }`}>
-                {s} ({s === "All" ? counts.All : counts[s as keyof typeof counts] ?? 0})
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ── REQUEST CARDS ── */}
-        <div className="space-y-4">
-          {filteredRequests.length === 0 && (
-            <div className="bg-white border border-gray-100 rounded-xl p-12 text-center text-gray-400 text-sm">
-              No requests found
-            </div>
-          )}
-
-          {filteredRequests.map((request) => {
-            const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
-            const initial = (request.customer_name || "?")[0].toUpperCase();
-
-            return (
-              <div key={request.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
-                {/* ── CARD HEADER ── */}
-                <div className="p-5 border-b border-gray-100">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-
-                    {/* Customer info */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-[15px] flex-shrink-0">
-                        {initial}
-                      </div>
-                      <div>
-                        <h2 className="text-[17px] font-bold text-gray-900">{request.customer_name}</h2>
-                        <p className="text-[12px] text-gray-400 mt-0.5">
-                          {new Date(request.created_at).toLocaleString("en-ZA")}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Status + Delete */}
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium"
-                        style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
-                        {request.status || "New"}
-                      </span>
-                      <select
-                        value={request.status || "New"}
-                        onChange={(e) => updateStatus(request.id, e.target.value)}
-                        disabled={updatingId === request.id}
-                        className="border border-gray-200 bg-white px-3 py-2 rounded-lg text-[13px] text-gray-700 outline-none cursor-pointer focus:border-orange-300"
-                      >
-                        {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
-                      </select>
-                      <button
-                        onClick={() => deleteRequest(request.id)}
-                        className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-3.5 py-2 rounded-lg text-[13px] font-medium transition cursor-pointer"
-                      >
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                        </svg>
-                        Delete
-                      </button>
-                    </div>
-
-                  </div>
-                </div>
-
-                {/* ── CARD BODY ── */}
-                <div className="p-5">
-                  <div className="grid lg:grid-cols-2 gap-6 text-sm">
-
-                    {/* Left column */}
-                    <div className="space-y-3">
-                      {[
-                        { label: "Phone",  value: request.phone_number },
-                        { label: "Email",  value: request.email },
-                        { label: "Area",   value: request.area },
-                        { label: "VIN",    value: request.vin_number },
-                        { label: "Engine", value: request.engine_size },
-                      ].map(({ label, value }) => (
-                        <div key={label}>
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Right column */}
-                    <div className="space-y-3">
-                      {[
-                        { label: "Vehicle",     value: `${request.vehicle_make} ${request.vehicle_model} ${request.vehicle_year}` },
-                        { label: "Part Needed", value: request.part_needed },
-                        { label: "Preference",  value: request.part_preference },
-                      ].map(({ label, value }) => (
-                        <div key={label}>
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                  </div>
-
-                  {/* Extra details */}
-                  {request.extra_details && (
-                    <div className="mt-5 bg-orange-50 border border-orange-100 rounded-xl p-4">
-                      <p className="text-[12px] font-semibold text-orange-700 mb-1">Extra Details</p>
-                      <p className="text-sm text-gray-700 leading-relaxed">{request.extra_details}</p>
-                    </div>
-                  )}
-
-                  {/* Action buttons */}
-                  <div className="mt-5 flex flex-wrap gap-2.5">
-                    <button
-                      onClick={() => router.push(`/quotes/${request.id}`)}
-                      className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer"
-                    >
-                      View Quotes
-                    </button>
-                    <button
-                      onClick={() => window.open("https://wa.me/" + request.phone_number.replace(/\D/g, ""))}
-                      className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
-                      </svg>
-                      WhatsApp
-                    </button>
-                    <button
-                      onClick={() => window.open("mailto:" + request.email)}
-                      className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer"
-                    >
-                      Email
-                    </button>
-                  </div>
-
-                  {/* Photo */}
-                  {request.photo_url && (
-                    <div className="mt-5">
-                      <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Uploaded Photo</p>
-                      <img
-                        src={request.photo_url}
-                        alt="Uploaded"
-                        className="w-72 rounded-2xl border border-gray-200 shadow-sm"
-                      />
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </main>
   );
 }
