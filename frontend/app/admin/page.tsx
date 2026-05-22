@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -108,7 +108,7 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF9]">
 
-      {/* ── TOP NAV ── */}
+      {/* â”€â”€ TOP NAV â”€â”€ */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
 
@@ -167,13 +167,13 @@ export default function AdminPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-7">
 
-        {/* ── PAGE HEADER ── */}
+        {/* â”€â”€ PAGE HEADER â”€â”€ */}
         <div className="mb-6">
           <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Parts Requests</h1>
           <p className="text-sm text-gray-400 mt-1">Manage and track all incoming customer requests</p>
         </div>
 
-        {/* ── STATS CARDS ── */}
+        {/* â”€â”€ STATS CARDS â”€â”€ */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
           {[
             { label: "Total Requests", value: counts.All,                          accent: "#F97316" },
@@ -189,7 +189,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* ── SEARCH + STATUS FILTER ── */}
+        {/* â”€â”€ SEARCH + STATUS FILTER â”€â”€ */}
         <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
           <div className="flex flex-col lg:flex-row gap-3">
             <input
@@ -229,7 +229,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* ── REQUEST CARDS ── */}
+        {/* â”€â”€ REQUEST CARDS â”€â”€ */}
         <div className="space-y-4">
           {filteredRequests.length === 0 && (
             <div className="bg-white border border-gray-100 rounded-xl p-12 text-center text-gray-400 text-sm">
@@ -244,7 +244,7 @@ export default function AdminPage() {
             return (
               <div key={request.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-                {/* ── CARD HEADER ── */}
+                {/* â”€â”€ CARD HEADER â”€â”€ */}
                 <div className="p-5 border-b border-gray-100">
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
@@ -290,7 +290,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                {/* ── CARD BODY ── */}
+                {/* â”€â”€ CARD BODY â”€â”€ */}
                 <div className="p-5">
                   <div className="grid lg:grid-cols-2 gap-6 text-sm">
 
@@ -305,7 +305,7 @@ export default function AdminPage() {
                       ].map(({ label, value }) => (
                         <div key={label}>
                           <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
+                          <p className="font-medium text-gray-900 mt-0.5">{value || "â€”"}</p>
                         </div>
                       ))}
                     </div>
@@ -319,7 +319,7 @@ export default function AdminPage() {
                       ].map(({ label, value }) => (
                         <div key={label}>
                           <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
+                          <p className="font-medium text-gray-900 mt-0.5">{value || "â€”"}</p>
                         </div>
                       ))}
                     </div>
@@ -381,3 +381,4 @@ export default function AdminPage() {
     </main>
   );
 }
+
