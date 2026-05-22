@@ -6,17 +6,12 @@ import { supabase } from "@/lib/supabase";
 
 export default function SalesPage() {
   const router = useRouter();
-
   const [sales, setSales] = useState<any[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-
+      if (!session) { router.push("/login"); return; }
       fetchSales();
       setAuthChecked(true);
     });
@@ -27,178 +22,141 @@ export default function SalesPage() {
       .from("sales")
       .select("*")
       .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
+    if (error) { console.error(error); return; }
     setSales(data || []);
   }
 
-  const totalRevenue = sales.reduce(
-    (sum, sale) => sum + Number(sale.selling_price || 0),
-    0
-  );
-
-  const totalProfit = sales.reduce(
-    (sum, sale) => sum + Number(sale.profit || 0),
-    0
-  );
-
-  const totalSales = sales.length;
-
-  const averageProfit =
-    totalSales > 0 ? totalProfit / totalSales : 0;
+  const totalRevenue  = sales.reduce((sum, s) => sum + Number(s.selling_price || 0), 0);
+  const totalProfit   = sales.reduce((sum, s) => sum + Number(s.profit || 0), 0);
+  const totalSales    = sales.length;
+  const averageProfit = totalSales > 0 ? totalProfit / totalSales : 0;
 
   if (!authChecked) {
     return (
-      <main className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <p className="text-white text-xl">Loading...</p>
+      <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center">
+        <div className="bg-white px-10 py-7 rounded-2xl border border-gray-100 flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+          <p className="text-gray-700 text-base font-medium">Loading...</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-100">
-      <header className="bg-black text-white px-8 py-4 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">
-            Cape Parts Finder - Sales Dashboard
-          </h1>
-          <p className="text-gray-400 text-sm">
-            Revenue, profit and completed sales
-          </p>
-        </div>
+    <main className="min-h-screen bg-[#FAFAF9]">
 
-        <div className="flex gap-3">
-          <button
-            onClick={() => router.push("/admin")}
-            className="bg-gray-700 px-4 py-2 rounded-xl text-sm"
-          >
-            Admin
-          </button>
-
-          <button
-            onClick={() => router.push("/suppliers")}
-            className="bg-gray-700 px-4 py-2 rounded-xl text-sm"
-          >
-            Suppliers
+      {/* ── TOP NAV ── */}
+      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-[10px] bg-orange-500 flex items-center justify-center flex-shrink-0">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+            </div>
+            <div>
+              <div className="font-bold text-[15px] text-gray-900 leading-tight">Cape Parts Finder</div>
+              <div className="text-[11px] text-gray-400">Admin Dashboard</div>
+            </div>
+          </div>
+          <div className="flex gap-1">
+            <a href="/admin"     className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50">Requests</a>
+            <a href="/suppliers" className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50">Suppliers</a>
+            <a href="/sales"     className="px-4 py-1.5 rounded-lg text-sm no-underline font-semibold bg-orange-50 text-orange-600">Sales</a>
+          </div>
+          <button onClick={fetchSales} title="Refresh"
+            className="w-[34px] h-[34px] flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition cursor-pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
           </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto px-6 py-7">
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <p className="text-sm text-gray-500 mb-1">
-              Total Revenue
-            </p>
-            <p className="text-3xl font-bold text-green-600">
-              R{totalRevenue.toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <p className="text-sm text-gray-500 mb-1">
-              Total Profit
-            </p>
-            <p className="text-3xl font-bold text-blue-600">
-              R{totalProfit.toFixed(2)}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <p className="text-sm text-gray-500 mb-1">
-              Total Sales
-            </p>
-            <p className="text-3xl font-bold text-purple-600">
-              {totalSales}
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl shadow p-6 text-center">
-            <p className="text-sm text-gray-500 mb-1">
-              Average Profit
-            </p>
-            <p className="text-3xl font-bold text-orange-600">
-              R{averageProfit.toFixed(2)}
-            </p>
-          </div>
-
+        {/* ── PAGE HEADER ── */}
+        <div className="mb-6">
+          <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Sales Dashboard</h1>
+          <p className="text-sm text-gray-400 mt-1">Revenue, profit and completed sales overview</p>
         </div>
 
-        <h2 className="text-2xl font-bold mb-4">
-          Sales History
-        </h2>
+        {/* ── STATS CARDS ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-8">
+          {[
+            { label: "Total Revenue",  value: `R${totalRevenue.toFixed(2)}`,  accent: "#22C55E", color: "#15803D" },
+            { label: "Total Profit",   value: `R${totalProfit.toFixed(2)}`,   accent: "#3B82F6", color: "#1D4ED8" },
+            { label: "Total Sales",    value: String(totalSales),             accent: "#A855F7", color: "#7E22CE" },
+            { label: "Avg Profit",     value: `R${averageProfit.toFixed(2)}`, accent: "#F97316", color: "#C2410C" },
+          ].map((card, i) => (
+            <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: card.accent }} />
+              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{card.label}</p>
+              <p className="text-[30px] font-bold leading-none mt-2 tracking-tight" style={{ color: card.color }}>{card.value}</p>
+            </div>
+          ))}
+        </div>
 
-        <div className="space-y-4">
+        {/* ── SALES HISTORY ── */}
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-[17px] font-bold text-gray-900">Sales History</h2>
+          <span className="text-[12px] text-gray-400">{totalSales} {totalSales === 1 ? "sale" : "sales"} total</span>
+        </div>
 
+        <div className="space-y-3">
           {sales.length === 0 && (
-            <div className="bg-white rounded-2xl shadow p-8 text-center text-gray-500">
-              No sales yet.
-              Convert supplier quotes into sales to see them here.
+            <div className="bg-white border border-gray-100 rounded-xl p-12 text-center">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <p className="text-gray-500 font-medium text-sm">No sales yet</p>
+              <p className="text-gray-400 text-[12px] mt-1">Convert supplier quotes into sales to see them here</p>
             </div>
           )}
 
           {sales.map((sale) => (
-            <div
-              key={sale.id}
-              className="bg-white rounded-2xl shadow border p-6"
-            >
-              <div className="flex justify-between items-start">
+            <div key={sale.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
 
-                <div>
-                  <h3 className="text-xl font-bold">
-                    {sale.customer_name}
-                  </h3>
-
-                  <p className="text-xs text-gray-400 mb-4">
-                    {new Date(sale.created_at).toLocaleString("en-ZA")}
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-xs text-gray-500">
-                        Supplier Cost
-                      </p>
-                      <p className="font-bold text-red-500">
-                        R{Number(sale.supplier_price).toFixed(2)}
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-xs text-gray-500">
-                        Selling Price
-                      </p>
-                      <p className="font-bold text-green-600">
-                        R{Number(sale.selling_price).toFixed(2)}
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl p-4">
-                      <p className="text-xs text-gray-500">
-                        Profit
-                      </p>
-                      <p className="font-bold text-blue-600">
-                        R{Number(sale.profit).toFixed(2)}
-                      </p>
-                    </div>
-
+              {/* Sale header */}
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 font-bold text-[15px] flex-shrink-0">
+                    {(sale.customer_name || "?")[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[15px] text-gray-900">{sale.customer_name}</h3>
+                    <p className="text-[12px] text-gray-400 mt-0.5">
+                      {new Date(sale.created_at).toLocaleString("en-ZA")}
+                    </p>
                   </div>
                 </div>
-
-                <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-semibold">
-                  {sale.status}
+                <span className="bg-green-50 text-green-700 border border-green-100 px-3 py-1 rounded-full text-[12px] font-semibold">
+                  {sale.status || "Completed"}
                 </span>
-
               </div>
+
+              {/* Sale body */}
+              <div className="p-5">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                    <p className="text-[11px] font-semibold text-red-400 uppercase tracking-wide">Supplier Cost</p>
+                    <p className="font-bold text-red-600 text-[18px] mt-1">R{Number(sale.supplier_price).toFixed(2)}</p>
+                  </div>
+                  <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                    <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wide">Selling Price</p>
+                    <p className="font-bold text-green-700 text-[18px] mt-1">R{Number(sale.selling_price).toFixed(2)}</p>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <p className="text-[11px] font-semibold text-blue-500 uppercase tracking-wide">Profit</p>
+                    <p className="font-bold text-blue-700 text-[18px] mt-1">R{Number(sale.profit).toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           ))}
-
         </div>
       </div>
     </main>
