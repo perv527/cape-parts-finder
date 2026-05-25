@@ -70,10 +70,10 @@ export default function QuotesPage() {
     setUploadingQuote(true);
     try {
       let imageUrl = null;
-      if (quoteImage) imageUrl = await uploadImage(quoteImage, "quote-requests");
+      try { if (quoteImage) imageUrl = await uploadImage(quoteImage, "quote-requests"); } catch(e) { console.error(e); }
 
       const numericPrice = Number(price);
-      const sellPrice = (numericPrice * 1.2).toFixed(2);
+      const sellPrice = (numericPrice * (1 + Number(markup) / 100)).toFixed(2);
 
       const { error } = await supabase.from("supplier_quotes").insert([{
         request_id: requestId,
@@ -90,8 +90,8 @@ export default function QuotesPage() {
 
       setPrice(""); setSupplierId(""); setNote(""); setQuoteImage(null);
       fetchQuotes(); fetchRequest();
-    } catch (err) {
-      alert("Failed to upload image");
+    } catch (err: any) {
+      alert("Error: " + err.message);
     }
     setUploadingQuote(false);
   }
@@ -536,6 +536,8 @@ export default function QuotesPage() {
     </main>
   );
 }
+
+
 
 
 
