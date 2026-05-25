@@ -420,17 +420,10 @@ function SuppliersContent() {
     </main>
   );
 }
-function SuppliersContent() {
-  return (
-    <Suspense fallback={<main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" /></main>}>
-      <SuppliersContent />
-    </Suspense>
-  );
-}
 
 export default function SuppliersPage() {
   return (
-    <Suspense fallback={<div/>}>
+    <Suspense fallback={<div className='min-h-screen bg-[#FAFAF9]' />}>
       <SuppliersContent />
     </Suspense>
   );
