@@ -84,30 +84,7 @@ function SuppliersContent() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
-  async function sendQuoteToSupplier() {
-    // image is optional
-    setSendingQuote(true);
-    try {
-      const fileExt = quoteImage.name.split(".").pop();
-      const fileName = `quote-${quoteModal.id}-${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from("quote-images").upload(fileName, quoteImage);
-      if (uploadError) throw uploadError;
-      const { data: { publicUrl } } = supabase.storage.from("quote-images").getPublicUrl(fileName);
-      await supabase.from('supplier_quotes').insert([{
-        supplier_id: quoteModal.id,
-        notes: quoteNote,
-        status: 'sent',
-        quote_image_url: publicUrl || null,
-      }]);
-      setQuoteSuccess(true);
-      setTimeout(() => {
-        setQuoteModal(null); setQuoteImage(null);
-        setQuoteNote(""); setQuoteSuccess(false);
-      }, 2000);
-    } catch (err) {
-      alert("Failed to send quote. Please try again.");
-    }
-    setSendingQuote(false);
+  async function sendQuoteToSupplier() { setSendingQuote(true); try { let imageUrl = null; if (quoteImage) { const ext = quoteImage.name.split(".").pop(); const fn = "quote-"+quoteModal.id+"-"+Date.now()+"."+ext; const {error:ue} = await supabase.storage.from("quote-images").upload(fn, quoteImage); if (!ue) { const {data:{publicUrl}} = supabase.storage.from("quote-images").getPublicUrl(fn); imageUrl = publicUrl; } } const {error} = await supabase.from("supplier_quotes").insert([{supplier_id:quoteModal.id,notes:quoteNote,status:"sent",quote_image_url:imageUrl}]); if(error) throw error; setQuoteSuccess(true); setTimeout(()=>{setQuoteModal(null);setQuoteImage(null);setQuoteNote("");setQuoteSuccess(false);},2000); } catch(err) { alert("Failed: "+err.message); } setSendingQuote(false); }
   }
 
   function openQuoteModal(supplier: any) {
