@@ -1,20 +1,11 @@
-﻿"use client";
-// @ts-nocheck
+"use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function SuppliersPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const requestId = searchParams.get("requestId");
-  const requestPart = searchParams.get("part") || "";
-  const requestMake = searchParams.get("make") || "";
-  const requestModel = searchParams.get("model") || "";
-  const requestYear = searchParams.get("year") || "";
-  const requestPhoto = searchParams.get("photo") || "";
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -138,7 +129,7 @@ export default function SuppliersPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF9]">
 
-      {/* â”€â”€ TOP NAV â”€â”€ */}
+      {/* ── TOP NAV ── */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -171,13 +162,13 @@ export default function SuppliersPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-7">
 
-        {/* â”€â”€ PAGE HEADER â”€â”€ */}
+        {/* ── PAGE HEADER ── */}
         <div className="mb-6">
           <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Suppliers</h1>
           <p className="text-sm text-gray-400 mt-1">Manage your supplier network and send quote requests</p>
         </div>
 
-        {/* â”€â”€ STATS â”€â”€ */}
+        {/* ── STATS ── */}
         <div className="grid grid-cols-3 gap-3.5 mb-6">
           {[
             { label: "Total Suppliers", value: suppliers.length,              accent: "#F97316" },
@@ -192,7 +183,7 @@ export default function SuppliersPage() {
           ))}
         </div>
 
-        {/* â”€â”€ SEARCH â”€â”€ */}
+        {/* ── SEARCH ── */}
         <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -204,12 +195,12 @@ export default function SuppliersPage() {
           </div>
         </div>
 
-        {/* â”€â”€ ADD / EDIT FORM â”€â”€ */}
+        {/* ── ADD / EDIT FORM ── */}
         {showForm && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6 shadow-sm">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-[17px] font-bold text-gray-900">{editingId ? "Edit Supplier" : "Add New Supplier"}</h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">Ã—</button>
+              <button onClick={resetForm} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               {[
@@ -239,7 +230,7 @@ export default function SuppliersPage() {
           </div>
         )}
 
-        {/* â”€â”€ SUPPLIER CARDS â”€â”€ */}
+        {/* ── SUPPLIER CARDS ── */}
         <div className="grid xl:grid-cols-2 gap-4">
           {filteredSuppliers.map((supplier) => (
             <div key={supplier.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -276,7 +267,7 @@ export default function SuppliersPage() {
                   ].map(({ label, value }) => (
                     <div key={label}>
                       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                      <p className="font-medium text-gray-900 mt-0.5 text-[13px]">{value || "â€”"}</p>
+                      <p className="font-medium text-gray-900 mt-0.5 text-[13px]">{value || "—"}</p>
                     </div>
                   ))}
                 </div>
@@ -306,7 +297,7 @@ export default function SuppliersPage() {
                 </div>
 
                 {/* Send Quote button */}
-                <button onClick={() => { setQuoteModal(supplier); setQuoteImage(null); setQuoteNote(requestId ? `Part needed: ${requestPart}\nVehicle: ${requestYear} ${requestMake} ${requestModel}` : ""); setQuoteSuccess(false); }}
+                <button onClick={() => { setQuoteModal(supplier); setQuoteImage(null); setQuoteNote(""); setQuoteSuccess(false); }}
                   className="w-full flex items-center justify-center gap-2 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-600 py-2.5 rounded-lg text-[13px] font-semibold transition cursor-pointer mb-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
@@ -324,7 +315,7 @@ export default function SuppliersPage() {
         </div>
       </div>
 
-      {/* â”€â”€ QUOTE MODAL â”€â”€ */}
+      {/* ── QUOTE MODAL ── */}
       {quoteModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
@@ -333,7 +324,7 @@ export default function SuppliersPage() {
                 <h2 className="font-bold text-[16px] text-gray-900">Send Quote Request</h2>
                 <p className="text-[12px] text-gray-400 mt-0.5">To: {quoteModal.name}</p>
               </div>
-              <button onClick={() => setQuoteModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">Ã—</button>
+              <button onClick={() => setQuoteModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
             <div className="p-5 space-y-4">
@@ -387,14 +378,6 @@ export default function SuppliersPage() {
                       rows={3}
                       className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-orange-300 resize-none" />
                   </div>
-                  {requestPhoto && (
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                      <p className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide mb-2">Customer Photo</p>
-                      <img src={requestPhoto} alt="Customer part photo" className="w-full max-h-40 object-contain rounded-lg cursor-pointer"
-                        onClick={() => window.open(requestPhoto)} />
-                    </div>
-                  )}
-
 
                   {/* Supplier contact info */}
                   <div className="bg-orange-50 border border-orange-100 rounded-xl p-3">
@@ -423,7 +406,3 @@ export default function SuppliersPage() {
     </main>
   );
 }
-
-
-
-
