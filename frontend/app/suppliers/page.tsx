@@ -97,6 +97,7 @@ function SuppliersContent() {
         supplier_id: quoteModal.id,
         notes: quoteNote,
         status: 'sent',
+        quote_image_url: publicUrl || null,
       }]);
       setQuoteSuccess(true);
       setTimeout(() => {
@@ -476,6 +477,7 @@ export default function SuppliersPage() {
     </Suspense>
   );
 }
+
 
 
 
