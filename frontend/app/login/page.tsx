@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -15,12 +14,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError("Invalid email or password. Please try again.");
       setLoading(false);
@@ -30,47 +24,83 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 flex items-center justify-center p-6">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center p-6">
 
+      {/* Background accent */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-orange-500 opacity-5" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-orange-500 opacity-5" />
+      </div>
+
+      <div className="w-full max-w-md relative">
+
+        {/* Logo */}
         <div className="text-center mb-8">
-          <span className="text-5xl">🔧</span>
-          <h1 className="text-2xl font-bold mt-3">Cape Parts Finder</h1>
-          <p className="text-gray-500 text-sm mt-1">Admin Login</p>
+          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Cape Parts Finder</h1>
+          <p className="text-gray-400 text-sm mt-1">Sign in to your admin dashboard</p>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-600 p-3 rounded-xl mb-4 text-sm text-center">
-            {error}
-          </div>
-        )}
+        {/* Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-300 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-black"
-            required
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-xl font-bold text-lg hover:bg-gray-800 transition disabled:bg-gray-400"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          {error && (
+            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-5 text-sm text-center">
+              {error}
+            </div>
+          )}
 
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="admin@capepartsfinder.co.za"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-gray-200 px-4 py-3 rounded-xl text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-gray-200 px-4 py-3 rounded-xl text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white py-3 rounded-xl font-semibold text-sm transition cursor-pointer mt-2"
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : "Sign In"}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-gray-400 text-xs mt-6">
+          Cape Parts Finder · Admin Portal · Cape Town
+        </p>
       </div>
     </main>
   );
