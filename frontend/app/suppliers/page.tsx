@@ -5,7 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 function SuppliersContent() {
-  const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const requestId = searchParams.get('requestId');
+  const requestPart = searchParams.get('part') || '';
+  const requestMake = searchParams.get('make') || '';
+  const requestModel = searchParams.get('model') || '';
+  const requestYear = searchParams.get('year') || '';
+  const requestPhoto = searchParams.get('photo') || '';
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestId");
   const requestPart = searchParams.get("part") || "";
@@ -413,9 +420,17 @@ function SuppliersContent() {
     </main>
   );
 }
-export default function SuppliersPage() {
+function SuppliersContent() {
   return (
     <Suspense fallback={<main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" /></main>}>
+      <SuppliersContent />
+    </Suspense>
+  );
+}
+
+export default function SuppliersPage() {
+  return (
+    <Suspense fallback={<div/>}>
       <SuppliersContent />
     </Suspense>
   );
