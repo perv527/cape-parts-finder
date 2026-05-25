@@ -93,13 +93,10 @@ function SuppliersContent() {
       const { error: uploadError } = await supabase.storage.from("quote-images").upload(fileName, quoteImage);
       if (uploadError) throw uploadError;
       const { data: { publicUrl } } = supabase.storage.from("quote-images").getPublicUrl(fileName);
-      await supabase.from("supplier_quotes").insert([{
+      await supabase.from('supplier_quotes').insert([{
         supplier_id: quoteModal.id,
-        supplier_name: quoteModal.name,
-        supplier_whatsapp: quoteModal.whatsapp_number,
-        image_url: publicUrl,
-        note: quoteNote,
-        status: "sent",
+        notes: quoteNote,
+        status: 'sent',
       }]);
       setQuoteSuccess(true);
       setTimeout(() => {
@@ -479,6 +476,7 @@ export default function SuppliersPage() {
     </Suspense>
   );
 }
+
 
 
 
