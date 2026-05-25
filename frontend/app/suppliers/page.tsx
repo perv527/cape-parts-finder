@@ -5,14 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 function SuppliersContent() {
-
-  const searchParams = useSearchParams();
-  const requestId = searchParams.get('requestId');
-  const requestPart = searchParams.get('part') || '';
-  const requestMake = searchParams.get('make') || '';
-  const requestModel = searchParams.get('model') || '';
-  const requestYear = searchParams.get('year') || '';
-  const requestPhoto = searchParams.get('photo') || '';
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestId");
   const requestPart = searchParams.get("part") || "";
