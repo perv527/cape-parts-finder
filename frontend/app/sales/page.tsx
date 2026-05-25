@@ -112,6 +112,19 @@ export default function SalesPage() {
         </div>
 
         {/* â”€â”€ STATS CARDS â”€â”€ */}
+        <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5 flex flex-wrap items-center gap-2">
+          {["today","week","month","year","all"].map(f => (
+            <button key={f} onClick={() => setDateFilter(f)}
+              className={"px-3 py-1.5 rounded-full text-[13px] font-medium border cursor-pointer " + (dateFilter===f ? "bg-orange-50 border-orange-400 text-orange-600" : "bg-white border-gray-200 text-gray-500")}>
+              {f==="today"?"Today":f==="week"?"This Week":f==="month"?"This Month":f==="year"?"This Year":"All Time"}
+            </button>
+          ))}
+          <div className="flex items-center gap-2 ml-auto">
+            <input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-[13px]" />
+            <span className="text-gray-400 text-sm">to</span>
+            <input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-1.5 text-[13px]" />
+          </div>
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-8">
           {[
             { label: "Total Revenue",  value: `R${totalRevenue.toFixed(2)}`,  accent: "#22C55E", color: "#15803D" },
@@ -192,6 +205,7 @@ export default function SalesPage() {
     </main>
   );
 }
+
 
 
 
