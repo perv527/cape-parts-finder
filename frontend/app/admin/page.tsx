@@ -337,13 +337,13 @@ export default function AdminPage() {
                   {/* Action buttons */}
                   <div className="mt-5 flex flex-wrap gap-2.5">
                     <button
-                      onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}`)}
+                      onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
                       className="w-full bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold transition cursor-pointer mb-1"
                     >
                       🔍 Request Supplier Quote
                     </button>
                     <button
-                      onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}`)}
+                      onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
                       className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer"
                     >
                       Request Supplier Quote
@@ -393,6 +393,7 @@ export default function AdminPage() {
     </main>
   );
 }
+
 
 
 

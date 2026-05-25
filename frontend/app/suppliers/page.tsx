@@ -13,6 +13,7 @@ function SuppliersContent() {
   const requestModel = searchParams.get("model") || "";
   const requestYear = searchParams.get("year") || "";
   const requestPhoto = searchParams.get("photo") || "";
+  const requestVin = searchParams.get("vin") || "";
 
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
@@ -117,7 +118,7 @@ function SuppliersContent() {
     setQuoteSuccess(false);
     // Pre-fill note with request details if coming from admin
     if (requestId) {
-      setQuoteNote(`Part needed: ${requestPart}\nVehicle: ${requestYear} ${requestMake} ${requestModel}`);
+      setQuoteNote(`Part needed: ${requestPart}\nVehicle: ${requestYear} ${requestMake} ${requestModel}${requestVin ? "\nVIN: "+requestVin : ""}`);
     } else {
       setQuoteNote("");
     }
@@ -192,7 +193,7 @@ function SuppliersContent() {
             <div className="flex-1">
               <p className="text-[13px] font-bold text-orange-700">Active Customer Request — Click "Send Quote Request" on any supplier below</p>
               <p className="text-[13px] text-orange-600 mt-1">
-                Part: <strong>{requestPart}</strong> · Vehicle: <strong>{requestYear} {requestMake} {requestModel}</strong>
+                Part: <strong>{requestPart}</strong> · Vehicle: <strong>{requestYear} {requestMake} {requestModel}</strong>{requestVin && <> · VIN: <strong>{requestVin}</strong></>}
               </p>
               {requestPhoto && (
                 <img src={requestPhoto} alt="Customer photo" className="w-20 h-20 object-cover rounded-lg border border-orange-200 mt-2 cursor-pointer"
@@ -478,3 +479,4 @@ export default function SuppliersPage() {
     </Suspense>
   );
 }
+
