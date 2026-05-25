@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-function SuppliersContent() {
+export default function SuppliersPage() {
   const router = useRouter();
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
@@ -129,7 +129,7 @@ function SuppliersContent() {
   return (
     <main className="min-h-screen bg-[#FAFAF9]">
 
-      {/* â”€â”€ TOP NAV â”€â”€ */}
+      {/* ── TOP NAV ── */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -162,13 +162,13 @@ function SuppliersContent() {
 
       <div className="max-w-7xl mx-auto px-6 py-7">
 
-        {/* â”€â”€ PAGE HEADER â”€â”€ */}
+        {/* ── PAGE HEADER ── */}
         <div className="mb-6">
           <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Suppliers</h1>
           <p className="text-sm text-gray-400 mt-1">Manage your supplier network and send quote requests</p>
         </div>
 
-        {/* â”€â”€ STATS â”€â”€ */}
+        {/* ── STATS ── */}
         <div className="grid grid-cols-3 gap-3.5 mb-6">
           {[
             { label: "Total Suppliers", value: suppliers.length,              accent: "#F97316" },
@@ -183,7 +183,7 @@ function SuppliersContent() {
           ))}
         </div>
 
-        {/* â”€â”€ SEARCH â”€â”€ */}
+        {/* ── SEARCH ── */}
         <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
           <div className="relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -195,12 +195,12 @@ function SuppliersContent() {
           </div>
         </div>
 
-        {/* â”€â”€ ADD / EDIT FORM â”€â”€ */}
+        {/* ── ADD / EDIT FORM ── */}
         {showForm && (
           <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6 shadow-sm">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-[17px] font-bold text-gray-900">{editingId ? "Edit Supplier" : "Add New Supplier"}</h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">Ã—</button>
+              <button onClick={resetForm} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               {[
@@ -230,7 +230,7 @@ function SuppliersContent() {
           </div>
         )}
 
-        {/* â”€â”€ SUPPLIER CARDS â”€â”€ */}
+        {/* ── SUPPLIER CARDS ── */}
         <div className="grid xl:grid-cols-2 gap-4">
           {filteredSuppliers.map((supplier) => (
             <div key={supplier.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -267,7 +267,7 @@ function SuppliersContent() {
                   ].map(({ label, value }) => (
                     <div key={label}>
                       <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                      <p className="font-medium text-gray-900 mt-0.5 text-[13px]">{value || "â€”"}</p>
+                      <p className="font-medium text-gray-900 mt-0.5 text-[13px]">{value || "—"}</p>
                     </div>
                   ))}
                 </div>
@@ -315,7 +315,7 @@ function SuppliersContent() {
         </div>
       </div>
 
-      {/* â”€â”€ QUOTE MODAL â”€â”€ */}
+      {/* ── QUOTE MODAL ── */}
       {quoteModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
@@ -324,7 +324,7 @@ function SuppliersContent() {
                 <h2 className="font-bold text-[16px] text-gray-900">Send Quote Request</h2>
                 <p className="text-[12px] text-gray-400 mt-0.5">To: {quoteModal.name}</p>
               </div>
-              <button onClick={() => setQuoteModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">Ã—</button>
+              <button onClick={() => setQuoteModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
             <div className="p-5 space-y-4">
@@ -404,13 +404,5 @@ function SuppliersContent() {
       )}
 
     </main>
-  );
-}
-
-export default function SuppliersPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAFAF9] flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" /></div>}>
-      <SuppliersContent />
-    </Suspense>
   );
 }
