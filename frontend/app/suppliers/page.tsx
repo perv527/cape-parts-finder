@@ -85,7 +85,6 @@ function SuppliersContent() {
   }
 
   async function sendQuoteToSupplier() { setSendingQuote(true); try { let imageUrl = null; if (quoteImage) { const ext = quoteImage.name.split(".").pop(); const fn = "quote-"+quoteModal.id+"-"+Date.now()+"."+ext; const {error:ue} = await supabase.storage.from("quote-images").upload(fn, quoteImage); if (!ue) { const {data:{publicUrl}} = supabase.storage.from("quote-images").getPublicUrl(fn); imageUrl = publicUrl; } } const {error} = await supabase.from("supplier_quotes").insert([{supplier_id:quoteModal.id,notes:quoteNote,status:"sent",quote_image_url:imageUrl}]); if(error) throw error; setQuoteSuccess(true); setTimeout(()=>{setQuoteModal(null);setQuoteImage(null);setQuoteNote("");setQuoteSuccess(false);},2000); } catch(err) { alert("Failed: "+err.message); } setSendingQuote(false); }
-  }
 
   function openQuoteModal(supplier: any) {
     setQuoteModal(supplier);
