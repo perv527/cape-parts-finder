@@ -22,6 +22,22 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [authChecked, setAuthChecked] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [templateModal, setTemplateModal] = useState<any>(null);
+
+  function getWhatsAppMessage(request: any, template: string) {
+    const name = request.customer_name || "there";
+    const part = request.part_needed || "part";
+    const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
+    const messages: Record<string, string> = {
+      new: `Hi ${name}, thanks for your request! We received your inquiry for a ${part} for your ${vehicle}. We are searching our supplier network and will get back to you shortly.\n\nCape Parts Finder`,
+      searching: `Hi ${name}, just an update - we are actively searching for your ${part} for your ${vehicle}. We have multiple suppliers checking stock right now.\n\nCape Parts Finder`,
+      quoted: `Hi ${name}, great news! We found your ${part} for your ${vehicle}. Please reply and we will send you the price and details.\n\nCape Parts Finder`,
+      ordered: `Hi ${name}, your ${part} has been ordered and is on its way! We will update you once ready for delivery.\n\nCape Parts Finder`,
+      delivered: `Hi ${name}, your ${part} has been delivered successfully. Thank you for using Cape Parts Finder!\n\nCape Parts Finder`,
+      followup: `Hi ${name}, just checking in on your ${part} request for your ${vehicle}. Can we help you with anything?\n\nCape Parts Finder`,
+    };
+    return messages[template] || messages.new;
+  }
 
   useEffect(() => { checkAuth(); }, []);
 
@@ -101,6 +117,39 @@ export default function AdminPage() {
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           <p className="text-gray-700 text-base font-medium">Loading Dashboard...</p>
         </div>
+
+      {/* WHATSAPP TEMPLATE MODAL */}
+      {templateModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-[16px] text-gray-900">WhatsApp Templates</h2>
+                <p className="text-[12px] text-gray-400 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
+              </div>
+              <button onClick={() => setTemplateModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">x</button>
+            </div>
+            <div className="p-5 space-y-2">
+              {[
+                { key: "new", label: "New Request", color: "orange" },
+                { key: "searching", label: "Searching for Part", color: "blue" },
+                { key: "quoted", label: "Quote Ready", color: "green" },
+                { key: "ordered", label: "Part Ordered", color: "purple" },
+                { key: "delivered", label: "Part Delivered", color: "teal" },
+                { key: "followup", label: "Follow Up", color: "gray" },
+              ].map((t) => (
+                <button key={t.key}
+                  onClick={() => { const msg = getWhatsAppMessage(templateModal, t.key); const phone = templateModal.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`); setTemplateModal(null); }}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-gray-100 hover:border-orange-300 hover:bg-orange-50 transition cursor-pointer">
+                  <div className="font-semibold text-[13px] text-gray-900">{t.label}</div>
+                  <div className="text-[12px] text-gray-400 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       </main>
     );
   }
@@ -354,8 +403,12 @@ export default function AdminPage() {
                     >
                       View Quotes
                     </button>
-                    <button
-                      onClick={() => window.open("https://wa.me/" + request.phone_number.replace(/\D/g, ""))}
+                    <button onClick={() => setTemplateModal(request)}
+                      className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                      WhatsApp
+                    </button>
+                    <button onClick={() => window.open("https://wa.me/") + request.phone_number.replace(/\D/g, ""))}
                       className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366">
@@ -390,9 +443,45 @@ export default function AdminPage() {
           })}
         </div>
       </div>
+
+      {/* WHATSAPP TEMPLATE MODAL */}
+      {templateModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="font-bold text-[16px] text-gray-900">WhatsApp Templates</h2>
+                <p className="text-[12px] text-gray-400 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
+              </div>
+              <button onClick={() => setTemplateModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">x</button>
+            </div>
+            <div className="p-5 space-y-2">
+              {[
+                { key: "new", label: "New Request", color: "orange" },
+                { key: "searching", label: "Searching for Part", color: "blue" },
+                { key: "quoted", label: "Quote Ready", color: "green" },
+                { key: "ordered", label: "Part Ordered", color: "purple" },
+                { key: "delivered", label: "Part Delivered", color: "teal" },
+                { key: "followup", label: "Follow Up", color: "gray" },
+              ].map((t) => (
+                <button key={t.key}
+                  onClick={() => { const msg = getWhatsAppMessage(templateModal, t.key); const phone = templateModal.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`); setTemplateModal(null); }}
+                  className="w-full text-left px-4 py-3 rounded-xl border border-gray-100 hover:border-orange-300 hover:bg-orange-50 transition cursor-pointer">
+                  <div className="font-semibold text-[13px] text-gray-900">{t.label}</div>
+                  <div className="text-[12px] text-gray-400 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
+
+
+
 
 
 
