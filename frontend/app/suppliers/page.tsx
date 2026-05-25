@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 function SuppliersContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const requestId = searchParams.get("requestId");
   const requestPart = searchParams.get("part") || "";
@@ -420,3 +421,4 @@ export default function SuppliersPage() {
     </Suspense>
   );
 }
+
