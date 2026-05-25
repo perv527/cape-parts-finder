@@ -85,7 +85,7 @@ function SuppliersContent() {
   }
 
   async function sendQuoteToSupplier() {
-    if (!quoteImage) { alert("Please attach an image first"); return; }
+    // image is optional
     setSendingQuote(true);
     try {
       const fileExt = quoteImage.name.split(".").pop();
@@ -446,7 +446,7 @@ function SuppliersContent() {
                   </div>
 
                   <div className="flex gap-3 pt-1">
-                    <button onClick={sendQuoteToSupplier} disabled={sendingQuote || !quoteImage}
+                    <button onClick={sendQuoteToSupplier} disabled={sendingQuote}
                       className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-200 text-white py-2.5 rounded-lg text-[13px] font-semibold transition cursor-pointer">
                       {sendingQuote ? "Saving..." : "Save & Send via WhatsApp"}
                     </button>
@@ -479,4 +479,6 @@ export default function SuppliersPage() {
     </Suspense>
   );
 }
+
+
 
