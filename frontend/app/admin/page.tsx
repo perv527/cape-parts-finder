@@ -25,6 +25,7 @@ export default function AdminPage() {
   const [templateModal, setTemplateModal] = useState<any>(null);
 
   const [savingNote, setSavingNote] = useState<number | null>(null);
+  const [notifyModal, setNotifyModal] = useState<any>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
 
   async function saveNote(id: number) {
@@ -456,6 +457,7 @@ export default function AdminPage() {
     </main>
   );
 }
+
 
 
 
