@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -71,7 +71,7 @@ export default function Home() {
             Request received for <span className="text-orange-400 font-semibold">{formData.part_needed}</span>. We'll WhatsApp you on <span className="text-white font-semibold">{formData.phone_number}</span> shortly.
           </p>
           <button onClick={() => { setSuccess(false); setShowForm(false); setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "" }); setPhoto(null); }}
-            className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">Submit another →</button>
+            className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">Submit another â†’</button>
         </div>
       </main>
     );
@@ -104,7 +104,7 @@ export default function Home() {
           <div className="max-w-lg mx-auto px-4 py-8 pb-20">
             <div className="mb-7">
               <h2 className="text-[28px] font-black text-white tracking-tight">Request a Part</h2>
-              <p className="text-gray-500 text-sm mt-1">Fill in below — we'll WhatsApp you a quote fast.</p>
+              <p className="text-gray-500 text-sm mt-1">Fill in below â€” we'll WhatsApp you a quote fast.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -162,7 +162,7 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-                <textarea name="extra_details" placeholder="Extra details — colour, side, condition (optional)"
+                <textarea name="extra_details" placeholder="Extra details â€” colour, side, condition (optional)"
                   value={formData.extra_details} onChange={handleChange} rows={2}
                   className={`${inputClass} ${inputFocusStyle} resize-none`} style={inputStyle} />
                 <div>
@@ -213,21 +213,21 @@ export default function Home() {
             </div>
             <span className="font-bold text-white text-[15px] tracking-tight">Cape Parts Finder</span>
           </div>
-          <a href="/login" className="text-[13px] text-gray-500 hover:text-gray-300 transition no-underline px-3.5 py-1.5 rounded-lg" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>Admin</a>
+          
         </nav>
 
         {/* Hero */}
         <div className="max-w-6xl mx-auto px-6 pt-16 pb-8 lg:pt-24">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold mb-8" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-            Serving Cape Town · Fast Turnaround
+            Serving Cape Town Â· Fast Turnaround
           </div>
           <h1 className="text-[52px] lg:text-[72px] font-black leading-[1.0] tracking-tight mb-6 text-white">
             Find any car part<br />
             <span style={{ background: "linear-gradient(90deg, #f97316, #fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>fast in Cape Town.</span>
           </h1>
           <p className="text-gray-400 text-[17px] leading-relaxed max-w-xl mb-10">
-            We source parts from our trusted supplier network and deliver a quote straight to your WhatsApp — no hassle, no runaround.
+            We source parts from our trusted supplier network and deliver a quote straight to your WhatsApp â€” no hassle, no runaround.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mb-16">
             <button onClick={() => setShowForm(true)}
@@ -238,7 +238,7 @@ export default function Home() {
             </button>
             <div className="flex items-center gap-2 text-[13px] text-gray-500 px-2">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              Free · No commitment · Response within hours
+              Free Â· No commitment Â· Response within hours
             </div>
           </div>
           <div className="flex gap-8 pb-16" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
@@ -274,10 +274,10 @@ export default function Home() {
           <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.3)" }}>Why Choose Us</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { icon: "⚡", title: "Fast", desc: "Same-day quotes on most requests" },
-              { icon: "🔧", title: "Any Make", desc: "Japanese, German, Korean & local" },
-              { icon: "💬", title: "WhatsApp First", desc: "All communication on WhatsApp" },
-              { icon: "✅", title: "Verified", desc: "Only trusted Cape Town suppliers" },
+              { icon: "âš¡", title: "Fast", desc: "Same-day quotes on most requests" },
+              { icon: "ðŸ”§", title: "Any Make", desc: "Japanese, German, Korean & local" },
+              { icon: "ðŸ’¬", title: "WhatsApp First", desc: "All communication on WhatsApp" },
+              { icon: "âœ…", title: "Verified", desc: "Only trusted Cape Town suppliers" },
             ].map((item) => (
               <div key={item.title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="text-2xl mb-3">{item.icon}</div>
@@ -304,9 +304,10 @@ export default function Home() {
 
         {/* Footer */}
         <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>Â© 2025 Cape Parts Finder Â· Cape Town, South Africa</p>
         </div>
       </div>
     </main>
   );
 }
+
