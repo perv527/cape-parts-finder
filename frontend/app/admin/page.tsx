@@ -26,8 +26,6 @@ export default function AdminPage() {
 
   const [savingNote, setSavingNote] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
-  const [savingNote, setSavingNote] = useState<number | null>(null);
-  const [notes, setNotes] = useState<Record<number, string>>({});
 
   async function saveNote(id: number) {
     setSavingNote(id);
@@ -90,9 +88,6 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setRequests(data || []);
-    const nm: Record<number,string> = {};
-    (data||[]).forEach((r:any) => { if(r.internal_notes) nm[r.id]=r.internal_notes; });
-    setNotes(nm);
     const nm: Record<number,string> = {};
     (data||[]).forEach((r:any) => { if(r.internal_notes) nm[r.id]=r.internal_notes; });
     setNotes(nm);
