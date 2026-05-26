@@ -23,7 +23,17 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [templateModal, setTemplateModal] = useState<any>(null);
-  const [notifyModal, setNotifyModal] = useState<any>(null);
+
+  const [savingNote, setSavingNote] = useState<number | null>(null);
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [savingNote, setSavingNote] = useState<number | null>(null);
+  const [notes, setNotes] = useState<Record<number, string>>({});
+
+  async function saveNote(id: number) {
+    setSavingNote(id);
+    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
+    setSavingNote(null);
+  }
 
   // ── WhatsApp template messages ──
   function getWhatsAppMessage(request: any, template: string) {
@@ -56,7 +66,15 @@ export default function AdminPage() {
     return msgs[status] || null;
   }
 
-  useEffect(() => { checkAuth(); }, []);
+  async function saveNote(id: number) {
+    setSavingNote(id);
+    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
+    setSavingNote(null);
+  }
+
+    async function saveNote(id: number) { setSavingNote(id); await supabase.from('parts_requests').update({ internal_notes: notes[id] || '' }).eq('id', id); setSavingNote(null); }
+
+    useEffect(() => { checkAuth(); }, []);
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -72,6 +90,15 @@ export default function AdminPage() {
       .order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setRequests(data || []);
+    const nm: Record<number,string> = {};
+    (data||[]).forEach((r:any) => { if(r.internal_notes) nm[r.id]=r.internal_notes; });
+    setNotes(nm);
+    const nm: Record<number,string> = {};
+    (data||[]).forEach((r:any) => { if(r.internal_notes) nm[r.id]=r.internal_notes; });
+    setNotes(nm);
+    const noteMap: Record<number, string> = {};
+    (data || []).forEach((r: any) => { if (r.internal_notes) noteMap[r.id] = r.internal_notes; });
+    setNotes(noteMap);
   }
 
   async function updateStatus(id: number, status: string) {
@@ -346,6 +373,14 @@ export default function AdminPage() {
                       Email
                     </button>
                   </div>
+                  {/* Internal Notes */}
+                  <div className="mt-5 border border-gray-100 rounded-xl p-4 bg-[#FAFAF9]">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Internal Notes (private)</p>
+                    <textarea value={notes[request.id] || ""} onChange={(e) => setNotes(prev => ({ ...prev, [request.id]: e.target.value }))} placeholder="Add private notes..." rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-300 resize-none bg-white" />
+                    <button onClick={() => saveNote(request.id)} disabled={savingNote === request.id} className="mt-2 px-4 py-1.5 bg-gray-900 hover:bg-black text-white rounded-lg text-[12px] font-medium cursor-pointer transition">{savingNote === request.id ? "Saving..." : "Save Note"}</button>
+                  </div>
+
+
 
                   {request.photo_url && (
                     <div className="mt-5">
@@ -426,3 +461,9 @@ export default function AdminPage() {
     </main>
   );
 }
+
+
+
+
+
+
