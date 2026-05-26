@@ -7,12 +7,12 @@ import { supabase } from "@/lib/supabase";
 const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  New:       { bg: "#FFF7ED", text: "#C2410C", dot: "#F97316", border: "#FED7AA" },
-  Searching: { bg: "#EFF6FF", text: "#1D4ED8", dot: "#3B82F6", border: "#BFDBFE" },
-  Quoted:    { bg: "#F0FDF4", text: "#15803D", dot: "#22C55E", border: "#BBF7D0" },
-  Ordered:   { bg: "#FDF4FF", text: "#7E22CE", dot: "#A855F7", border: "#E9D5FF" },
-  Delivered: { bg: "#F0FDFA", text: "#0F766E", dot: "#14B8A6", border: "#99F6E4" },
-  Closed:    { bg: "#F9FAFB", text: "#374151", dot: "#9CA3AF", border: "#E5E7EB" },
+  New:       { bg: "rgba(249,115,22,0.12)", text: "#fb923c", dot: "#f97316", border: "rgba(249,115,22,0.25)" },
+  Searching: { bg: "rgba(59,130,246,0.12)", text: "#60a5fa", dot: "#3b82f6", border: "rgba(59,130,246,0.25)" },
+  Quoted:    { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", dot: "#22c55e", border: "rgba(34,197,94,0.25)" },
+  Ordered:   { bg: "rgba(168,85,247,0.12)", text: "#c084fc", dot: "#a855f7", border: "rgba(168,85,247,0.25)" },
+  Delivered: { bg: "rgba(20,184,166,0.12)", text: "#2dd4bf", dot: "#14b8a6", border: "rgba(20,184,166,0.25)" },
+  Closed:    { bg: "rgba(107,114,128,0.12)",text: "#9ca3af", dot: "#6b7280", border: "rgba(107,114,128,0.25)" },
 };
 
 export default function AdminPage() {
@@ -23,18 +23,11 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [templateModal, setTemplateModal] = useState<any>(null);
-
-  const [savingNote, setSavingNote] = useState<number | null>(null);
   const [notifyModal, setNotifyModal] = useState<any>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [savingNote, setSavingNote] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
 
-  async function saveNote(id: number) {
-    setSavingNote(id);
-    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
-    setSavingNote(null);
-  }
-
-  // ── WhatsApp template messages ──
   function getWhatsAppMessage(request: any, template: string) {
     const name = request.customer_name || "there";
     const part = request.part_needed || "part";
@@ -50,30 +43,21 @@ export default function AdminPage() {
     return messages[template] || messages.new;
   }
 
-  // ── Status change notification messages ──
   function getStatusMessage(request: any, status: string) {
     const name = request.customer_name || "there";
     const part = request.part_needed || "part";
     const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
     const msgs: Record<string, string> = {
       Searching: `Hi ${name}, we are now actively searching for your ${part} for your ${vehicle}. We will update you shortly.\n\nCape Parts Finder`,
-      Quoted:    `Hi ${name}, great news! We have a quote ready for your ${part}. Please reply and we will send you the details and price.\n\nCape Parts Finder`,
+      Quoted:    `Hi ${name}, great news! We have a quote ready for your ${part}. Please reply and we will send you the details.\n\nCape Parts Finder`,
       Ordered:   `Hi ${name}, your ${part} has been ordered! We will let you know once it is ready.\n\nCape Parts Finder`,
       Delivered: `Hi ${name}, your ${part} has been delivered. Thank you for choosing Cape Parts Finder!\n\nCape Parts Finder`,
-      Closed:    `Hi ${name}, your request for a ${part} has been completed. Thank you for using Cape Parts Finder!\n\nCape Parts Finder`,
+      Closed:    `Hi ${name}, your request for a ${part} has been completed. Thank you!\n\nCape Parts Finder`,
     };
     return msgs[status] || null;
   }
 
-  async function saveNote(id: number) {
-    setSavingNote(id);
-    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
-    setSavingNote(null);
-  }
-
-    async function saveNote(id: number) { setSavingNote(id); await supabase.from('parts_requests').update({ internal_notes: notes[id] || '' }).eq('id', id); setSavingNote(null); }
-
-    useEffect(() => { checkAuth(); }, []);
+  useEffect(() => { checkAuth(); }, []);
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -83,18 +67,18 @@ export default function AdminPage() {
   }
 
   async function fetchRequests() {
-    const { data, error } = await supabase
-      .from("parts_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("parts_requests").select("*").order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setRequests(data || []);
-    const nm: Record<number,string> = {};
-    (data||[]).forEach((r:any) => { if(r.internal_notes) nm[r.id]=r.internal_notes; });
+    const nm: Record<number, string> = {};
+    (data || []).forEach((r: any) => { if (r.internal_notes) nm[r.id] = r.internal_notes; });
     setNotes(nm);
-    const noteMap: Record<number, string> = {};
-    (data || []).forEach((r: any) => { if (r.internal_notes) noteMap[r.id] = r.internal_notes; });
-    setNotes(noteMap);
+  }
+
+  async function saveNote(id: number) {
+    setSavingNote(id);
+    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
+    setSavingNote(null);
   }
 
   async function updateStatus(id: number, status: string) {
@@ -104,7 +88,6 @@ export default function AdminPage() {
     if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
     fetchRequests();
     setUpdatingId(null);
-    // Show notification modal if there's a message for this status
     if (request && getStatusMessage(request, status)) {
       setNotifyModal({ request: { ...request, status }, status });
     }
@@ -112,8 +95,7 @@ export default function AdminPage() {
 
   async function deleteRequest(id: number) {
     if (!confirm("Delete this request?")) return;
-    const { error } = await supabase.from("parts_requests").delete().eq("id", id);
-    if (error) { alert("Failed to delete request"); return; }
+    await supabase.from("parts_requests").delete().eq("id", id);
     fetchRequests();
   }
 
@@ -124,13 +106,7 @@ export default function AdminPage() {
 
   function exportToCSV() {
     const headers = ["Name","Phone","Email","Area","Make","Model","Year","VIN","Engine","Part","Preference","Details","Status","Date"];
-    const rows = requests.map((r) => [
-      r.customer_name, r.phone_number, r.email, r.area,
-      r.vehicle_make, r.vehicle_model, r.vehicle_year,
-      r.vin_number, r.engine_size, r.part_needed,
-      r.part_preference, r.extra_details, r.status,
-      new Date(r.created_at).toLocaleDateString("en-ZA"),
-    ]);
+    const rows = requests.map((r) => [r.customer_name, r.phone_number, r.email, r.area, r.vehicle_make, r.vehicle_model, r.vehicle_year, r.vin_number, r.engine_size, r.part_needed, r.part_preference, r.extra_details, r.status, new Date(r.created_at).toLocaleDateString("en-ZA")]);
     const csv = [headers, ...rows].map((row) => row.map((c) => `"${c || ""}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -139,283 +115,298 @@ export default function AdminPage() {
   }
 
   const filteredRequests = requests.filter((r) => {
-    const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed)
-      .toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const counts = {
-    All:       requests.length,
-    New:       requests.filter((r) => !r.status || r.status === "New").length,
+    All: requests.length,
+    New: requests.filter((r) => !r.status || r.status === "New").length,
     Searching: requests.filter((r) => r.status === "Searching").length,
-    Quoted:    requests.filter((r) => r.status === "Quoted").length,
-    Ordered:   requests.filter((r) => r.status === "Ordered").length,
+    Quoted: requests.filter((r) => r.status === "Quoted").length,
+    Ordered: requests.filter((r) => r.status === "Ordered").length,
     Delivered: requests.filter((r) => r.status === "Delivered").length,
-    Closed:    requests.filter((r) => r.status === "Closed").length,
+    Closed: requests.filter((r) => r.status === "Closed").length,
   };
+
+  const darkBg = { background: "#111111", minHeight: "100vh" };
+  const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {
     return (
-      <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center">
-        <div className="bg-white px-10 py-7 rounded-2xl border border-gray-100 flex items-center gap-3">
+      <main style={darkBg} className="flex items-center justify-center">
+        <div className="flex items-center gap-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 32px" }}>
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-          <p className="text-gray-700 text-base font-medium">Loading Dashboard...</p>
+          <p className="text-gray-300 text-sm font-medium">Loading Dashboard...</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFAF9]">
+    <main style={darkBg}>
 
-      {/* ── TOP NAV ── */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-[60px] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-[10px] bg-orange-500 flex items-center justify-center flex-shrink-0">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
+      {/* Glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", bottom: "20%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.04) 0%, transparent 70%)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1 }}>
+
+        {/* NAV */}
+        <header style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 50 }}>
+          <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              </div>
+              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
             </div>
-            <div>
-              <div className="font-bold text-[15px] text-gray-900 leading-tight">Cape Parts Finder</div>
-              <div className="text-[11px] text-gray-400">Admin Dashboard</div>
+            <div className="flex gap-1">
+              {[{ label: "Requests", href: "/admin", active: true }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }].map((n) => (
+                <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
+                  style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
+                  {n.label}
+                </a>
+              ))}
             </div>
-          </div>
-          <div className="flex gap-1">
-            <a href="/admin" className="px-4 py-1.5 rounded-lg text-sm no-underline font-semibold bg-orange-50 text-orange-600">Requests</a>
-            <a href="/suppliers" className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50 font-normal">Suppliers</a>
-            <a href="/sales" className="px-4 py-1.5 rounded-lg text-sm no-underline text-gray-500 hover:bg-gray-50 font-normal">Sales</a>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={exportToCSV}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-700 text-[13px] font-medium hover:bg-gray-50 transition cursor-pointer">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Export CSV
-            </button>
-            <button onClick={fetchRequests} title="Refresh"
-              className="w-[34px] h-[34px] flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 transition cursor-pointer">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-            </button>
-            <button onClick={logout}
-              className="px-3.5 py-1.5 rounded-lg border border-red-100 bg-red-50 text-red-600 text-[13px] font-medium hover:bg-red-100 transition cursor-pointer">
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-6 py-7">
-
-        {/* ── PAGE HEADER ── */}
-        <div className="mb-6">
-          <h1 className="text-[22px] font-bold text-gray-900 tracking-tight">Parts Requests</h1>
-          <p className="text-sm text-gray-400 mt-1">Manage and track all incoming customer requests</p>
-        </div>
-
-        {/* ── STATS CARDS ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
-          {[
-            { label: "Total Requests", value: counts.All,                       accent: "#F97316" },
-            { label: "New",            value: counts.New,                       accent: "#F97316" },
-            { label: "In Progress",    value: counts.Searching + counts.Quoted, accent: "#3B82F6" },
-            { label: "Delivered",      value: counts.Delivered,                 accent: "#14B8A6" },
-          ].map((card, i) => (
-            <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-[3px] rounded-t-xl" style={{ background: card.accent }} />
-              <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{card.label}</p>
-              <p className="text-[38px] font-bold text-gray-900 leading-none mt-2 tracking-tight">{card.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* ── SEARCH + STATUS FILTER ── */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 mb-5">
-          <div className="flex flex-col lg:flex-row gap-3">
-            <input type="text" placeholder="Search by customer, vehicle or part..."
-              value={search} onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100" />
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 rounded-lg px-4 py-2.5 text-sm outline-none focus:border-orange-300 bg-white text-gray-700 cursor-pointer">
-              <option value="All">All ({counts.All})</option>
-              <option value="New">New ({counts.New})</option>
-              <option value="Searching">Searching ({counts.Searching})</option>
-              <option value="Quoted">Quoted ({counts.Quoted})</option>
-              <option value="Ordered">Ordered ({counts.Ordered})</option>
-              <option value="Delivered">Delivered ({counts.Delivered})</option>
-              <option value="Closed">Closed ({counts.Closed})</option>
-            </select>
-          </div>
-          <div className="flex gap-1.5 flex-wrap mt-3">
-            {["All", ...STATUS_OPTIONS].map((s) => (
-              <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-3 py-1 rounded-full text-[12px] transition-all cursor-pointer border ${
-                  statusFilter === s ? "border-orange-400 bg-orange-50 text-orange-600 font-semibold" : "border-gray-200 bg-white text-gray-500 hover:bg-gray-50"
-                }`}>
-                {s} ({s === "All" ? counts.All : counts[s as keyof typeof counts] ?? 0})
+            <div className="flex items-center gap-2">
+              <button onClick={exportToCSV} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition cursor-pointer"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
               </button>
+              <button onClick={fetchRequests} className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+              <button onClick={logout} className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
+                Logout
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-5 py-6">
+
+          {/* STATS */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+            {[
+              { label: "Total", value: counts.All, color: "#f97316" },
+              { label: "New", value: counts.New, color: "#f97316" },
+              { label: "In Progress", value: counts.Searching + counts.Quoted, color: "#3b82f6" },
+              { label: "Delivered", value: counts.Delivered, color: "#14b8a6" },
+            ].map((card) => (
+              <div key={card.label} className="rounded-xl p-4 relative overflow-hidden" style={cardStyle}>
+                <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: card.color }} />
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{card.label}</p>
+                <p className="text-[32px] font-black leading-none" style={{ color: card.color }}>{card.value}</p>
+              </div>
             ))}
           </div>
-        </div>
 
-        {/* ── REQUEST CARDS ── */}
-        <div className="space-y-4">
-          {filteredRequests.length === 0 && (
-            <div className="bg-white border border-gray-100 rounded-xl p-12 text-center text-gray-400 text-sm">No requests found</div>
-          )}
+          {/* FILTERS */}
+          <div className="rounded-xl p-4 mb-4" style={cardStyle}>
+            <div className="flex flex-col lg:flex-row gap-3">
+              <input type="text" placeholder="Search customer, vehicle or part..." value={search} onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 rounded-lg px-4 py-2.5 text-[13px] outline-none text-white placeholder-gray-600"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-lg px-4 py-2.5 text-[13px] outline-none cursor-pointer text-white"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <option value="All" style={{ background: "#1a1a1a" }}>All ({counts.All})</option>
+                {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s} ({counts[s as keyof typeof counts] ?? 0})</option>)}
+              </select>
+            </div>
+            <div className="flex gap-1.5 flex-wrap mt-3">
+              {["All", ...STATUS_OPTIONS].map((s) => (
+                <button key={s} onClick={() => setStatusFilter(s)}
+                  className="px-2.5 py-1 rounded-full text-[11px] transition cursor-pointer font-medium"
+                  style={statusFilter === s
+                    ? { background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", color: "#fb923c" }
+                    : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.4)" }}>
+                  {s} {s === "All" ? `(${counts.All})` : `(${counts[s as keyof typeof counts] ?? 0})`}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {filteredRequests.map((request) => {
-            const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
-            const initial = (request.customer_name || "?")[0].toUpperCase();
-            return (
-              <div key={request.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* REQUEST CARDS */}
+          <div className="space-y-2">
+            {filteredRequests.length === 0 && (
+              <div className="rounded-xl p-10 text-center" style={cardStyle}>
+                <p className="text-gray-600 text-sm">No requests found</p>
+              </div>
+            )}
 
-                {/* Card Header */}
-                <div className="p-5 border-b border-gray-100">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-[15px] flex-shrink-0">{initial}</div>
-                      <div>
-                        <h2 className="text-[17px] font-bold text-gray-900">{request.customer_name}</h2>
-                        <p className="text-[12px] text-gray-400 mt-0.5">{new Date(request.created_at).toLocaleString("en-ZA")}</p>
+            {filteredRequests.map((request) => {
+              const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
+              const isExpanded = expandedId === request.id;
+              const initial = (request.customer_name || "?")[0].toUpperCase();
+
+              return (
+                <div key={request.id} className="rounded-xl overflow-hidden transition" style={cardStyle}>
+
+                  {/* COMPACT HEADER — always visible */}
+                  <div className="px-4 py-3 flex items-center gap-3 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-orange-400"
+                      style={{ background: "rgba(249,115,22,0.12)" }}>
+                      {initial}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-[13px] text-white">{request.customer_name}</span>
+                        <span className="text-gray-600 text-[12px]">·</span>
+                        <span className="text-gray-400 text-[12px] truncate">{request.part_needed || "—"}</span>
+                        <span className="text-gray-600 text-[12px]">·</span>
+                        <span className="text-gray-500 text-[12px]">{request.vehicle_make} {request.vehicle_model} {request.vehicle_year}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-gray-600">{new Date(request.created_at).toLocaleDateString("en-ZA")}</span>
+                        <span className="text-gray-700 text-[10px]">·</span>
+                        <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium"
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
                         style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
+                        <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
                         {request.status || "New"}
                       </span>
-                      <select value={request.status || "New"}
-                        onChange={(e) => updateStatus(request.id, e.target.value)}
-                        disabled={updatingId === request.id}
-                        className="border border-gray-200 bg-white px-3 py-2 rounded-lg text-[13px] text-gray-700 outline-none cursor-pointer focus:border-orange-300">
-                        {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
-                      </select>
-                      <button onClick={() => deleteRequest(request.id)}
-                        className="flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 px-3.5 py-2 rounded-lg text-[13px] font-medium transition cursor-pointer">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                        </svg>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-5">
-                  <div className="grid lg:grid-cols-2 gap-6 text-sm">
-                    <div className="space-y-3">
-                      {[
-                        { label: "Phone",  value: request.phone_number },
-                        { label: "Email",  value: request.email },
-                        { label: "Area",   value: request.area },
-                        { label: "VIN",    value: request.vin_number },
-                        { label: "Engine", value: request.engine_size },
-                      ].map(({ label, value }) => (
-                        <div key={label}>
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="space-y-3">
-                      {[
-                        { label: "Vehicle",     value: `${request.vehicle_make} ${request.vehicle_model} ${request.vehicle_year}` },
-                        { label: "Part Needed", value: request.part_needed },
-                        { label: "Preference",  value: request.part_preference },
-                      ].map(({ label, value }) => (
-                        <div key={label}>
-                          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                          <p className="font-medium text-gray-900 mt-0.5">{value || "—"}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {request.extra_details && (
-                    <div className="mt-5 bg-orange-50 border border-orange-100 rounded-xl p-4">
-                      <p className="text-[12px] font-semibold text-orange-700 mb-1">Extra Details</p>
-                      <p className="text-sm text-gray-700 leading-relaxed">{request.extra_details}</p>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="mt-5 flex flex-wrap gap-2.5">
-                    <button onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
-                      className="w-full bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-[13px] font-semibold transition cursor-pointer mb-1">
-                      Request Supplier Quote
-                    </button>
-                    <button onClick={() => router.push(`/quotes/${request.id}`)}
-                      className="bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer">
-                      View Quotes
-                    </button>
-                    <button onClick={() => setTemplateModal(request)}
-                      className="flex items-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#25D366">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                        <polyline points="6 9 12 15 18 9"/>
                       </svg>
-                      WhatsApp
-                    </button>
-                    <button onClick={() => window.open("mailto:" + request.email)}
-                      className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-5 py-2.5 rounded-xl text-[13px] font-medium transition cursor-pointer">
-                      Email
-                    </button>
-                  </div>
-                  {/* Internal Notes */}
-                  <div className="mt-5 border border-gray-100 rounded-xl p-4 bg-[#FAFAF9]">
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Internal Notes (private)</p>
-                    <textarea value={notes[request.id] || ""} onChange={(e) => setNotes(prev => ({ ...prev, [request.id]: e.target.value }))} placeholder="Add private notes..." rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-orange-300 resize-none bg-white" />
-                    <button onClick={() => saveNote(request.id)} disabled={savingNote === request.id} className="mt-2 px-4 py-1.5 bg-gray-900 hover:bg-black text-white rounded-lg text-[12px] font-medium cursor-pointer transition">{savingNote === request.id ? "Saving..." : "Save Note"}</button>
+                    </div>
                   </div>
 
+                  {/* EXPANDED DETAILS */}
+                  {isExpanded && (
+                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
 
+                      {/* Info grid */}
+                      <div className="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3 text-[12px]">
+                        {[
+                          { label: "Phone", value: request.phone_number },
+                          { label: "Email", value: request.email },
+                          { label: "Area", value: request.area },
+                          { label: "VIN", value: request.vin_number },
+                          { label: "Engine", value: request.engine_size },
+                          { label: "Preference", value: request.part_preference },
+                        ].map(({ label, value }) => (
+                          <div key={label}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
+                            <p className="text-gray-300 font-medium">{value || "—"}</p>
+                          </div>
+                        ))}
+                      </div>
 
-                  {request.photo_url && (
-                    <div className="mt-5">
-                      <p className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Uploaded Photo</p>
-                      <img src={request.photo_url} alt="Uploaded" className="w-72 rounded-2xl border border-gray-200 shadow-sm" />
+                      {request.extra_details && (
+                        <div className="px-4 pb-3">
+                          <div className="rounded-lg px-3 py-2.5" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.7)" }}>Extra Details</p>
+                            <p className="text-gray-300 text-[12px] leading-relaxed">{request.extra_details}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {request.photo_url && (
+                        <div className="px-4 pb-3">
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Photo</p>
+                          <img src={request.photo_url} alt="Uploaded" className="w-32 rounded-xl cursor-pointer" style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                            onClick={() => window.open(request.photo_url)} />
+                        </div>
+                      )}
+
+                      {/* Status update */}
+                      <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
+                        <select value={request.status || "New"} onChange={(e) => updateStatus(request.id, e.target.value)}
+                          disabled={updatingId === request.id}
+                          className="rounded-lg px-3 py-2 text-[12px] outline-none cursor-pointer text-white"
+                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          {STATUS_OPTIONS.map((s) => <option key={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
+                        </select>
+                        <button onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                          style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.25)", color: "#fb923c" }}>
+                          Request Quote
+                        </button>
+                        <button onClick={() => router.push(`/quotes/${request.id}`)}
+                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
+                          View Quotes
+                        </button>
+                        <button onClick={() => setTemplateModal(request)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                          style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                          WhatsApp
+                        </button>
+                        <button onClick={() => window.open("mailto:" + request.email)}
+                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                          Email
+                        </button>
+                        <button onClick={() => deleteRequest(request.id)}
+                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition ml-auto"
+                          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
+                          Delete
+                        </button>
+                      </div>
+
+                      {/* Internal Notes */}
+                      <div className="px-4 pb-4">
+                        <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Internal Notes</p>
+                          <textarea value={notes[request.id] || ""} onChange={(e) => setNotes(prev => ({ ...prev, [request.id]: e.target.value }))}
+                            placeholder="Add private notes..." rows={2}
+                            className="w-full rounded-lg px-3 py-2 text-[12px] outline-none resize-none text-gray-300 placeholder-gray-700"
+                            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }} />
+                          <button onClick={() => saveNote(request.id)} disabled={savingNote === request.id}
+                            className="mt-2 px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition"
+                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+                            {savingNote === request.id ? "Saving..." : "Save Note"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* ── WHATSAPP TEMPLATE MODAL ── */}
+      {/* WHATSAPP TEMPLATE MODAL */}
       {templateModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
-                <h2 className="font-bold text-[16px] text-gray-900">WhatsApp Templates</h2>
-                <p className="text-[12px] text-gray-400 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
+                <h2 className="font-bold text-[15px] text-white">WhatsApp Templates</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
               </div>
-              <button onClick={() => setTemplateModal(null)} className="text-gray-400 hover:text-gray-700 text-xl cursor-pointer bg-transparent border-none">×</button>
+              <button onClick={() => setTemplateModal(null)} className="text-gray-500 hover:text-white text-lg cursor-pointer bg-transparent border-none">×</button>
             </div>
-            <div className="p-5 space-y-2">
+            <div className="p-4 space-y-2">
               {[
-                { key: "new",       label: "New Request" },
+                { key: "new", label: "New Request" },
                 { key: "searching", label: "Searching for Part" },
-                { key: "quoted",    label: "Quote Ready" },
-                { key: "ordered",   label: "Part Ordered" },
+                { key: "quoted", label: "Quote Ready" },
+                { key: "ordered", label: "Part Ordered" },
                 { key: "delivered", label: "Part Delivered" },
-                { key: "followup",  label: "Follow Up" },
+                { key: "followup", label: "Follow Up" },
               ].map((t) => (
                 <button key={t.key}
                   onClick={() => { const msg = getWhatsAppMessage(templateModal, t.key); const phone = templateModal.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`); setTemplateModal(null); }}
-                  className="w-full text-left px-4 py-3 rounded-xl border border-gray-100 hover:border-orange-300 hover:bg-orange-50 transition cursor-pointer">
-                  <div className="font-semibold text-[13px] text-gray-900">{t.label}</div>
-                  <div className="text-[12px] text-gray-400 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
+                  className="w-full text-left px-4 py-3 rounded-xl transition cursor-pointer"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="font-semibold text-[12px] text-white">{t.label}</div>
+                  <div className="text-[11px] text-gray-500 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
                 </button>
               ))}
             </div>
@@ -423,29 +414,27 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* ── STATUS NOTIFICATION MODAL ── */}
+      {/* STATUS NOTIFICATION MODAL */}
       {notifyModal && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
-            <div className="p-5 border-b border-gray-100">
-              <h2 className="font-bold text-[16px] text-gray-900">Notify Customer?</h2>
-              <p className="text-[12px] text-gray-400 mt-0.5">Status changed to: <strong>{notifyModal.status}</strong></p>
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <h2 className="font-bold text-[15px] text-white">Notify Customer?</h2>
+              <p className="text-[11px] text-gray-500 mt-0.5">Status changed to: <span style={{ color: "#fb923c" }}>{notifyModal.status}</span></p>
             </div>
             <div className="p-5">
-              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-4">
-                <p className="text-sm text-gray-700 whitespace-pre-line">{getStatusMessage(notifyModal.request, notifyModal.status)}</p>
+              <div className="rounded-xl p-3 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-[12px] text-gray-300 whitespace-pre-line leading-relaxed">{getStatusMessage(notifyModal.request, notifyModal.status)}</p>
               </div>
-              <div className="flex gap-3">
-                <button onClick={() => {
-                  const msg = getStatusMessage(notifyModal.request, notifyModal.status);
-                  const phone = notifyModal.request.phone_number.replace(/\D/g, "");
-                  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg || "")}`);
-                  setNotifyModal(null);
-                }} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition">
-                  Send WhatsApp Update
+              <div className="flex gap-2">
+                <button onClick={() => { const msg = getStatusMessage(notifyModal.request, notifyModal.status); const phone = notifyModal.request.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg || "")}`); setNotifyModal(null); }}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition text-white"
+                  style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 16px rgba(249,115,22,0.25)" }}>
+                  Send WhatsApp
                 </button>
                 <button onClick={() => setNotifyModal(null)}
-                  className="px-5 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition">
+                  className="px-5 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
                   Skip
                 </button>
               </div>
@@ -457,10 +446,3 @@ export default function AdminPage() {
     </main>
   );
 }
-
-
-
-
-
-
-
