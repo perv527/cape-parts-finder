@@ -44,18 +44,18 @@ export default function Home() {
     } catch { alert("Something went wrong."); setLoading(false); }
   }
 
-  const darkBg = { background: "#0a0a0a" };
+  const darkBg = { background: "#111111" };
 
   const glowBlobs = (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-      <div style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)" }} />
-      <div style={{ position: "absolute", bottom: "10%", left: "-15%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)" }} />
-      <div style={{ position: "absolute", top: "40%", left: "40%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 70%)" }} />
+      <div style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%)" }} />
+      <div style={{ position: "absolute", bottom: "10%", left: "-15%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
+      <div style={{ position: "absolute", top: "40%", left: "40%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 70%)" }} />
     </div>
   );
 
   const mountain = (
-    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 0, opacity: 0.5, pointerEvents: "none" }}>
+    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 0, opacity: 0.35, pointerEvents: "none" }}>
       <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet" style={{ width: "100%", display: "block" }}>
         <defs>
           <linearGradient id="mtnGrad" x1="0" y1="0" x2="0" y2="1">
@@ -100,7 +100,7 @@ export default function Home() {
         {glowBlobs}
         <div style={{ position: "relative", zIndex: 1 }}>
 
-          <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(10,10,10,0.8)", position: "sticky", top: 0, zIndex: 10 }}>
+          <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 10 }}>
             <div className="max-w-lg mx-auto px-5 h-14 flex items-center justify-between">
               <button onClick={() => setShowForm(false)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition cursor-pointer bg-transparent border-none">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
@@ -207,7 +207,7 @@ export default function Home() {
 
         <nav className="px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 20px rgba(249,115,22,0.4)" }}>
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 20px rgba(249,115,22,0.35)" }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
             </div>
             <span className="font-bold text-white text-[15px] tracking-tight">Cape Parts Finder</span>
@@ -215,7 +215,7 @@ export default function Home() {
         </nav>
 
         <div className="max-w-6xl mx-auto px-6 pt-16 pb-8 lg:pt-24">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold mb-8" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold mb-8" style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.15)", color: "#fb923c" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
             Serving Cape Town · Fast Turnaround
           </div>
@@ -231,7 +231,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-3 mb-16">
             <button onClick={() => setShowForm(true)}
               className="inline-flex items-center justify-center gap-2 text-white px-7 py-4 rounded-xl font-bold text-[15px] transition cursor-pointer"
-              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 32px rgba(249,115,22,0.35)" }}>
+              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 28px rgba(249,115,22,0.30)" }}>
               Request a Part
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </button>
@@ -251,14 +251,14 @@ export default function Home() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 py-16">
-          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.3)" }}>How It Works</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.25)" }}>How It Works</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
               { num: "01", title: "Submit your request", desc: "Tell us the part and vehicle details. Takes under 2 minutes.", highlight: true },
               { num: "02", title: "We source it", desc: "Our team contacts our verified Cape Town suppliers to find the best price." },
               { num: "03", title: "Get quoted on WhatsApp", desc: "We send you a quote on WhatsApp. Confirm and we arrange delivery or collection." },
             ].map((s) => (
-              <div key={s.num} className="rounded-2xl p-6" style={{ background: s.highlight ? "rgba(249,115,22,0.08)" : "rgba(255,255,255,0.03)", border: `1px solid ${s.highlight ? "rgba(249,115,22,0.2)" : "rgba(255,255,255,0.06)"}` }}>
+              <div key={s.num} className="rounded-2xl p-6" style={{ background: s.highlight ? "rgba(249,115,22,0.06)" : "rgba(255,255,255,0.025)", border: `1px solid ${s.highlight ? "rgba(249,115,22,0.15)" : "rgba(255,255,255,0.05)"}` }}>
                 <div className="font-bold text-[12px] mb-4 font-mono" style={{ color: "#f97316" }}>{s.num}</div>
                 <h3 className="font-bold text-white text-[16px] mb-2 leading-tight">{s.title}</h3>
                 <p className="text-gray-500 text-[13px] leading-relaxed">{s.desc}</p>
@@ -268,7 +268,7 @@ export default function Home() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 pb-16">
-          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.3)" }}>Why Choose Us</p>
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.25)" }}>Why Choose Us</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { icon: "⚡", title: "Fast", desc: "Same-day quotes on most requests" },
@@ -276,7 +276,7 @@ export default function Home() {
               { icon: "💬", title: "WhatsApp First", desc: "All communication on WhatsApp" },
               { icon: "✅", title: "Verified", desc: "Only trusted Cape Town suppliers" },
             ].map((item) => (
-              <div key={item.title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div key={item.title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
                 <div className="text-2xl mb-3">{item.icon}</div>
                 <h4 className="font-bold text-white text-[13px] mb-1">{item.title}</h4>
                 <p className="text-gray-500 text-[12px] leading-relaxed">{item.desc}</p>
@@ -286,20 +286,20 @@ export default function Home() {
         </div>
 
         <div className="max-w-6xl mx-auto px-6 pb-16">
-          <div className="rounded-3xl p-10 text-center" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(249,115,22,0.04) 100%)", border: "1px solid rgba(249,115,22,0.2)" }}>
+          <div className="rounded-3xl p-10 text-center" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.09) 0%, rgba(249,115,22,0.03) 100%)", border: "1px solid rgba(249,115,22,0.15)" }}>
             <h2 className="text-[32px] font-black text-white mb-3 tracking-tight">Need a part? Let's find it.</h2>
             <p className="text-gray-400 text-sm mb-8 max-w-sm mx-auto">Submit a request and we'll have a quote on your WhatsApp within hours.</p>
             <button onClick={() => setShowForm(true)}
               className="inline-flex items-center gap-2 text-white px-7 py-3.5 rounded-xl font-semibold text-[14px] transition cursor-pointer"
-              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 32px rgba(249,115,22,0.3)" }}>
+              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 28px rgba(249,115,22,0.28)" }}>
               Request a Part
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </button>
           </div>
         </div>
 
-        <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.2)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
+        <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
         </div>
 
       </div>
