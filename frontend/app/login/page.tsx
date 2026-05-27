@@ -24,73 +24,53 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center p-6">
+    <main className="min-h-screen flex items-center justify-center p-6" style={{ background: "#111111" }}>
 
-      {/* Background accent */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-orange-500 opacity-5" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-orange-500 opacity-5" />
+      {/* Glow */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", bottom: "-10%", left: "-10%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
       </div>
 
-      <div className="w-full max-w-md relative">
+      <div className="w-full max-w-sm" style={{ position: "relative", zIndex: 1 }}>
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-orange-200">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center mx-auto mb-4" style={{ boxShadow: "0 0 32px rgba(249,115,22,0.35)" }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Cape Parts Finder</h1>
-          <p className="text-gray-400 text-sm mt-1">Sign in to your admin dashboard</p>
+          <h1 className="text-xl font-black text-white tracking-tight">Cape Parts Finder</h1>
+          <p className="text-gray-500 text-[13px] mt-1">Admin Portal</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-
+        <div className="rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
           {error && (
-            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl mb-5 text-sm text-center">
+            <div className="rounded-xl px-4 py-3 mb-4 text-[13px] text-center" style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
               {error}
             </div>
           )}
-
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-3">
             <div>
-              <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="admin@capepartsfinder.co.za"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-200 px-4 py-3 rounded-xl text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
-                required
-              />
+              <label className="text-[10px] font-bold uppercase tracking-widest block mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>Email</label>
+              <input type="email" placeholder="admin@capepartsfinder.co.za" value={email} onChange={(e) => setEmail(e.target.value)} required
+                className="w-full rounded-xl px-4 py-3 text-[14px] outline-none text-white placeholder-gray-600 transition"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
             </div>
             <div>
-              <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wide block mb-1.5">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-200 px-4 py-3 rounded-xl text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition"
-                required
-              />
+              <label className="text-[10px] font-bold uppercase tracking-widest block mb-1.5" style={{ color: "rgba(255,255,255,0.3)" }}>Password</label>
+              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required
+                className="w-full rounded-xl px-4 py-3 text-[14px] outline-none text-white placeholder-gray-600 transition"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white py-3 rounded-xl font-semibold text-sm transition cursor-pointer mt-2"
-            >
+            <button type="submit" disabled={loading}
+              className="w-full py-3 rounded-xl font-bold text-[14px] text-white transition cursor-pointer mt-2"
+              style={{ background: loading ? "rgba(249,115,22,0.4)" : "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: loading ? "none" : "0 8px 24px rgba(249,115,22,0.28)" }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                  </svg>
+                  <svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                   Signing in...
                 </span>
               ) : "Sign In"}
@@ -98,7 +78,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-gray-400 text-xs mt-6">
+        <p className="text-center text-[11px] mt-6" style={{ color: "rgba(255,255,255,0.15)" }}>
           Cape Parts Finder · Admin Portal · Cape Town
         </p>
       </div>
