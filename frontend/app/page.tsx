@@ -68,14 +68,24 @@ export default function Home() {
     </div>
   );
 
+  const waButton = (
+    <a href="https://wa.me/27696863952?text=Hi%20Cape%20Parts%20Finder%2C%20I%20need%20help%20finding%20a%20car%20part." target="_blank"
+      style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 999, width: "56px", height: "56px", borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 24px rgba(37,211,102,0.45)", textDecoration: "none" }}>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+      </svg>
+    </a>
+  );
+
   const inputClass = "w-full rounded-xl px-4 py-3 text-[14px] outline-none transition text-white placeholder-gray-600";
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
 
-  // SUCCESS
   if (success) {
     return (
       <main className="min-h-screen flex items-center justify-center p-6" style={darkBg}>
         {glowBlobs}
+        {waButton}
         <div className="text-center" style={{ position: "relative", zIndex: 1 }}>
           <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-6" style={{ boxShadow: "0 0 40px rgba(249,115,22,0.4)" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
@@ -93,13 +103,12 @@ export default function Home() {
     );
   }
 
-  // FORM
   if (showForm) {
     return (
       <main className="min-h-screen" style={darkBg}>
         {glowBlobs}
+        {waButton}
         <div style={{ position: "relative", zIndex: 1 }}>
-
           <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 10 }}>
             <div className="max-w-lg mx-auto px-5 h-14 flex items-center justify-between">
               <button onClick={() => setShowForm(false)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition cursor-pointer bg-transparent border-none">
@@ -121,9 +130,7 @@ export default function Home() {
               <h2 className="text-[28px] font-black text-white tracking-tight">Request a Part</h2>
               <p className="text-gray-500 text-sm mt-1">Fill in below — we'll WhatsApp you a quote fast.</p>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-3">
-
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Contact Info</p>
                 <input name="customer_name" placeholder="Full Name *" value={formData.customer_name} onChange={handleChange} required className={inputClass} style={inputStyle} />
@@ -133,7 +140,6 @@ export default function Home() {
                   <input name="area" placeholder="Your Area" value={formData.area} onChange={handleChange} className={inputClass} style={inputStyle} />
                 </div>
               </div>
-
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Vehicle</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -146,7 +152,6 @@ export default function Home() {
                   <input name="engine_size" placeholder="Engine Size" value={formData.engine_size} onChange={handleChange} className={inputClass} style={inputStyle} />
                 </div>
               </div>
-
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Part Details</p>
                 <input name="part_needed" placeholder="What part do you need? *" value={formData.part_needed} onChange={handleChange} required className={inputClass} style={inputStyle} />
@@ -185,7 +190,6 @@ export default function Home() {
                   <input id="photo-input" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
                 </div>
               </div>
-
               <button type="submit" disabled={loading} className="w-full text-white py-4 rounded-2xl font-bold text-[15px] transition cursor-pointer"
                 style={{ background: loading ? "rgba(249,115,22,0.4)" : "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: loading ? "none" : "0 8px 32px rgba(249,115,22,0.3)" }}>
                 {loading ? "Submitting..." : "Submit Request"}
@@ -198,13 +202,12 @@ export default function Home() {
     );
   }
 
-  // LANDING
   return (
     <main className="min-h-screen overflow-hidden" style={{ ...darkBg, position: "relative" }}>
       {glowBlobs}
       {mountain}
+      {waButton}
       <div style={{ position: "relative", zIndex: 1 }}>
-
         <nav className="px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 20px rgba(249,115,22,0.35)" }}>
@@ -301,7 +304,6 @@ export default function Home() {
         <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
         </div>
-
       </div>
     </main>
   );
