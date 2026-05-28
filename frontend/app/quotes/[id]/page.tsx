@@ -135,66 +135,85 @@ export default function QuotesPage() {
   function printQuote(quote: any) {
     const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
-    const profit = Number(quote.marked_up_price) - Number(quote.supplier_price);
-    const markupPct = Math.round((profit / Number(quote.supplier_price)) * 100);
+    const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
 
     const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Quote ${quoteNum}</title>
+  <title>Quote ${quoteNum} — Cape Parts Finder</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; }
-    .page { max-width: 700px; margin: 0 auto; padding: 48px 40px; }
+    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; }
+    .page { max-width: 680px; margin: 0 auto; padding: 52px 44px; }
 
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 2px solid #f97316; }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .logo { width: 40px; height: 40px; background: #f97316; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-    .logo svg { width: 20px; height: 20px; }
-    .brand-name { font-size: 20px; font-weight: 800; color: #111; }
-    .brand-sub { font-size: 11px; color: #888; margin-top: 2px; }
-    .quote-meta { text-align: right; }
-    .quote-num { font-size: 13px; font-weight: 700; color: #f97316; letter-spacing: 1px; }
-    .quote-date { font-size: 12px; color: #888; margin-top: 4px; }
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 44px; }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo { width: 44px; height: 44px; background: #f97316; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo svg { width: 22px; height: 22px; }
+    .brand-name { font-size: 18px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.3px; }
+    .brand-tagline { font-size: 11px; color: #999; margin-top: 3px; letter-spacing: 0.2px; }
+    .quote-badge { text-align: right; }
+    .quote-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #bbb; }
+    .quote-num { font-size: 18px; font-weight: 800; color: #0a0a0a; margin-top: 3px; letter-spacing: -0.3px; }
+    .quote-date { font-size: 11px; color: #999; margin-top: 4px; }
 
-    .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 10px; }
+    /* Orange divider */
+    .divider { height: 3px; background: linear-gradient(90deg, #f97316, #fdba74, transparent); border-radius: 2px; margin-bottom: 36px; }
 
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
-    .info-box { background: #f9f9f9; border-radius: 10px; padding: 16px; }
-    .info-row { margin-bottom: 8px; }
-    .info-label { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; }
-    .info-value { font-size: 13px; font-weight: 600; color: #111; margin-top: 2px; }
+    /* Section label */
+    .section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #bbb; margin-bottom: 12px; }
 
-    .part-box { background: #fff8f3; border: 1px solid #fed7aa; border-radius: 10px; padding: 16px; margin-bottom: 28px; }
-    .part-name { font-size: 20px; font-weight: 800; color: #ea580c; margin-top: 4px; }
+    /* Info grid */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+    .info-box { border: 1px solid #f0f0f0; border-radius: 12px; padding: 18px 20px; }
+    .info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid #f7f7f7; }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-label { font-size: 11px; color: #aaa; font-weight: 500; }
+    .info-value { font-size: 12px; font-weight: 600; color: #222; text-align: right; max-width: 55%; }
 
-    .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-    .price-card { border-radius: 10px; padding: 16px; text-align: center; }
-    .price-card.cost { background: #f5f5f5; }
-    .price-card.markup { background: #fff8f3; border: 1px solid #fed7aa; }
-    .price-card.total { background: #f97316; color: white; }
-    .price-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-    .price-value { font-size: 26px; font-weight: 900; margin-top: 4px; }
-    .price-card.cost .price-label { color: #888; }
-    .price-card.cost .price-value { color: #333; }
-    .price-card.markup .price-label { color: #ea580c; }
-    .price-card.markup .price-value { color: #ea580c; }
-    .price-card.total .price-label { color: rgba(255,255,255,0.8); }
-    .price-card.total .price-value { color: white; }
+    /* Part section */
+    .part-section { margin-bottom: 32px; }
+    .part-card { background: #0a0a0a; border-radius: 14px; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .part-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
+    .part-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
+    .part-meta { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 6px; }
+    .part-pref { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: #f97316; white-space: nowrap; }
 
-    .validity { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: center; gap: 10px; }
-    .validity-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; flex-shrink: 0; }
-    .validity-text { font-size: 12px; color: #166534; font-weight: 500; }
+    /* Price — customer sees only total */
+    .price-section { margin-bottom: 32px; }
+    .price-hero { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 16px; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .price-hero-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .price-hero-value { font-size: 48px; font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1; }
+    .price-hero-incl { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 6px; }
+    .price-hero-right { text-align: right; }
+    .price-hero-part { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
+    .price-hero-vehicle { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
 
-    .footer { border-top: 1px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-    .footer-brand { font-size: 12px; font-weight: 700; color: #f97316; }
-    .footer-contact { font-size: 11px; color: #aaa; text-align: right; }
+    /* Terms strip */
+    .terms-strip { display: flex; gap: 12px; margin-bottom: 32px; }
+    .term-pill { flex: 1; background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+    .term-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .term-text { font-size: 11px; font-weight: 600; color: #333; line-height: 1.4; }
+    .term-sub { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+    /* Notes */
+    .notes-box { background: #fafafa; border-left: 3px solid #f97316; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 32px; font-size: 12px; color: #555; line-height: 1.6; }
+
+    /* Footer */
+    .footer { border-top: 1px solid #f0f0f0; padding-top: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .footer-left .footer-brand { font-size: 13px; font-weight: 800; color: #0a0a0a; }
+    .footer-left .footer-tagline { font-size: 10px; color: #bbb; margin-top: 2px; }
+    .footer-right { text-align: right; }
+    .footer-right div { font-size: 11px; color: #aaa; line-height: 1.7; }
+    .footer-right .highlight { color: #f97316; font-weight: 600; }
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 32px; }
+      .page { padding: 36px 40px; }
     }
   </style>
 </head>
@@ -210,94 +229,103 @@ export default function QuotesPage() {
       </div>
       <div>
         <div class="brand-name">Cape Parts Finder</div>
-        <div class="brand-sub">Your Trusted Auto Parts Network · Cape Town</div>
+        <div class="brand-tagline">Your Trusted Auto Parts Network · Cape Town</div>
       </div>
     </div>
-    <div class="quote-meta">
-      <div class="quote-num">QUOTE ${quoteNum}</div>
-      <div class="quote-date">Issued: ${date}</div>
-      <div class="quote-date" style="margin-top:4px;color:#f97316;font-weight:600;">Valid for 3 days</div>
+    <div class="quote-badge">
+      <div class="quote-label">Quotation</div>
+      <div class="quote-num">${quoteNum}</div>
+      <div class="quote-date">Issued ${date}</div>
     </div>
   </div>
+
+  <div class="divider"></div>
 
   <div class="two-col">
     <div class="info-box">
-      <div class="section-title">Customer Details</div>
-      <div class="info-row">
-        <div class="info-label">Name</div>
-        <div class="info-value">${request.customer_name || "—"}</div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Phone</div>
-        <div class="info-value">${request.phone_number || "—"}</div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Email</div>
-        <div class="info-value">${request.email || "—"}</div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Area</div>
-        <div class="info-value">${request.area || "—"}</div>
-      </div>
+      <div class="section-label">Prepared For</div>
+      <div class="info-row"><span class="info-label">Name</span><span class="info-value">${request.customer_name || "—"}</span></div>
+      <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${request.phone_number || "—"}</span></div>
+      ${request.email ? `<div class="info-row"><span class="info-label">Email</span><span class="info-value">${request.email}</span></div>` : ""}
+      ${request.area ? `<div class="info-row"><span class="info-label">Area</span><span class="info-value">${request.area}</span></div>` : ""}
     </div>
     <div class="info-box">
-      <div class="section-title">Vehicle Details</div>
-      <div class="info-row">
-        <div class="info-label">Make</div>
-        <div class="info-value">${request.vehicle_make || "—"}</div>
+      <div class="section-label">Vehicle</div>
+      <div class="info-row"><span class="info-label">Make</span><span class="info-value">${request.vehicle_make || "—"}</span></div>
+      <div class="info-row"><span class="info-label">Model</span><span class="info-value">${request.vehicle_model || "—"}</span></div>
+      <div class="info-row"><span class="info-label">Year</span><span class="info-value">${request.vehicle_year || "—"}</span></div>
+      ${request.vin_number ? `<div class="info-row"><span class="info-label">VIN</span><span class="info-value">${request.vin_number}</span></div>` : ""}
+      ${request.engine_size ? `<div class="info-row"><span class="info-label">Engine</span><span class="info-value">${request.engine_size}</span></div>` : ""}
+    </div>
+  </div>
+
+  <div class="part-section">
+    <div class="section-label">Part Description</div>
+    <div class="part-card">
+      <div>
+        <div class="part-label">Part Needed</div>
+        <div class="part-name">${request.part_needed || "—"}</div>
+        <div class="part-meta">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}</div>
       </div>
-      <div class="info-row">
-        <div class="info-label">Model</div>
-        <div class="info-value">${request.vehicle_model || "—"}</div>
+      ${request.part_preference ? `<div class="part-pref">${request.part_preference}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="price-section">
+    <div class="section-label">Your Price</div>
+    <div class="price-hero">
+      <div>
+        <div class="price-hero-label">Total Amount</div>
+        <div class="price-hero-value">R${Number(quote.marked_up_price).toFixed(2)}</div>
+        <div class="price-hero-incl">Inclusive of all sourcing &amp; handling</div>
       </div>
-      <div class="info-row">
-        <div class="info-label">Year</div>
-        <div class="info-value">${request.vehicle_year || "—"}</div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">VIN</div>
-        <div class="info-value">${request.vin_number || "—"}</div>
+      <div class="price-hero-right">
+        <div class="price-hero-part">${request.part_needed || ""}</div>
+        <div class="price-hero-vehicle">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}</div>
       </div>
     </div>
   </div>
 
-  <div class="part-box">
-    <div class="section-title">Part Required</div>
-    <div class="part-name">${request.part_needed || "—"}</div>
-    ${request.part_preference ? `<div style="margin-top:8px;font-size:12px;color:#888;">Preference: ${request.part_preference}</div>` : ""}
-    ${request.extra_details ? `<div style="margin-top:6px;font-size:12px;color:#666;">${request.extra_details}</div>` : ""}
+  <div class="terms-strip">
+    <div class="term-pill">
+      <div class="term-icon" style="background:#fff8f3;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <div class="term-text">Valid Until</div>
+        <div class="term-sub">${expiryDate}</div>
+      </div>
+    </div>
+    <div class="term-pill">
+      <div class="term-icon" style="background:#f0fdf4;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="term-text">To Confirm</div>
+        <div class="term-sub">Reply YES via WhatsApp</div>
+      </div>
+    </div>
+    <div class="term-pill">
+      <div class="term-icon" style="background:#f0f9ff;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div>
+        <div class="term-text">Delivery</div>
+        <div class="term-sub">Cape Town &amp; surrounds</div>
+      </div>
+    </div>
   </div>
 
-  <div class="section-title" style="margin-bottom:12px;">Pricing Breakdown</div>
-  <div class="price-grid">
-    <div class="price-card cost">
-      <div class="price-label">Supplier Cost</div>
-      <div class="price-value">R${Number(quote.supplier_price).toFixed(2)}</div>
-    </div>
-    <div class="price-card markup">
-      <div class="price-label">Markup (${markupPct}%)</div>
-      <div class="price-value">R${profit.toFixed(2)}</div>
-    </div>
-    <div class="price-card total">
-      <div class="price-label">Your Price</div>
-      <div class="price-value">R${Number(quote.marked_up_price).toFixed(2)}</div>
-    </div>
-  </div>
-
-  <div class="validity">
-    <div class="validity-dot"></div>
-    <div class="validity-text">This quote is valid for <strong>3 days</strong> from the date of issue. Prices are subject to availability. Reply YES to confirm your order.</div>
-  </div>
-
-  ${quote.notes ? `<div style="background:#f9f9f9;border-radius:10px;padding:14px 16px;margin-bottom:28px;font-size:12px;color:#555;">${quote.notes}</div>` : ""}
+  ${quote.notes ? `<div class="notes-box">${quote.notes}</div>` : ""}
+  ${request.extra_details ? `<div class="notes-box" style="margin-bottom:32px;">${request.extra_details}</div>` : ""}
 
   <div class="footer">
-    <div>
+    <div class="footer-left">
       <div class="footer-brand">Cape Parts Finder</div>
-      <div style="font-size:11px;color:#aaa;margin-top:2px;">Thank you for your business</div>
+      <div class="footer-tagline">Connecting you with quality parts across Cape Town</div>
     </div>
-    <div class="footer-contact">
-      <div>wa.me/27696863952</div>
+    <div class="footer-right">
+      <div class="highlight">+27 69 686 3952</div>
       <div>cape-parts-finder.vercel.app</div>
       <div>Cape Town, South Africa</div>
     </div>
