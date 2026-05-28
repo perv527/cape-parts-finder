@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [savingNote, setSavingNote] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [newCount, setNewCount] = useState(0);
 
   function getWhatsAppMessage(request: any, template: string) {
     const name = request.customer_name || "there";
@@ -70,6 +71,7 @@ export default function AdminPage() {
     const { data, error } = await supabase.from("parts_requests").select("*").order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setRequests(data || []);
+    setNewCount((data || []).filter((r: any) => r.status === "New").length);
     const nm: Record<number, string> = {};
     (data || []).forEach((r: any) => { if (r.internal_notes) nm[r.id] = r.internal_notes; });
     setNotes(nm);
@@ -446,3 +448,6 @@ export default function AdminPage() {
     </main>
   );
 }
+
+
+
