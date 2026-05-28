@@ -149,212 +149,238 @@ export default function QuotesPage() {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; font-size: 13px; }
-    .page { max-width: 680px; margin: 0 auto; padding: 48px 44px; }
+    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; font-size: 12px; line-height: 1.5; }
+    .page { max-width: 720px; margin: 0 auto; padding: 56px 52px; }
 
-    /* Header */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .logo { width: 40px; height: 40px; background: #f97316; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .logo svg { width: 20px; height: 20px; }
-    .brand-name { font-size: 17px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.3px; }
-    .brand-tagline { font-size: 10px; color: #aaa; margin-top: 2px; }
-    .quote-badge { text-align: right; }
-    .quote-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #ccc; }
-    .quote-num { font-size: 17px; font-weight: 800; color: #0a0a0a; margin-top: 2px; letter-spacing: -0.3px; }
-    .quote-date { font-size: 10px; color: #aaa; margin-top: 3px; }
+    /* ── HEADER ── */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+    .logo-wrap { display: flex; align-items: center; gap: 13px; }
+    .logo-box { width: 42px; height: 42px; background: #f97316; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo-box svg { width: 21px; height: 21px; }
+    .brand-name { font-size: 18px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.4px; }
+    .brand-sub { font-size: 10.5px; color: #aaa; margin-top: 2px; font-weight: 400; }
+    .quote-info { text-align: right; }
+    .quote-tag { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: #ccc; margin-bottom: 4px; }
+    .quote-num { font-size: 19px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; }
+    .quote-meta { font-size: 10px; color: #aaa; margin-top: 5px; line-height: 1.8; }
 
-    /* Thin orange line */
-    .divider { height: 2px; background: linear-gradient(90deg, #f97316, #fed7aa 60%, transparent); border-radius: 2px; margin-bottom: 28px; }
+    /* ── ACCENT LINE ── */
+    .accent-line { height: 1.5px; background: linear-gradient(90deg, #f97316 0%, #fdba74 50%, #fff 100%); margin-bottom: 36px; }
 
-    /* Section label */
-    .section-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #ccc; margin-bottom: 10px; }
+    /* ── SECTION HEADING ── */
+    .sec { font-size: 7.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: #ccc; margin-bottom: 10px; }
 
-    /* Info grid — no backgrounds, just lines */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 28px; border: 1px solid #ececec; border-radius: 10px; overflow: hidden; }
-    .info-box { padding: 16px 20px; }
-    .info-box:first-child { border-right: 1px solid #ececec; }
-    .info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
-    .info-row + .info-row { border-top: 1px solid #f5f5f5; }
-    .info-label { font-size: 10px; color: #bbb; font-weight: 500; }
-    .info-value { font-size: 11px; font-weight: 600; color: #222; text-align: right; }
+    /* ── INFO PANELS ── */
+    .panels { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; margin-bottom: 36px; }
+    .panel { padding: 18px 22px; }
+    .panel:first-child { border-right: 1px solid #e8e8e8; }
+    .panel-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
+    .panel-row + .panel-row { border-top: 1px solid #f3f3f3; }
+    .pl { font-size: 10px; color: #bbb; font-weight: 500; }
+    .pv { font-size: 11px; font-weight: 600; color: #1a1a1a; text-align: right; max-width: 60%; }
 
-    /* Part — just text, minimal border accent */
-    .part-section { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #ececec; }
-    .part-name { font-size: 20px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.4px; margin-bottom: 4px; }
-    .part-meta { font-size: 11px; color: #aaa; }
-    .part-pref { display: inline-block; margin-top: 6px; border: 1px solid #f97316; border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; color: #f97316; }
+    /* ── PART BLOCK ── */
+    .part-block { padding: 20px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .part-name { font-size: 22px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; text-transform: capitalize; }
+    .part-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+    .part-extra { font-size: 10.5px; color: #777; margin-top: 6px; font-style: italic; }
+    .pref-badge { flex-shrink: 0; margin-top: 4px; border: 1px solid #f97316; border-radius: 20px; padding: 3px 11px; font-size: 10px; font-weight: 700; color: #f97316; white-space: nowrap; letter-spacing: 0.3px; }
 
-    /* Price table — clean lines only */
-    .price-section { margin-bottom: 28px; }
+    /* ── PRICING ── */
+    .pricing-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; align-items: start; }
     .price-table { width: 100%; border-collapse: collapse; }
-    .price-table td { padding: 8px 0; font-size: 12px; }
-    .price-table tr + tr td { border-top: 1px solid #f5f5f5; }
-    .price-table .label { color: #888; }
-    .price-table .value { text-align: right; font-weight: 600; color: #222; }
-    .price-total-row td { padding-top: 12px; border-top: 2px solid #0a0a0a !important; }
-    .price-total-label { font-size: 13px; font-weight: 700; color: #0a0a0a; }
-    .price-total-value { font-size: 22px; font-weight: 900; color: #f97316; text-align: right; }
-    .vat-note { font-size: 10px; color: #aaa; margin-top: 4px; }
+    .price-table td { padding: 7px 0; font-size: 11.5px; vertical-align: baseline; }
+    .price-table tr + tr td { border-top: 1px solid #f0f0f0; }
+    .pt-label { color: #888; width: 60%; }
+    .pt-value { text-align: right; font-weight: 600; color: #333; }
+    .price-total td { border-top: 1.5px solid #1a1a1a !important; padding-top: 10px; }
+    .pt-total-label { font-size: 13px; font-weight: 800; color: #0a0a0a; }
+    .pt-total-value { font-size: 24px; font-weight: 900; color: #f97316; text-align: right; letter-spacing: -0.5px; }
+    .vat-note { font-size: 9.5px; color: #bbb; margin-top: 6px; line-height: 1.5; }
 
-    /* Terms — inline, no backgrounds */
-    .terms-row { display: flex; gap: 24px; margin-bottom: 28px; padding: 14px 0; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; }
-    .term-item { display: flex; align-items: center; gap: 8px; }
-    .term-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .term-text { font-size: 11px; color: #555; }
-    .term-text strong { color: #222; font-weight: 600; }
+    /* ── BANKING ── */
+    .bank-table { width: 100%; border-collapse: collapse; }
+    .bank-table td { padding: 6px 0; font-size: 10.5px; vertical-align: baseline; }
+    .bank-table tr + tr td { border-top: 1px solid #f0f0f0; }
+    .bl { color: #bbb; font-weight: 500; width: 45%; }
+    .bv { text-align: right; font-weight: 700; color: #1a1a1a; }
+    .bv.accent { color: #f97316; font-size: 12px; }
+    .bank-note { font-size: 9.5px; color: #aaa; margin-top: 8px; line-height: 1.6; }
 
-    /* Notes */
-    .notes-box { border-left: 2px solid #f97316; padding: 8px 14px; margin-bottom: 24px; font-size: 11px; color: #666; line-height: 1.6; }
+    /* ── TERMS ROW ── */
+    .terms { display: flex; gap: 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 28px; }
+    .term { flex: 1; padding: 13px 16px; display: flex; align-items: center; gap: 9px; }
+    .term + .term { border-left: 1px solid #e8e8e8; }
+    .tdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .ttext { font-size: 10.5px; color: #555; line-height: 1.4; }
+    .ttext strong { color: #1a1a1a; font-weight: 700; }
 
-    /* Footer */
-    .footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; border-top: 1px solid #ececec; }
-    .footer-brand { font-size: 12px; font-weight: 800; color: #0a0a0a; }
-    .footer-tagline { font-size: 10px; color: #ccc; margin-top: 2px; }
+    /* ── NOTES ── */
+    .note-box { border-left: 2px solid #f97316; padding: 9px 14px; margin-bottom: 28px; font-size: 10.5px; color: #666; line-height: 1.65; }
+
+    /* ── DISCLAIMER ── */
+    .disclaimer { background: #fafafa; border: 1px solid #efefef; border-radius: 8px; padding: 14px 18px; margin-bottom: 32px; }
+    .disclaimer p { font-size: 9.5px; color: #888; line-height: 1.75; margin-bottom: 5px; }
+    .disclaimer p:last-child { margin-bottom: 0; }
+    .disclaimer strong { color: #666; font-weight: 600; }
+
+    /* ── FOOTER ── */
+    .footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #e8e8e8; }
+    .footer-left .fb { font-size: 12px; font-weight: 800; color: #0a0a0a; }
+    .footer-left .ft { font-size: 9.5px; color: #ccc; margin-top: 2px; }
     .footer-right { text-align: right; }
-    .footer-right div { font-size: 10px; color: #aaa; line-height: 1.8; }
-    .footer-right .orange { color: #f97316; font-weight: 600; }
+    .footer-right div { font-size: 9.5px; color: #aaa; line-height: 1.85; }
+    .footer-right .fo { color: #f97316; font-weight: 700; font-size: 10.5px; }
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 32px 36px; }
+      .page { padding: 40px 44px; }
     }
   </style>
 </head>
 <body>
 <div class="page">
 
+  <!-- HEADER -->
   <div class="header">
-    <div class="brand">
-      <div class="logo">
+    <div class="logo-wrap">
+      <div class="logo-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
       </div>
       <div>
         <div class="brand-name">Cape Parts Finder</div>
-        <div class="brand-tagline">Your Trusted Auto Parts Network · Cape Town</div>
+        <div class="brand-sub">Your Trusted Auto Parts Network &middot; Cape Town</div>
       </div>
     </div>
-    <div class="quote-badge">
-      <div class="quote-label">Quotation</div>
+    <div class="quote-info">
+      <div class="quote-tag">Quotation</div>
       <div class="quote-num">${quoteNum}</div>
-      <div class="quote-date">Issued ${date}</div>
+      <div class="quote-meta">
+        Issued: ${date}<br/>
+        Valid until: <strong style="color:#f97316;">${expiryDate}</strong>
+      </div>
     </div>
   </div>
 
-  <div class="divider"></div>
+  <div class="accent-line"></div>
 
-  <div class="two-col">
-    <div class="info-box">
-      <div class="section-label">Prepared For</div>
-      <div class="info-row"><span class="info-label">Name</span><span class="info-value">${request.customer_name || "—"}</span></div>
-      <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${request.phone_number || "—"}</span></div>
-      ${request.email ? `<div class="info-row"><span class="info-label">Email</span><span class="info-value">${request.email}</span></div>` : ""}
-      ${request.area ? `<div class="info-row"><span class="info-label">Area</span><span class="info-value">${request.area}</span></div>` : ""}
+  <!-- CUSTOMER + VEHICLE -->
+  <div class="panels">
+    <div class="panel">
+      <div class="sec">Prepared For</div>
+      <div class="panel-row"><span class="pl">Full Name</span><span class="pv">${request.customer_name || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Phone</span><span class="pv">${request.phone_number || "—"}</span></div>
+      ${request.email ? `<div class="panel-row"><span class="pl">Email</span><span class="pv">${request.email}</span></div>` : ""}
+      ${request.area ? `<div class="panel-row"><span class="pl">Area</span><span class="pv">${request.area}</span></div>` : ""}
     </div>
-    <div class="info-box">
-      <div class="section-label">Vehicle</div>
-      <div class="info-row"><span class="info-label">Make</span><span class="info-value">${request.vehicle_make || "—"}</span></div>
-      <div class="info-row"><span class="info-label">Model</span><span class="info-value">${request.vehicle_model || "—"}</span></div>
-      <div class="info-row"><span class="info-label">Year</span><span class="info-value">${request.vehicle_year || "—"}</span></div>
-      ${request.vin_number ? `<div class="info-row"><span class="info-label">VIN</span><span class="info-value">${request.vin_number}</span></div>` : ""}
-      ${request.engine_size ? `<div class="info-row"><span class="info-label">Engine</span><span class="info-value">${request.engine_size}</span></div>` : ""}
-    </div>
-  </div>
-
-  <div class="part-section">
-    <div class="section-label">Part Description</div>
-    <div class="part-name">${request.part_needed || "—"}</div>
-    <div class="part-meta">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}${request.engine_size ? " · " + request.engine_size : ""}</div>
-    ${request.part_preference ? `<div class="part-pref">${request.part_preference}</div>` : ""}
-    ${request.extra_details ? `<div style="margin-top:8px;font-size:11px;color:#777;">${request.extra_details}</div>` : ""}
-  </div>
-
-  <div class="price-section">
-    <div class="section-label">Pricing</div>
-    <table class="price-table">
-      <tr>
-        <td class="label">Part &amp; Sourcing</td>
-        <td class="value">R${basePrice.toFixed(2)}</td>
-      </tr>
-      <tr>
-        <td class="label">VAT (15%)</td>
-        <td class="value">R${vatAmt.toFixed(2)}</td>
-      </tr>
-      <tr class="price-total-row">
-        <td class="price-total-label">Total Amount Due</td>
-        <td class="price-total-value">R${totalVat.toFixed(2)}</td>
-      </tr>
-    </table>
-    <div class="vat-note">VAT Registration No: — · All amounts in South African Rand (ZAR)</div>
-  </div>
-
-  <div class="terms-row">
-    <div class="term-item">
-      <div class="term-dot" style="background:#f97316;"></div>
-      <div class="term-text">Valid until <strong>${expiryDate}</strong></div>
-    </div>
-    <div class="term-item">
-      <div class="term-dot" style="background:#22c55e;"></div>
-      <div class="term-text">To confirm, reply <strong>YES</strong> via WhatsApp</div>
-    </div>
-    <div class="term-item">
-      <div class="term-dot" style="background:#3b82f6;"></div>
-      <div class="term-text">Delivery: <strong>Cape Town &amp; surrounds</strong></div>
+    <div class="panel">
+      <div class="sec">Vehicle Details</div>
+      <div class="panel-row"><span class="pl">Make</span><span class="pv">${request.vehicle_make || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Model</span><span class="pv">${request.vehicle_model || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Year</span><span class="pv">${request.vehicle_year || "—"}</span></div>
+      ${request.vin_number ? `<div class="panel-row"><span class="pl">VIN</span><span class="pv">${request.vin_number}</span></div>` : ""}
+      ${request.engine_size ? `<div class="panel-row"><span class="pl">Engine</span><span class="pv">${request.engine_size}</span></div>` : ""}
     </div>
   </div>
 
-  ${quote.notes ? `<div class="notes-box">${quote.notes}</div>` : ""}
+  <!-- PART -->
+  <div class="sec">Part Description</div>
+  <div class="part-block">
+    <div>
+      <div class="part-name">${request.part_needed || "—"}</div>
+      <div class="part-sub">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}${request.engine_size ? " &middot; " + request.engine_size : ""}</div>
+      ${request.extra_details ? `<div class="part-extra">${request.extra_details}</div>` : ""}
+    </div>
+    ${request.part_preference ? `<div class="pref-badge">${request.part_preference}</div>` : ""}
+  </div>
 
-  <!-- Banking Details + Disclaimer side by side -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+  <!-- PRICING + BANKING side by side -->
+  <div class="pricing-wrap">
 
     <div>
-      <div class="section-label">Payment Details</div>
-      <table style="width:100%;border-collapse:collapse;">
+      <div class="sec">Pricing Summary</div>
+      <table class="price-table">
         <tr>
-          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Bank</td>
-          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">First National Bank (FNB)</td>
+          <td class="pt-label">Part &amp; Sourcing Fee</td>
+          <td class="pt-value">R${basePrice.toFixed(2)}</td>
         </tr>
-        <tr style="border-top:1px solid #f5f5f5;">
-          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Name</td>
-          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">Cape Parts Finder</td>
+        <tr>
+          <td class="pt-label">VAT (15%)</td>
+          <td class="pt-value">R${vatAmt.toFixed(2)}</td>
         </tr>
-        <tr style="border-top:1px solid #f5f5f5;">
-          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Number</td>
-          <td style="font-size:11px;font-weight:700;color:#f97316;text-align:right;">62863344596</td>
-        </tr>
-        <tr style="border-top:1px solid #f5f5f5;">
-          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Type</td>
-          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">Savings Account</td>
-        </tr>
-        <tr style="border-top:1px solid #f5f5f5;">
-          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Reference</td>
-          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">${quoteNum}</td>
+        <tr class="price-total">
+          <td class="pt-total-label">Total Amount Due</td>
+          <td class="pt-total-value">R${totalVat.toFixed(2)}</td>
         </tr>
       </table>
-      <div style="margin-top:8px;font-size:10px;color:#aaa;line-height:1.5;">Please use your quote number as payment reference. Send proof of payment via WhatsApp to confirm your order.</div>
+      <div class="vat-note">All amounts in South African Rand (ZAR)<br/>VAT Reg No: —</div>
     </div>
 
     <div>
-      <div class="section-label">Disclaimer</div>
-      <div style="font-size:10px;color:#888;line-height:1.7;">
-        <p style="margin-bottom:6px;">All parts supplied are subject to the <strong style="color:#555;">manufacturer's or supplier's warranty</strong> only. Cape Parts Finder acts as an intermediary and the applicable guarantee is as provided by the supplying party.</p>
-        <p style="margin-bottom:6px;">Cape Parts Finder accepts no liability for parts incompatibility, fitment issues, or damage arising from incorrect installation. It is the customer's responsibility to verify part compatibility before fitment.</p>
-        <p>Prices are valid for <strong style="color:#555;">3 days</strong> from date of issue and are subject to stock availability. This quote does not constitute a binding agreement until payment is received and confirmed.</p>
-      </div>
+      <div class="sec">Payment Details</div>
+      <table class="bank-table">
+        <tr>
+          <td class="bl">Bank</td>
+          <td class="bv">First National Bank (FNB)</td>
+        </tr>
+        <tr>
+          <td class="bl">Account Name</td>
+          <td class="bv">Cape Parts Finder</td>
+        </tr>
+        <tr>
+          <td class="bl">Account Number</td>
+          <td class="bv accent">62863344596</td>
+        </tr>
+        <tr>
+          <td class="bl">Account Type</td>
+          <td class="bv">Savings Account</td>
+        </tr>
+        <tr>
+          <td class="bl">Reference</td>
+          <td class="bv">${quoteNum}</td>
+        </tr>
+      </table>
+      <div class="bank-note">Use your quote number as payment reference.<br/>Send proof of payment via WhatsApp to confirm.</div>
     </div>
 
   </div>
 
+  <!-- TERMS -->
+  <div class="terms">
+    <div class="term">
+      <div class="tdot" style="background:#f97316;"></div>
+      <div class="ttext">Quote valid until <strong>${expiryDate}</strong></div>
+    </div>
+    <div class="term">
+      <div class="tdot" style="background:#22c55e;"></div>
+      <div class="ttext">Reply <strong>YES</strong> via WhatsApp to confirm</div>
+    </div>
+    <div class="term">
+      <div class="tdot" style="background:#3b82f6;"></div>
+      <div class="ttext">Delivery: <strong>Cape Town &amp; surrounds</strong></div>
+    </div>
+  </div>
+
+  ${quote.notes ? `<div class="note-box">${quote.notes}</div>` : ""}
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <div class="sec" style="margin-bottom:8px;">Terms &amp; Disclaimer</div>
+    <p>All parts sourced are subject to the <strong>manufacturer's or supplier's warranty</strong> only. Cape Parts Finder acts solely as an intermediary between the customer and supplier. The applicable guarantee and warranty terms are as provided by the supplying party and Cape Parts Finder accepts no responsibility beyond that warranty.</p>
+    <p>Cape Parts Finder accepts no liability for parts incompatibility, fitment issues, or any damage arising from incorrect installation. It is the customer's sole responsibility to verify part compatibility with their vehicle prior to fitment.</p>
+    <p>This quotation is valid for <strong>3 days</strong> from the date of issue and is subject to stock availability at time of order confirmation. This document does not constitute a binding agreement until full payment has been received and confirmed by Cape Parts Finder.</p>
+  </div>
+
+  <!-- FOOTER -->
   <div class="footer">
-    <div>
-      <div class="footer-brand">Cape Parts Finder</div>
-      <div class="footer-tagline">Connecting you with quality parts across Cape Town</div>
+    <div class="footer-left">
+      <div class="fb">Cape Parts Finder</div>
+      <div class="ft">Connecting you with quality parts across Cape Town</div>
     </div>
     <div class="footer-right">
-      <div class="orange">+27 69 686 3952</div>
+      <div class="fo">+27 69 686 3952</div>
       <div>cape-parts-finder.vercel.app</div>
       <div>Cape Town, South Africa</div>
     </div>
