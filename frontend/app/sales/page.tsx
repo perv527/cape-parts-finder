@@ -14,6 +14,7 @@ export default function SalesPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [search, setSearch] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -40,6 +41,8 @@ export default function SalesPage() {
       if (startDate && endDate) { const s2 = new Date(startDate), e = new Date(endDate); e.setHours(23, 59, 59); return d >= s2 && d <= e; }
       const q = search.toLowerCase();
       if (q && !(s.customer_name||"").toLowerCase().includes(q) && !(s.vehicle||"").toLowerCase().includes(q)) return false;
+      const q = search.toLowerCase();
+      if (q && !(s.customer_name||"").toLowerCase().includes(q) && !(s.part_name||"").toLowerCase().includes(q)) return false;
       return true;
     });
   }
@@ -221,6 +224,9 @@ export default function SalesPage() {
     </main>
   );
 }
+
+
+
 
 
 
