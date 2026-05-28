@@ -136,6 +136,9 @@ export default function QuotesPage() {
     const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    const basePrice = Number(quote.marked_up_price);
+    const vatAmt = basePrice * 0.15;
+    const totalVat = basePrice + vatAmt;
 
     const html = `
 <!DOCTYPE html>
@@ -146,74 +149,75 @@ export default function QuotesPage() {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; }
-    .page { max-width: 680px; margin: 0 auto; padding: 52px 44px; }
+    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; font-size: 13px; }
+    .page { max-width: 680px; margin: 0 auto; padding: 48px 44px; }
 
     /* Header */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 44px; }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .logo { width: 44px; height: 44px; background: #f97316; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .logo svg { width: 22px; height: 22px; }
-    .brand-name { font-size: 18px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.3px; }
-    .brand-tagline { font-size: 11px; color: #999; margin-top: 3px; letter-spacing: 0.2px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; background: #f97316; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .logo svg { width: 20px; height: 20px; }
+    .brand-name { font-size: 17px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.3px; }
+    .brand-tagline { font-size: 10px; color: #aaa; margin-top: 2px; }
     .quote-badge { text-align: right; }
-    .quote-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #bbb; }
-    .quote-num { font-size: 18px; font-weight: 800; color: #0a0a0a; margin-top: 3px; letter-spacing: -0.3px; }
-    .quote-date { font-size: 11px; color: #999; margin-top: 4px; }
+    .quote-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #ccc; }
+    .quote-num { font-size: 17px; font-weight: 800; color: #0a0a0a; margin-top: 2px; letter-spacing: -0.3px; }
+    .quote-date { font-size: 10px; color: #aaa; margin-top: 3px; }
 
-    /* Orange divider */
-    .divider { height: 3px; background: linear-gradient(90deg, #f97316, #fdba74, transparent); border-radius: 2px; margin-bottom: 36px; }
+    /* Thin orange line */
+    .divider { height: 2px; background: linear-gradient(90deg, #f97316, #fed7aa 60%, transparent); border-radius: 2px; margin-bottom: 28px; }
 
     /* Section label */
-    .section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #bbb; margin-bottom: 12px; }
+    .section-label { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #ccc; margin-bottom: 10px; }
 
-    /* Info grid */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-    .info-box { border: 1px solid #f0f0f0; border-radius: 12px; padding: 18px 20px; }
-    .info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; border-bottom: 1px solid #f7f7f7; }
-    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .info-label { font-size: 11px; color: #aaa; font-weight: 500; }
-    .info-value { font-size: 12px; font-weight: 600; color: #222; text-align: right; max-width: 55%; }
+    /* Info grid — no backgrounds, just lines */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 28px; border: 1px solid #ececec; border-radius: 10px; overflow: hidden; }
+    .info-box { padding: 16px 20px; }
+    .info-box:first-child { border-right: 1px solid #ececec; }
+    .info-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
+    .info-row + .info-row { border-top: 1px solid #f5f5f5; }
+    .info-label { font-size: 10px; color: #bbb; font-weight: 500; }
+    .info-value { font-size: 11px; font-weight: 600; color: #222; text-align: right; }
 
-    /* Part section */
-    .part-section { margin-bottom: 32px; }
-    .part-card { background: #0a0a0a; border-radius: 14px; padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; }
-    .part-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
-    .part-name { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.4px; }
-    .part-meta { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 6px; }
-    .part-pref { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3); border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600; color: #f97316; white-space: nowrap; }
+    /* Part — just text, minimal border accent */
+    .part-section { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #ececec; }
+    .part-name { font-size: 20px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.4px; margin-bottom: 4px; }
+    .part-meta { font-size: 11px; color: #aaa; }
+    .part-pref { display: inline-block; margin-top: 6px; border: 1px solid #f97316; border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; color: #f97316; }
 
-    /* Price — customer sees only total */
-    .price-section { margin-bottom: 32px; }
-    .price-hero { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 16px; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center; }
-    .price-hero-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
-    .price-hero-value { font-size: 48px; font-weight: 900; color: #fff; letter-spacing: -2px; line-height: 1; }
-    .price-hero-incl { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 6px; }
-    .price-hero-right { text-align: right; }
-    .price-hero-part { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); }
-    .price-hero-vehicle { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+    /* Price table — clean lines only */
+    .price-section { margin-bottom: 28px; }
+    .price-table { width: 100%; border-collapse: collapse; }
+    .price-table td { padding: 8px 0; font-size: 12px; }
+    .price-table tr + tr td { border-top: 1px solid #f5f5f5; }
+    .price-table .label { color: #888; }
+    .price-table .value { text-align: right; font-weight: 600; color: #222; }
+    .price-total-row td { padding-top: 12px; border-top: 2px solid #0a0a0a !important; }
+    .price-total-label { font-size: 13px; font-weight: 700; color: #0a0a0a; }
+    .price-total-value { font-size: 22px; font-weight: 900; color: #f97316; text-align: right; }
+    .vat-note { font-size: 10px; color: #aaa; margin-top: 4px; }
 
-    /* Terms strip */
-    .terms-strip { display: flex; gap: 12px; margin-bottom: 32px; }
-    .term-pill { flex: 1; background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
-    .term-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .term-text { font-size: 11px; font-weight: 600; color: #333; line-height: 1.4; }
-    .term-sub { font-size: 10px; color: #aaa; margin-top: 1px; }
+    /* Terms — inline, no backgrounds */
+    .terms-row { display: flex; gap: 24px; margin-bottom: 28px; padding: 14px 0; border-top: 1px solid #ececec; border-bottom: 1px solid #ececec; }
+    .term-item { display: flex; align-items: center; gap: 8px; }
+    .term-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .term-text { font-size: 11px; color: #555; }
+    .term-text strong { color: #222; font-weight: 600; }
 
     /* Notes */
-    .notes-box { background: #fafafa; border-left: 3px solid #f97316; border-radius: 0 8px 8px 0; padding: 12px 16px; margin-bottom: 32px; font-size: 12px; color: #555; line-height: 1.6; }
+    .notes-box { border-left: 2px solid #f97316; padding: 8px 14px; margin-bottom: 24px; font-size: 11px; color: #666; line-height: 1.6; }
 
     /* Footer */
-    .footer { border-top: 1px solid #f0f0f0; padding-top: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
-    .footer-left .footer-brand { font-size: 13px; font-weight: 800; color: #0a0a0a; }
-    .footer-left .footer-tagline { font-size: 10px; color: #bbb; margin-top: 2px; }
+    .footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 20px; border-top: 1px solid #ececec; }
+    .footer-brand { font-size: 12px; font-weight: 800; color: #0a0a0a; }
+    .footer-tagline { font-size: 10px; color: #ccc; margin-top: 2px; }
     .footer-right { text-align: right; }
-    .footer-right div { font-size: 11px; color: #aaa; line-height: 1.7; }
-    .footer-right .highlight { color: #f97316; font-weight: 600; }
+    .footer-right div { font-size: 10px; color: #aaa; line-height: 1.8; }
+    .footer-right .orange { color: #f97316; font-weight: 600; }
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 36px 40px; }
+      .page { padding: 32px 36px; }
     }
   </style>
 </head>
@@ -261,71 +265,55 @@ export default function QuotesPage() {
 
   <div class="part-section">
     <div class="section-label">Part Description</div>
-    <div class="part-card">
-      <div>
-        <div class="part-label">Part Needed</div>
-        <div class="part-name">${request.part_needed || "—"}</div>
-        <div class="part-meta">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}</div>
-      </div>
-      ${request.part_preference ? `<div class="part-pref">${request.part_preference}</div>` : ""}
-    </div>
+    <div class="part-name">${request.part_needed || "—"}</div>
+    <div class="part-meta">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}${request.engine_size ? " · " + request.engine_size : ""}</div>
+    ${request.part_preference ? `<div class="part-pref">${request.part_preference}</div>` : ""}
+    ${request.extra_details ? `<div style="margin-top:8px;font-size:11px;color:#777;">${request.extra_details}</div>` : ""}
   </div>
 
   <div class="price-section">
-    <div class="section-label">Your Price</div>
-    <div class="price-hero">
-      <div>
-        <div class="price-hero-label">Total Amount</div>
-        <div class="price-hero-value">R${Number(quote.marked_up_price).toFixed(2)}</div>
-        <div class="price-hero-incl">Inclusive of all sourcing &amp; handling</div>
-      </div>
-      <div class="price-hero-right">
-        <div class="price-hero-part">${request.part_needed || ""}</div>
-        <div class="price-hero-vehicle">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}</div>
-      </div>
-    </div>
+    <div class="section-label">Pricing</div>
+    <table class="price-table">
+      <tr>
+        <td class="label">Part &amp; Sourcing</td>
+        <td class="value">R${basePrice.toFixed(2)}</td>
+      </tr>
+      <tr>
+        <td class="label">VAT (15%)</td>
+        <td class="value">R${vatAmt.toFixed(2)}</td>
+      </tr>
+      <tr class="price-total-row">
+        <td class="price-total-label">Total Amount Due</td>
+        <td class="price-total-value">R${totalVat.toFixed(2)}</td>
+      </tr>
+    </table>
+    <div class="vat-note">VAT Registration No: — · All amounts in South African Rand (ZAR)</div>
   </div>
 
-  <div class="terms-strip">
-    <div class="term-pill">
-      <div class="term-icon" style="background:#fff8f3;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
-      <div>
-        <div class="term-text">Valid Until</div>
-        <div class="term-sub">${expiryDate}</div>
-      </div>
+  <div class="terms-row">
+    <div class="term-item">
+      <div class="term-dot" style="background:#f97316;"></div>
+      <div class="term-text">Valid until <strong>${expiryDate}</strong></div>
     </div>
-    <div class="term-pill">
-      <div class="term-icon" style="background:#f0fdf4;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div>
-        <div class="term-text">To Confirm</div>
-        <div class="term-sub">Reply YES via WhatsApp</div>
-      </div>
+    <div class="term-item">
+      <div class="term-dot" style="background:#22c55e;"></div>
+      <div class="term-text">To confirm, reply <strong>YES</strong> via WhatsApp</div>
     </div>
-    <div class="term-pill">
-      <div class="term-icon" style="background:#f0f9ff;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      </div>
-      <div>
-        <div class="term-text">Delivery</div>
-        <div class="term-sub">Cape Town &amp; surrounds</div>
-      </div>
+    <div class="term-item">
+      <div class="term-dot" style="background:#3b82f6;"></div>
+      <div class="term-text">Delivery: <strong>Cape Town &amp; surrounds</strong></div>
     </div>
   </div>
 
   ${quote.notes ? `<div class="notes-box">${quote.notes}</div>` : ""}
-  ${request.extra_details ? `<div class="notes-box" style="margin-bottom:32px;">${request.extra_details}</div>` : ""}
 
   <div class="footer">
-    <div class="footer-left">
+    <div>
       <div class="footer-brand">Cape Parts Finder</div>
       <div class="footer-tagline">Connecting you with quality parts across Cape Town</div>
     </div>
     <div class="footer-right">
-      <div class="highlight">+27 69 686 3952</div>
+      <div class="orange">+27 69 686 3952</div>
       <div>cape-parts-finder.vercel.app</div>
       <div>Cape Town, South Africa</div>
     </div>
