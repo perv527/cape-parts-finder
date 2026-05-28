@@ -307,6 +307,47 @@ export default function QuotesPage() {
 
   ${quote.notes ? `<div class="notes-box">${quote.notes}</div>` : ""}
 
+  <!-- Banking Details + Disclaimer side by side -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;">
+
+    <div>
+      <div class="section-label">Payment Details</div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Bank</td>
+          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">First National Bank (FNB)</td>
+        </tr>
+        <tr style="border-top:1px solid #f5f5f5;">
+          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Name</td>
+          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">Cape Parts Finder</td>
+        </tr>
+        <tr style="border-top:1px solid #f5f5f5;">
+          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Number</td>
+          <td style="font-size:11px;font-weight:700;color:#f97316;text-align:right;">62863344596</td>
+        </tr>
+        <tr style="border-top:1px solid #f5f5f5;">
+          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Account Type</td>
+          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">Savings Account</td>
+        </tr>
+        <tr style="border-top:1px solid #f5f5f5;">
+          <td style="font-size:10px;color:#aaa;padding:4px 0;font-weight:500;">Reference</td>
+          <td style="font-size:11px;font-weight:700;color:#222;text-align:right;">${quoteNum}</td>
+        </tr>
+      </table>
+      <div style="margin-top:8px;font-size:10px;color:#aaa;line-height:1.5;">Please use your quote number as payment reference. Send proof of payment via WhatsApp to confirm your order.</div>
+    </div>
+
+    <div>
+      <div class="section-label">Disclaimer</div>
+      <div style="font-size:10px;color:#888;line-height:1.7;">
+        <p style="margin-bottom:6px;">All parts supplied are subject to the <strong style="color:#555;">manufacturer's or supplier's warranty</strong> only. Cape Parts Finder acts as an intermediary and the applicable guarantee is as provided by the supplying party.</p>
+        <p style="margin-bottom:6px;">Cape Parts Finder accepts no liability for parts incompatibility, fitment issues, or damage arising from incorrect installation. It is the customer's responsibility to verify part compatibility before fitment.</p>
+        <p>Prices are valid for <strong style="color:#555;">3 days</strong> from date of issue and are subject to stock availability. This quote does not constitute a binding agreement until payment is received and confirmed.</p>
+      </div>
+    </div>
+
+  </div>
+
   <div class="footer">
     <div>
       <div class="footer-brand">Cape Parts Finder</div>
