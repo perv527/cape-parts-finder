@@ -29,6 +29,11 @@ export default function AdminPage() {
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [newCount, setNewCount] = useState(0);
 
+  // Bulk select state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState("Searching");
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+
   function getWhatsAppMessage(request: any, template: string) {
     const name = request.customer_name || "there";
     const part = request.part_needed || "part";
@@ -92,6 +97,32 @@ export default function AdminPage() {
     setUpdatingId(null);
     if (request && getStatusMessage(request, status)) {
       setNotifyModal({ request: { ...request, status }, status });
+    }
+  }
+
+  async function bulkUpdateStatus() {
+    if (selectedIds.size === 0) return;
+    setBulkUpdating(true);
+    const ids = Array.from(selectedIds);
+    await Promise.all(ids.map(id => supabase.from("parts_requests").update({ status: bulkStatus }).eq("id", id)));
+    setSelectedIds(new Set());
+    fetchRequests();
+    setBulkUpdating(false);
+  }
+
+  function toggleSelect(id: number) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === filteredRequests.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredRequests.map(r => r.id)));
     }
   }
 
@@ -170,7 +201,8 @@ export default function AdminPage() {
               {[{ label: "Requests", href: "/admin", active: true }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
                   style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
-                  {n.label}{n.href === "/admin" && newCount > 0 && (<span style={{ marginLeft: 6, background: "#f97316", color: "white", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px", lineHeight: "16px", display: "inline-block" }}>{newCount}</span>)}</a>
+                  {n.label}{n.href === "/admin" && newCount > 0 && (<span style={{ marginLeft: 6, background: "#f97316", color: "white", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px", lineHeight: "16px", display: "inline-block" }}>{newCount}</span>)}
+                </a>
               ))}
             </div>
             <div className="flex items-center gap-2">
@@ -235,6 +267,44 @@ export default function AdminPage() {
             </div>
           </div>
 
+          {/* BULK SELECT BAR */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <button onClick={toggleSelectAll}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                <div className="w-3.5 h-3.5 rounded flex items-center justify-center"
+                  style={{ background: selectedIds.size === filteredRequests.length && filteredRequests.length > 0 ? "#f97316" : "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
+                  {selectedIds.size === filteredRequests.length && filteredRequests.length > 0 && (
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  )}
+                </div>
+                {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
+              </button>
+
+              {selectedIds.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}
+                    className="rounded-lg px-3 py-1.5 text-[12px] outline-none cursor-pointer text-white"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
+                  </select>
+                  <button onClick={bulkUpdateStatus} disabled={bulkUpdating}
+                    className="px-4 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer transition text-white"
+                    style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 2px 12px rgba(249,115,22,0.3)", opacity: bulkUpdating ? 0.6 : 1 }}>
+                    {bulkUpdating ? "Updating..." : `Update ${selectedIds.size} request${selectedIds.size > 1 ? "s" : ""}`}
+                  </button>
+                  <button onClick={() => setSelectedIds(new Set())}
+                    className="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer transition"
+                    style={{ color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                    Clear
+                  </button>
+                </div>
+              )}
+            </div>
+            <span className="text-[12px] text-gray-600">{filteredRequests.length} requests</span>
+          </div>
+
           {/* REQUEST CARDS */}
           <div className="space-y-2">
             {filteredRequests.length === 0 && (
@@ -246,18 +316,32 @@ export default function AdminPage() {
             {filteredRequests.map((request) => {
               const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
               const isExpanded = expandedId === request.id;
+              const isSelected = selectedIds.has(request.id);
               const initial = (request.customer_name || "?")[0].toUpperCase();
 
               return (
-                <div key={request.id} className="rounded-xl overflow-hidden transition" style={cardStyle}>
+                <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
+                  ...cardStyle,
+                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                  background: isSelected ? "rgba(249,115,22,0.05)" : "rgba(255,255,255,0.03)",
+                }}>
 
                   {/* COMPACT HEADER — always visible */}
-                  <div className="px-4 py-3 flex items-center gap-3 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
+                  <div className="px-4 py-3 flex items-center gap-3">
+                    {/* Checkbox */}
+                    <div onClick={() => toggleSelect(request.id)}
+                      className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition"
+                      style={{ background: isSelected ? "#f97316" : "rgba(255,255,255,0.06)", border: isSelected ? "1px solid #f97316" : "1px solid rgba(255,255,255,0.15)" }}>
+                      {isSelected && (
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      )}
+                    </div>
+
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-orange-400"
                       style={{ background: "rgba(249,115,22,0.12)" }}>
                       {initial}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-[13px] text-white">{request.customer_name}</span>
                         <span className="text-gray-600 text-[12px]">·</span>
@@ -271,7 +355,7 @@ export default function AdminPage() {
                         <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
                         style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
                         <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
@@ -447,7 +531,3 @@ export default function AdminPage() {
     </main>
   );
 }
-
-
-
-
