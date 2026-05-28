@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -24,6 +24,10 @@ export default function QuotesPage() {
   const [confirmImage, setConfirmImage] = useState<File | null>(null);
   const [confirmNote, setConfirmNote] = useState("");
   const [uploadingConfirm, setUploadingConfirm] = useState(false);
+  const [editingQuote, setEditingQuote] = useState<any>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editMarkup, setEditMarkup] = useState("20");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
 
@@ -84,7 +88,21 @@ export default function QuotesPage() {
     setUploadingConfirm(false);
   }
 
-  async function deleteQuote(id: number) {
+  async function saveEdit() {
+    if (!editPrice) return;
+    setSavingEdit(true);
+    const numericPrice = Number(editPrice);
+    const sellPrice = (numericPrice * (1 + Number(editMarkup) / 100)).toFixed(2);
+    await supabase.from("supplier_quotes").update({
+      supplier_price: numericPrice,
+      marked_up_price: sellPrice,
+    }).eq("id", editingQuote.id);
+    setEditingQuote(null);
+    fetchData();
+    setSavingEdit(false);
+  }
+
+    async function deleteQuote(id: number) {
     if (!confirm("Delete this quote?")) return;
     await supabase.from("supplier_quotes").delete().eq("id", id);
     fetchData();
@@ -365,6 +383,11 @@ export default function QuotesPage() {
                       style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249,115,22,0.2)" }}>
                       Convert to Sale
                     </button>
+                    <button onClick={() => { setEditingQuote(quote); setEditPrice(String(quote.supplier_price)); setEditMarkup(String(Math.round((Number(quote.marked_up_price) / Number(quote.supplier_price) - 1) * 100))); }}
+                      className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                      style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.15)", color: "#fb923c" }}>
+                      Edit Price
+                    </button>
                     <button onClick={() => deleteQuote(quote.id)}
                       className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition ml-auto"
                       style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
@@ -426,6 +449,61 @@ export default function QuotesPage() {
           </div>
         </div>
       )}
+      {editingQuote && (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <h2 className="font-bold text-[15px] text-white">Edit Quote Price</h2>
+              <button onClick={() => setEditingQuote(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>Supplier Price</p>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-[13px]">R</span>
+                  <input type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)}
+                    className="w-full rounded-xl pl-7 pr-3 py-3 text-[14px] outline-none text-white"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>Markup %</p>
+                <div className="flex gap-1.5 mb-2 flex-wrap">
+                  {["10","15","20","25","30"].map(m => (
+                    <button key={m} type="button" onClick={() => setEditMarkup(m)}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition"
+                      style={editMarkup === m ? { background: "rgba(249,115,22,0.2)", border: "1px solid rgba(249,115,22,0.4)", color: "#fb923c" } : { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }}>
+                      {m}%
+                    </button>
+                  ))}
+                </div>
+                <input type="number" value={editMarkup} onChange={e => setEditMarkup(e.target.value)}
+                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none text-white"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
+              </div>
+              {editPrice && (
+                <div className="rounded-xl p-3" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.12)" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.6)" }}>New Customer Price</p>
+                  <p className="text-[24px] font-black" style={{ color: "#4ade80" }}>R{(Number(editPrice) * (1 + Number(editMarkup) / 100)).toFixed(2)}</p>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button onClick={saveEdit} disabled={savingEdit}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white"
+                  style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 16px rgba(249,115,22,0.25)" }}>
+                  {savingEdit ? "Saving..." : "Save Changes"}
+                </button>
+                <button onClick={() => setEditingQuote(null)}
+                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
