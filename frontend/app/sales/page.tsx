@@ -13,6 +13,7 @@ export default function SalesPage() {
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,6 +38,8 @@ export default function SalesPage() {
       if (dateFilter === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
       if (dateFilter === "year") return d.getFullYear() === now.getFullYear();
       if (startDate && endDate) { const s2 = new Date(startDate), e = new Date(endDate); e.setHours(23, 59, 59); return d >= s2 && d <= e; }
+      const q = search.toLowerCase();
+      if (q && !(s.customer_name||"").toLowerCase().includes(q) && !(s.vehicle||"").toLowerCase().includes(q)) return false;
       return true;
     });
   }
@@ -120,7 +123,14 @@ export default function SalesPage() {
 
         <div className="max-w-7xl mx-auto px-5 py-6">
 
-          {/* DATE FILTERS */}
+          {/* SEARCH */}
+          <div className="mb-3">
+            <input type="text" placeholder="Search by customer name..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full rounded-xl px-4 py-2.5 text-[13px] outline-none text-white placeholder-gray-600"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
+          </div>
+
+          {/* DATE FILTERS */
           <div className="rounded-xl p-4 mb-5" style={cardStyle}>
             <div className="flex flex-wrap items-center gap-2">
               {filters.map(f => (
@@ -211,3 +221,6 @@ export default function SalesPage() {
     </main>
   );
 }
+
+
+
