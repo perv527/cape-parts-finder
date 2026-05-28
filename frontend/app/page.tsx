@@ -124,7 +124,6 @@ export default function Home() {
               <div className="w-12" />
             </div>
           </div>
-
           <div className="max-w-lg mx-auto px-4 py-8 pb-20">
             <div className="mb-7">
               <h2 className="text-[28px] font-black text-white tracking-tight">Request a Part</h2>
@@ -215,6 +214,7 @@ export default function Home() {
             </div>
             <span className="font-bold text-white text-[15px] tracking-tight">Cape Parts Finder</span>
           </div>
+          <a href="/track" className="text-[12px] text-gray-500 hover:text-orange-400 transition no-underline">Track my request →</a>
         </nav>
 
         <div className="max-w-6xl mx-auto px-6 pt-16 pb-8 lg:pt-24">
@@ -238,10 +238,9 @@ export default function Home() {
               Request a Part
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
             </button>
-            <div className="flex items-center gap-2 text-[13px] text-gray-500 px-2">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-              Free · No commitment · Response within hours
-            </div>
+            <a href="/track" className="inline-flex items-center gap-2 text-[13px] text-gray-500 hover:text-orange-400 transition no-underline px-2 py-4">
+              Track existing request →
+            </a>
           </div>
           <div className="flex gap-8 pb-16" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             {[{ num: "500+", label: "Parts sourced" }, { num: "9+", label: "Trusted suppliers" }, { num: "< 24hr", label: "Avg response" }].map((s) => (
@@ -302,6 +301,7 @@ export default function Home() {
         </div>
 
         <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <a href="/track" className="text-gray-600 hover:text-orange-400 text-[11px] transition no-underline block mb-2">Track my request →</a>
           <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
         </div>
       </div>
