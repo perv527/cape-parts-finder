@@ -102,7 +102,7 @@ export default function QuotesPage() {
     setSavingEdit(false);
   }
 
-    async function deleteQuote(id: number) {
+  async function deleteQuote(id: number) {
     if (!confirm("Delete this quote?")) return;
     await supabase.from("supplier_quotes").delete().eq("id", id);
     fetchData();
@@ -130,6 +130,188 @@ export default function QuotesPage() {
     const imageUrl = quote.supplier_confirmation_image || quote.quote_image_url;
     const msg = `Hi ${request.customer_name},\n\nPart confirmation:\n\nVehicle: ${request.vehicle_make} ${request.vehicle_model}\nPart: ${request.part_needed}\nPrice: R${quote.marked_up_price}\n\nImage: ${imageUrl}\n\nReply to confirm.\n\nCape Parts Finder`;
     window.open(`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`);
+  }
+
+  function printQuote(quote: any) {
+    const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
+    const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    const profit = Number(quote.marked_up_price) - Number(quote.supplier_price);
+    const markupPct = Math.round((profit / Number(quote.supplier_price)) * 100);
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Quote ${quoteNum}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #111; }
+    .page { max-width: 700px; margin: 0 auto; padding: 48px 40px; }
+
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 2px solid #f97316; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .logo { width: 40px; height: 40px; background: #f97316; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo svg { width: 20px; height: 20px; }
+    .brand-name { font-size: 20px; font-weight: 800; color: #111; }
+    .brand-sub { font-size: 11px; color: #888; margin-top: 2px; }
+    .quote-meta { text-align: right; }
+    .quote-num { font-size: 13px; font-weight: 700; color: #f97316; letter-spacing: 1px; }
+    .quote-date { font-size: 12px; color: #888; margin-top: 4px; }
+
+    .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 10px; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+    .info-box { background: #f9f9f9; border-radius: 10px; padding: 16px; }
+    .info-row { margin-bottom: 8px; }
+    .info-label { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.8px; }
+    .info-value { font-size: 13px; font-weight: 600; color: #111; margin-top: 2px; }
+
+    .part-box { background: #fff8f3; border: 1px solid #fed7aa; border-radius: 10px; padding: 16px; margin-bottom: 28px; }
+    .part-name { font-size: 20px; font-weight: 800; color: #ea580c; margin-top: 4px; }
+
+    .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .price-card { border-radius: 10px; padding: 16px; text-align: center; }
+    .price-card.cost { background: #f5f5f5; }
+    .price-card.markup { background: #fff8f3; border: 1px solid #fed7aa; }
+    .price-card.total { background: #f97316; color: white; }
+    .price-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+    .price-value { font-size: 26px; font-weight: 900; margin-top: 4px; }
+    .price-card.cost .price-label { color: #888; }
+    .price-card.cost .price-value { color: #333; }
+    .price-card.markup .price-label { color: #ea580c; }
+    .price-card.markup .price-value { color: #ea580c; }
+    .price-card.total .price-label { color: rgba(255,255,255,0.8); }
+    .price-card.total .price-value { color: white; }
+
+    .validity { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 16px; margin-bottom: 28px; display: flex; align-items: center; gap: 10px; }
+    .validity-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; flex-shrink: 0; }
+    .validity-text { font-size: 12px; color: #166534; font-weight: 500; }
+
+    .footer { border-top: 1px solid #eee; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .footer-brand { font-size: 12px; font-weight: 700; color: #f97316; }
+    .footer-contact { font-size: 11px; color: #aaa; text-align: right; }
+
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .page { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Cape Parts Finder</div>
+        <div class="brand-sub">Your Trusted Auto Parts Network · Cape Town</div>
+      </div>
+    </div>
+    <div class="quote-meta">
+      <div class="quote-num">QUOTE ${quoteNum}</div>
+      <div class="quote-date">Issued: ${date}</div>
+      <div class="quote-date" style="margin-top:4px;color:#f97316;font-weight:600;">Valid for 3 days</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="info-box">
+      <div class="section-title">Customer Details</div>
+      <div class="info-row">
+        <div class="info-label">Name</div>
+        <div class="info-value">${request.customer_name || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Phone</div>
+        <div class="info-value">${request.phone_number || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Email</div>
+        <div class="info-value">${request.email || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Area</div>
+        <div class="info-value">${request.area || "—"}</div>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="section-title">Vehicle Details</div>
+      <div class="info-row">
+        <div class="info-label">Make</div>
+        <div class="info-value">${request.vehicle_make || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Model</div>
+        <div class="info-value">${request.vehicle_model || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Year</div>
+        <div class="info-value">${request.vehicle_year || "—"}</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">VIN</div>
+        <div class="info-value">${request.vin_number || "—"}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="part-box">
+    <div class="section-title">Part Required</div>
+    <div class="part-name">${request.part_needed || "—"}</div>
+    ${request.part_preference ? `<div style="margin-top:8px;font-size:12px;color:#888;">Preference: ${request.part_preference}</div>` : ""}
+    ${request.extra_details ? `<div style="margin-top:6px;font-size:12px;color:#666;">${request.extra_details}</div>` : ""}
+  </div>
+
+  <div class="section-title" style="margin-bottom:12px;">Pricing Breakdown</div>
+  <div class="price-grid">
+    <div class="price-card cost">
+      <div class="price-label">Supplier Cost</div>
+      <div class="price-value">R${Number(quote.supplier_price).toFixed(2)}</div>
+    </div>
+    <div class="price-card markup">
+      <div class="price-label">Markup (${markupPct}%)</div>
+      <div class="price-value">R${profit.toFixed(2)}</div>
+    </div>
+    <div class="price-card total">
+      <div class="price-label">Your Price</div>
+      <div class="price-value">R${Number(quote.marked_up_price).toFixed(2)}</div>
+    </div>
+  </div>
+
+  <div class="validity">
+    <div class="validity-dot"></div>
+    <div class="validity-text">This quote is valid for <strong>3 days</strong> from the date of issue. Prices are subject to availability. Reply YES to confirm your order.</div>
+  </div>
+
+  ${quote.notes ? `<div style="background:#f9f9f9;border-radius:10px;padding:14px 16px;margin-bottom:28px;font-size:12px;color:#555;">${quote.notes}</div>` : ""}
+
+  <div class="footer">
+    <div>
+      <div class="footer-brand">Cape Parts Finder</div>
+      <div style="font-size:11px;color:#aaa;margin-top:2px;">Thank you for your business</div>
+    </div>
+    <div class="footer-contact">
+      <div>wa.me/27696863952</div>
+      <div>cape-parts-finder.vercel.app</div>
+      <div>Cape Town, South Africa</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) { alert("Allow popups to print the quote"); return; }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
   }
 
   const supplierPrice = Number(price) || 0;
@@ -169,7 +351,7 @@ export default function QuotesPage() {
               <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
             </div>
             <div className="flex gap-1">
-              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }].map((n) => (
+              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline font-medium transition"
                   style={{ color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>{n.label}</a>
               ))}
@@ -213,11 +395,9 @@ export default function QuotesPage() {
             )}
           </div>
 
-          {/* ── FAST QUOTE ENTRY ── */}
+          {/* FAST QUOTE ENTRY */}
           <div className="rounded-2xl p-5 mb-5" style={cardStyle}>
             <h2 className="font-bold text-[15px] text-white mb-4">Add Quote</h2>
-
-            {/* Supplier + Price + Markup in one row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
                 className="rounded-xl px-3 py-3 text-[13px] outline-none cursor-pointer text-white col-span-2 lg:col-span-1"
@@ -255,7 +435,6 @@ export default function QuotesPage() {
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
             </div>
 
-            {/* Live price preview */}
             {supplierPrice > 0 && (
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
@@ -273,7 +452,6 @@ export default function QuotesPage() {
               </div>
             )}
 
-            {/* Optional image */}
             <div className="flex items-center gap-3">
               <div onClick={() => document.getElementById("quote-img")?.click()}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition text-[12px]"
@@ -300,8 +478,6 @@ export default function QuotesPage() {
 
             {quotes.map((quote) => (
               <div key={quote.id} className="rounded-2xl overflow-hidden" style={cardStyle}>
-
-                {/* Quote header */}
                 <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                   <div>
                     <h2 className="font-bold text-[14px] text-white">{quote.suppliers?.name}</h2>
@@ -316,7 +492,6 @@ export default function QuotesPage() {
                 </div>
 
                 <div className="px-5 py-4">
-                  {/* Prices */}
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
@@ -328,7 +503,6 @@ export default function QuotesPage() {
                     </div>
                   </div>
 
-                  {/* Images */}
                   {(quote.quote_image_url || quote.supplier_confirmation_image || request.photo_url) && (
                     <div className="flex gap-3 mb-4 flex-wrap">
                       {request.photo_url && (
@@ -363,14 +537,14 @@ export default function QuotesPage() {
                       <button onClick={() => sendConfirmationWhatsApp(quote)}
                         className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
                         style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>
-                        Send Confirmation to Customer
+                        Send Confirmation
                       </button>
                     )}
                     {!quote.supplier_confirmed && (
                       <button onClick={() => { setConfirmModal(quote); setConfirmImage(null); setConfirmNote(""); }}
                         className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
                         style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "#60a5fa" }}>
-                        Upload Supplier Confirmation
+                        Upload Confirmation
                       </button>
                     )}
                     <button onClick={() => window.open("https://wa.me/" + quote.suppliers?.whatsapp_number?.replace(/\D/g, ""))}
@@ -378,6 +552,15 @@ export default function QuotesPage() {
                       style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.15)", color: "#25D366" }}>
                       WhatsApp Supplier
                     </button>
+
+                    {/* PDF QUOTE BUTTON */}
+                    <button onClick={() => printQuote(quote)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                      style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", color: "#c084fc" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                      Print Quote
+                    </button>
+
                     <button onClick={() => convertToSale(quote)}
                       className="px-3 py-2 rounded-lg text-[12px] font-bold cursor-pointer transition text-white"
                       style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249,115,22,0.2)" }}>
@@ -449,6 +632,8 @@ export default function QuotesPage() {
           </div>
         </div>
       )}
+
+      {/* EDIT PRICE MODAL */}
       {editingQuote && (
         <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
           <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
