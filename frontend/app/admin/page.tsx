@@ -382,8 +382,8 @@ export default function AdminPage() {
                         <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
                         {request.status || "New"}
                       </span>
-                      {isStale && (<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 7px",marginRight:4}}>⏰ Follow up</span>)}
-                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
                     </div>
