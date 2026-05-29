@@ -340,13 +340,13 @@ export default function AdminPage() {
               const isSelected = selectedIds.has(request.id);
               const isClosed = (request.status || "New") === "Closed";
               const initial = (request.customer_name || "?")[0].toUpperCase();
-              const allPhotos: string[] = request.photo_urls?.length ? request.photo_urls : request.photo_url ? [request.photo_url] : [];
+              const isStale = !isClosed && (Date.now()-new Date(request.updated_at||request.created_at).getTime())>3*24*60*60*1000;
 
               return (
                 <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
                   ...cardStyle,
-                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
-                  background: isSelected ? "rgba(249,115,22,0.05)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
+                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isStale ? "1px solid rgba(239,68,68,0.25)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
+                  background: isSelected ? "rgba(249,115,22,0.05)" : isStale ? "rgba(239,68,68,0.04)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
                   opacity: isClosed ? 0.7 : 1,
                 }}>
 
@@ -382,7 +382,7 @@ export default function AdminPage() {
                         <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
                         {request.status || "New"}
                       </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      {isStale && (<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 7px",marginRight:4}}>⏰ Follow up</span>)}
                         style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
