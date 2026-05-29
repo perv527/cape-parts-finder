@@ -396,7 +396,7 @@ export default function AdminPage() {
                             <p className="text-gray-300 text-[12px] leading-relaxed">{request.extra_details}</p>
                           </div>
                         </div>
-
+                      )}
 
                       {(request.photo_url||request.photo_urls)&&(
                         <div className="px-4 pb-3">
