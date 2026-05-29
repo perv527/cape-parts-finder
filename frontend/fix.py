@@ -1,6 +1,5 @@
-﻿import base64,os
-src="frontend/app/admin/page.tsx"
-print("writing",src)
-c=open(src,encoding="utf-8").read()
-print(len(c.split(chr(10))),"lines")
-print(repr(c.split(chr(10))[376]))
+﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
+c=c.replace("(r.customer_name + \" \" + r.vehicle_make + \" \" + r.vehicle_model + \" \" + r.part_needed)","(r.customer_name + \" \" + r.vehicle_make + \" \" + r.vehicle_model + \" \" + r.part_needed + \" \" + (r.phone_number || \"\") + \" \" + (r.area || \"\"))",1)
+c=c.replace("placeholder=\"Search customer, vehicle or part...\"","placeholder=\"Search name, phone, vehicle or part...\"",1)
+open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "phone_number" in c)

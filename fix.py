@@ -1,6 +1,5 @@
 ﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-lines=c.split(chr(10))
-lines[378]="                      </div>"
-lines[379]=""
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(chr(10).join(lines))
-print("Done")
+c=c.replace("(r.customer_name + \" \" + r.vehicle_make + \" \" + r.vehicle_model + \" \" + r.part_needed)","(r.customer_name + \" \" + r.vehicle_make + \" \" + r.vehicle_model + \" \" + r.part_needed + \" \" + (r.phone_number || \"\") + \" \" + (r.area || \"\"))",1)
+c=c.replace("placeholder=\"Search customer, vehicle or part...\"","placeholder=\"Search name, phone, vehicle or part...\"",1)
+open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "phone_number" in c)
