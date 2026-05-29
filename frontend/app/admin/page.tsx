@@ -28,8 +28,7 @@ export default function AdminPage() {
   const [savingNote, setSavingNote] = useState<number | null>(null);
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [newCount, setNewCount] = useState(0);
-
-  // Bulk select state
+  const [hideArchived, setHideArchived] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("Searching");
   const [bulkUpdating, setBulkUpdating] = useState(false);
@@ -150,7 +149,8 @@ export default function AdminPage() {
   const filteredRequests = requests.filter((r) => {
     const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
+    return matchesSearch && matchesStatus && matchesArchive;
   });
 
   const counts = {
@@ -179,8 +179,6 @@ export default function AdminPage() {
 
   return (
     <main style={darkBg}>
-
-      {/* Glow */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
         <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)" }} />
         <div style={{ position: "absolute", bottom: "20%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.04) 0%, transparent 70%)" }} />
@@ -267,7 +265,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* BULK SELECT BAR */}
+          {/* BULK SELECT + ARCHIVE TOGGLE */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <button onClick={toggleSelectAll}
@@ -302,14 +300,36 @@ export default function AdminPage() {
                 </div>
               )}
             </div>
-            <span className="text-[12px] text-gray-600">{filteredRequests.length} requests</span>
+
+            <div className="flex items-center gap-3">
+              {counts.Closed > 0 && (
+                <button onClick={() => setHideArchived(!hideArchived)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                  style={hideArchived
+                    ? { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }
+                    : { background: "rgba(107,114,128,0.12)", border: "1px solid rgba(107,114,128,0.25)", color: "#9ca3af" }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>
+                  </svg>
+                  {hideArchived ? `Show ${counts.Closed} archived` : "Hide archived"}
+                </button>
+              )}
+              <span className="text-[12px] text-gray-600">{filteredRequests.length} requests</span>
+            </div>
           </div>
 
           {/* REQUEST CARDS */}
           <div className="space-y-2">
             {filteredRequests.length === 0 && (
               <div className="rounded-xl p-10 text-center" style={cardStyle}>
-                <p className="text-gray-600 text-sm">No requests found</p>
+                <p className="text-gray-600 text-sm">
+                  {hideArchived && counts.Closed > 0 ? `No active requests · ${counts.Closed} archived` : "No requests found"}
+                </p>
+                {hideArchived && counts.Closed > 0 && (
+                  <button onClick={() => setHideArchived(false)} className="mt-3 text-[12px] cursor-pointer transition" style={{ color: "#9ca3af" }}>
+                    Show archived →
+                  </button>
+                )}
               </div>
             )}
 
@@ -317,18 +337,19 @@ export default function AdminPage() {
               const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
               const isExpanded = expandedId === request.id;
               const isSelected = selectedIds.has(request.id);
+              const isClosed = (request.status || "New") === "Closed";
               const initial = (request.customer_name || "?")[0].toUpperCase();
+              const allPhotos: string[] = request.photo_urls?.length ? request.photo_urls : request.photo_url ? [request.photo_url] : [];
 
               return (
                 <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
                   ...cardStyle,
-                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : "1px solid rgba(255,255,255,0.07)",
-                  background: isSelected ? "rgba(249,115,22,0.05)" : "rgba(255,255,255,0.03)",
+                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
+                  background: isSelected ? "rgba(249,115,22,0.05)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
+                  opacity: isClosed ? 0.7 : 1,
                 }}>
 
-                  {/* COMPACT HEADER — always visible */}
                   <div className="px-4 py-3 flex items-center gap-3">
-                    {/* Checkbox */}
                     <div onClick={() => toggleSelect(request.id)}
                       className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition"
                       style={{ background: isSelected ? "#f97316" : "rgba(255,255,255,0.06)", border: isSelected ? "1px solid #f97316" : "1px solid rgba(255,255,255,0.15)" }}>
@@ -336,7 +357,6 @@ export default function AdminPage() {
                         <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                       )}
                     </div>
-
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-orange-400"
                       style={{ background: "rgba(249,115,22,0.12)" }}>
                       {initial}
@@ -368,11 +388,8 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  {/* EXPANDED DETAILS */}
                   {isExpanded && (
                     <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-
-                      {/* Info grid */}
                       <div className="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3 text-[12px]">
                         {[
                           { label: "Phone", value: request.phone_number },
@@ -398,15 +415,22 @@ export default function AdminPage() {
                         </div>
                       )}
 
-                      {(request.photo_url||request.photo_urls)&&(
+                      {allPhotos.length > 0 && (
                         <div className="px-4 pb-3">
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Photo</p>
-                          <img src={request.photo_url} alt="Uploaded" className="w-24 h-20 object-cover rounded-xl cursor-pointer" style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-                            onClick={() => window.open(request.photo_url)} />
+                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>
+                            Photos ({allPhotos.length})
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            {allPhotos.map((url, i) => (
+                              <img key={i} src={url} alt={`Photo ${i + 1}`}
+                                className="w-24 h-20 object-cover rounded-xl cursor-pointer"
+                                style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+                                onClick={() => window.open(url)} />
+                            ))}
+                          </div>
                         </div>
                       )}
 
-                      {/* Status update */}
                       <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
                         <select value={request.status || "New"} onChange={(e) => updateStatus(request.id, e.target.value)}
                           disabled={updatingId === request.id}
@@ -442,7 +466,6 @@ export default function AdminPage() {
                         </button>
                       </div>
 
-                      {/* Internal Notes */}
                       <div className="px-4 pb-4">
                         <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                           <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Internal Notes</p>
