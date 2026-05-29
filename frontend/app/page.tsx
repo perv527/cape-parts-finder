@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     customer_name: "", phone_number: "", email: "", area: "",
@@ -18,6 +18,19 @@ export default function Home() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
+  function addPhotos(files: FileList | null) {
+    if (!files) return;
+    const newFiles = Array.from(files);
+    setPhotos(prev => {
+      const combined = [...prev, ...newFiles];
+      return combined.slice(0, 5); // max 5
+    });
+  }
+
+  function removePhoto(index: number) {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.customer_name || !formData.phone_number || !formData.part_needed) {
@@ -25,20 +38,33 @@ export default function Home() {
       return;
     }
     setLoading(true);
-    let photo_url = "";
     try {
-      if (photo) {
-        const fileName = `${Date.now()}-${photo.name}`;
+      // Upload all photos
+      const uploadedUrls: string[] = [];
+      for (const photo of photos) {
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${photo.name}`;
         const { error: uploadError } = await supabase.storage.from("parts-photos").upload(fileName, photo);
         if (!uploadError) {
           const { data } = supabase.storage.from("parts-photos").getPublicUrl(fileName);
-          photo_url = data.publicUrl;
+          uploadedUrls.push(data.publicUrl);
         }
       }
-      const { error } = await supabase.from("parts_requests").insert([{ ...formData, photo_url }]);
+
+      const photo_url = uploadedUrls[0] || "";
+      const photo_urls = uploadedUrls;
+
+      const { error } = await supabase.from("parts_requests").insert([{
+        ...formData, photo_url, photo_urls,
+      }]);
+
       if (error) { alert("Something went wrong. Please try again."); setLoading(false); }
       else {
-        try { await fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) }); } catch {}
+        try {
+          await fetch("/api/send-email", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+        } catch {}
         setSuccess(true);
       }
     } catch { alert("Something went wrong."); setLoading(false); }
@@ -94,8 +120,10 @@ export default function Home() {
           <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
             Request received for <span className="text-orange-400 font-semibold">{formData.part_needed}</span>. We'll WhatsApp you on <span className="text-white font-semibold">{formData.phone_number}</span> shortly.
           </p>
-          <button onClick={() => { setSuccess(false); setShowForm(false); setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "" }); setPhoto(null); }}
-            className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">
+          <button onClick={() => {
+            setSuccess(false); setShowForm(false); setPhotos([]);
+            setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "" });
+          }} className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">
             Submit another →
           </button>
         </div>
@@ -124,12 +152,16 @@ export default function Home() {
               <div className="w-12" />
             </div>
           </div>
+
           <div className="max-w-lg mx-auto px-4 py-8 pb-20">
             <div className="mb-7">
               <h2 className="text-[28px] font-black text-white tracking-tight">Request a Part</h2>
               <p className="text-gray-500 text-sm mt-1">Fill in below — we'll WhatsApp you a quote fast.</p>
             </div>
+
             <form onSubmit={handleSubmit} className="space-y-3">
+
+              {/* CONTACT */}
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Contact Info</p>
                 <input name="customer_name" placeholder="Full Name *" value={formData.customer_name} onChange={handleChange} required className={inputClass} style={inputStyle} />
@@ -139,6 +171,8 @@ export default function Home() {
                   <input name="area" placeholder="Your Area" value={formData.area} onChange={handleChange} className={inputClass} style={inputStyle} />
                 </div>
               </div>
+
+              {/* VEHICLE */}
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Vehicle</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -151,6 +185,8 @@ export default function Home() {
                   <input name="engine_size" placeholder="Engine Size" value={formData.engine_size} onChange={handleChange} className={inputClass} style={inputStyle} />
                 </div>
               </div>
+
+              {/* PART */}
               <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
                 <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Part Details</p>
                 <input name="part_needed" placeholder="What part do you need? *" value={formData.part_needed} onChange={handleChange} required className={inputClass} style={inputStyle} />
@@ -170,28 +206,78 @@ export default function Home() {
                 </div>
                 <textarea name="extra_details" placeholder="Extra details — colour, side, condition (optional)" value={formData.extra_details} onChange={handleChange} rows={2}
                   className={`${inputClass} resize-none`} style={inputStyle} />
+
+                {/* MULTI PHOTO UPLOAD */}
                 <div>
-                  <p className="text-[11px] text-gray-600 mb-2">Photo (optional)</p>
-                  <div onClick={() => document.getElementById("photo-input")?.click()} className="rounded-xl p-4 cursor-pointer transition"
-                    style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
-                    {photo ? (
-                      <div className="flex items-center gap-3">
-                        <img src={URL.createObjectURL(photo)} alt="Preview" className="w-11 h-11 object-cover rounded-lg" />
-                        <div><p className="text-[13px] font-medium text-gray-300 truncate max-w-[180px]">{photo.name}</p><p className="text-[11px] text-gray-600">Tap to change</p></div>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2.5 text-gray-600">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
-                        <span className="text-[13px]">Add a photo of the part</span>
-                      </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[11px] text-gray-600">Photos <span style={{ color: "rgba(255,255,255,0.2)" }}>(up to 5)</span></p>
+                    {photos.length > 0 && (
+                      <span className="text-[10px] font-medium" style={{ color: "rgba(249,115,22,0.7)" }}>{photos.length}/5 added</span>
                     )}
                   </div>
-                  <input id="photo-input" type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => setPhoto(e.target.files?.[0] || null)} />
+
+                  {/* Thumbnails */}
+                  {photos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap mb-2">
+                      {photos.map((file, i) => (
+                        <div key={i} className="relative group">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Photo ${i + 1}`}
+                            className="w-16 h-16 object-cover rounded-xl"
+                            style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(i)}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center cursor-pointer transition"
+                            style={{ background: "#ef4444", border: "1.5px solid #111" }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Add more button */}
+                      {photos.length < 5 && (
+                        <div
+                          onClick={() => document.getElementById("photo-input")?.click()}
+                          className="w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer transition"
+                          style={{ border: "1px dashed rgba(249,115,22,0.3)", background: "rgba(249,115,22,0.04)" }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          <span className="text-[9px] mt-1" style={{ color: "rgba(249,115,22,0.6)" }}>Add</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Initial upload area — only show when no photos yet */}
+                  {photos.length === 0 && (
+                    <div
+                      onClick={() => document.getElementById("photo-input")?.click()}
+                      className="rounded-xl p-4 cursor-pointer transition"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
+                      <div className="flex items-center gap-2.5 text-gray-600">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span className="text-[13px]">Add up to 5 photos of the part or damage</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <input
+                    id="photo-input"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => addPhotos(e.target.files)}
+                  />
                 </div>
               </div>
+
               <button type="submit" disabled={loading} className="w-full text-white py-4 rounded-2xl font-bold text-[15px] transition cursor-pointer"
                 style={{ background: loading ? "rgba(249,115,22,0.4)" : "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: loading ? "none" : "0 8px 32px rgba(249,115,22,0.3)" }}>
-                {loading ? "Submitting..." : "Submit Request"}
+                {loading ? `Uploading${photos.length > 0 ? ` ${photos.length} photo${photos.length > 1 ? "s" : ""}` : ""}...` : "Submit Request"}
               </button>
               <p className="text-center text-[11px] text-gray-600 pb-4">We'll reach out via WhatsApp with your quote</p>
             </form>
