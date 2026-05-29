@@ -396,9 +396,9 @@ export default function AdminPage() {
                             <p className="text-gray-300 text-[12px] leading-relaxed">{request.extra_details}</p>
                           </div>
                         </div>
-                      )}
 
-                      (request.photo_url||request.photo_urls)&&(
+
+                      {(request.photo_url||request.photo_urls)&&(
                         <div className="px-4 pb-3">
                           <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Photo</p>
                           <img src={request.photo_url} alt="Uploaded" className="w-24 h-20 object-cover rounded-xl cursor-pointer" style={{ border: "1px solid rgba(255,255,255,0.08)" }}
