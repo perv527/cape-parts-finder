@@ -150,7 +150,7 @@ export default function QuotesPage() {
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; font-size: 12px; line-height: 1.5; }
-    .page { max-width: 720px; margin: 0 auto; padding: 56px 52px; }
+    .page { max-width: 720px; margin: 0 auto; padding: 36px 44px; }
 
     /* ── HEADER ── */
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
@@ -234,7 +234,7 @@ export default function QuotesPage() {
 
     @media print {
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 40px 44px; }
+      .page { padding: 26px 36px; }
     }
   </style>
 </head>
@@ -347,21 +347,7 @@ export default function QuotesPage() {
 
   </div>
 
-  <!-- TERMS -->
-  <div class="terms">
-    <div class="term">
-      <div class="tdot" style="background:#f97316;"></div>
-      <div class="ttext">Quote valid until <strong>${expiryDate}</strong></div>
-    </div>
-    <div class="term">
-      <div class="tdot" style="background:#22c55e;"></div>
-      <div class="ttext">Reply <strong>YES</strong> via WhatsApp to confirm</div>
-    </div>
-    <div class="term">
-      <div class="tdot" style="background:#3b82f6;"></div>
-      <div class="ttext">Delivery: <strong>Cape Town &amp; surrounds</strong></div>
-    </div>
-  </div>
+
 
   ${quote.notes ? `<div class="note-box">${quote.notes}</div>` : ""}
 
