@@ -14,6 +14,9 @@ export default function SalesPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [search, setSearch] = useState("");
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [notes, setNotes] = useState<Record<number, string>>({});
+  const [savingNote, setSavingNote] = useState<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,6 +30,15 @@ export default function SalesPage() {
     const { data, error } = await supabase.from("sales").select("*").order("created_at", { ascending: false });
     if (error) { console.error(error); return; }
     setSales(data || []);
+    const nm: Record<number, string> = {};
+    (data || []).forEach((s: any) => { if (s.notes) nm[s.id] = s.notes; });
+    setNotes(nm);
+  }
+
+  async function saveNote(id: number) {
+    setSavingNote(id);
+    await supabase.from("sales").update({ notes: notes[id] || "" }).eq("id", id);
+    setSavingNote(null);
   }
 
   function getFilteredSales() {
@@ -45,8 +57,8 @@ export default function SalesPage() {
   }
 
   function exportToCSV(data: any[]) {
-    const headers = ["Customer", "Supplier Cost", "Selling Price", "Profit", "Status", "Date"];
-    const rows = data.map(s => [s.customer_name, `R${Number(s.supplier_price).toFixed(2)}`, `R${Number(s.selling_price).toFixed(2)}`, `R${Number(s.profit).toFixed(2)}`, s.status, new Date(s.created_at).toLocaleDateString("en-ZA")]);
+    const headers = ["Customer", "Supplier Cost", "Selling Price", "Profit", "Status", "Notes", "Date"];
+    const rows = data.map(s => [s.customer_name, `R${Number(s.supplier_price).toFixed(2)}`, `R${Number(s.selling_price).toFixed(2)}`, `R${Number(s.profit).toFixed(2)}`, s.status, s.notes || "", new Date(s.created_at).toLocaleDateString("en-ZA")]);
     const csv = [headers, ...rows].map(r => r.map(c => `"${c || ""}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -130,14 +142,9 @@ export default function SalesPage() {
 
           {/* SEARCH */}
           <div className="mb-3">
-            <input
-              type="text"
-              placeholder="Search by customer name or part..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+            <input type="text" placeholder="Search by customer name or part..." value={search} onChange={e => setSearch(e.target.value)}
               className="w-full rounded-xl px-4 py-2.5 text-[13px] outline-none text-white placeholder-gray-600"
-              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-            />
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
           </div>
 
           {/* DATE FILTERS */}
@@ -193,38 +200,90 @@ export default function SalesPage() {
               </div>
             )}
 
-            {filtered.map((sale) => (
-              <div key={sale.id} className="rounded-xl overflow-hidden" style={cardStyle}>
-                <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-green-400"
-                    style={{ background: "rgba(34,197,94,0.1)" }}>
-                    {(sale.customer_name || "?")[0].toUpperCase()}
+            {filtered.map((sale) => {
+              const isExpanded = expandedId === sale.id;
+              const hasNote = !!(notes[sale.id] || sale.notes);
+
+              return (
+                <div key={sale.id} className="rounded-xl overflow-hidden transition" style={cardStyle}>
+
+                  {/* Header row */}
+                  <div className="px-4 py-3 flex items-center gap-3 cursor-pointer"
+                    onClick={() => setExpandedId(isExpanded ? null : sale.id)}
+                    style={{ borderBottom: isExpanded ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-green-400"
+                      style={{ background: "rgba(34,197,94,0.1)" }}>
+                      {(sale.customer_name || "?")[0].toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-[13px] text-white">{sale.customer_name}</span>
+                        {hasNote && (
+                          <span style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c", borderRadius: 999, fontSize: 9, fontWeight: 700, padding: "1px 6px" }}>
+                            Note
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-600 text-[11px]">{new Date(sale.created_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-bold text-[14px]" style={{ color: "#60a5fa" }}>R{Number(sale.profit).toFixed(0)}</span>
+                      <span className="text-[10px] text-gray-600">profit</span>
+                      <span className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+                        style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", color: "#4ade80" }}>
+                        {sale.status || "Completed"}
+                      </span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <span className="font-bold text-[13px] text-white">{sale.customer_name}</span>
-                    <span className="text-gray-600 text-[12px] ml-2">{new Date(sale.created_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}</span>
-                  </div>
-                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-full"
-                    style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.2)", color: "#4ade80" }}>
-                    {sale.status || "Completed"}
-                  </span>
+
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4">
+                      {/* Price breakdown */}
+                      <div className="grid grid-cols-3 gap-3 py-3">
+                        <div className="rounded-lg p-3" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.1)" }}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(239,68,68,0.5)" }}>Supplier Cost</p>
+                          <p className="font-black text-[16px]" style={{ color: "#f87171" }}>R{Number(sale.supplier_price).toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-lg p-3" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.1)" }}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.5)" }}>Selling Price</p>
+                          <p className="font-black text-[16px]" style={{ color: "#4ade80" }}>R{Number(sale.selling_price).toFixed(2)}</p>
+                        </div>
+                        <div className="rounded-lg p-3" style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.1)" }}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(59,130,246,0.5)" }}>Profit</p>
+                          <p className="font-black text-[16px]" style={{ color: "#60a5fa" }}>R{Number(sale.profit).toFixed(2)}</p>
+                        </div>
+                      </div>
+
+                      {/* Notes section */}
+                      <div className="rounded-lg p-3 mt-1" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Notes</p>
+                        <textarea
+                          value={notes[sale.id] || ""}
+                          onChange={(e) => setNotes(prev => ({ ...prev, [sale.id]: e.target.value }))}
+                          placeholder="Add delivery details, payment notes, customer feedback..."
+                          rows={3}
+                          className="w-full rounded-lg px-3 py-2 text-[12px] outline-none resize-none text-gray-300 placeholder-gray-700"
+                          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                        />
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-[10px] text-gray-700">{(notes[sale.id] || "").length} chars</span>
+                          <button onClick={() => saveNote(sale.id)} disabled={savingNote === sale.id}
+                            className="px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition"
+                            style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
+                            {savingNote === sale.id ? "Saving..." : "Save Note"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="px-4 py-3 grid grid-cols-3 gap-3">
-                  <div className="rounded-lg p-3" style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.1)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(239,68,68,0.5)" }}>Supplier Cost</p>
-                    <p className="font-black text-[16px]" style={{ color: "#f87171" }}>R{Number(sale.supplier_price).toFixed(2)}</p>
-                  </div>
-                  <div className="rounded-lg p-3" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.1)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.5)" }}>Selling Price</p>
-                    <p className="font-black text-[16px]" style={{ color: "#4ade80" }}>R{Number(sale.selling_price).toFixed(2)}</p>
-                  </div>
-                  <div className="rounded-lg p-3" style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.1)" }}>
-                    <p className="text-[9px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(59,130,246,0.5)" }}>Profit</p>
-                    <p className="font-black text-[16px]" style={{ color: "#60a5fa" }}>R{Number(sale.profit).toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
