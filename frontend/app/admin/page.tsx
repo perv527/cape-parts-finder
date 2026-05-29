@@ -150,6 +150,7 @@ export default function AdminPage() {
     const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
     const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
+    const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
     return matchesSearch && matchesStatus && matchesArchive;
   });
 

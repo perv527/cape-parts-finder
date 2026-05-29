@@ -1,5 +1,6 @@
-﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-c=c.replace("const matchesStatus = statusFilter === \"All\" || (r.status || \"New\") === statusFilter;","const matchesStatus = statusFilter === \"All\" || (r.status || \"New\") === statusFilter;\n    const matchesArchive = !hideArchived || (r.status || \"New\") !== \"Closed\";",1)
-c=c.replace("return matchesSearch && matchesStatus;","return matchesSearch && matchesStatus && matchesArchive;",1)
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
-print("Done")
+﻿c=open("frontend/app/page.tsx",encoding="utf-8").read()
+old="""    setLoading(true);
+    try {
+      // Upload all photos"""
+open("frontend/app/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "duplicate" in c)
