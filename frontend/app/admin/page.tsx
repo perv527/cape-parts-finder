@@ -32,6 +32,10 @@ export default function AdminPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("Searching");
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [broadcastModal, setBroadcastModal] = useState(false);
+  const [broadcastMsg, setBroadcastMsg] = useState("");
+  const [broadcastSending, setBroadcastSending] = useState(false);
+  const [broadcastDone, setBroadcastDone] = useState(0);
 
   function getWhatsAppMessage(request: any, template: string) {
     const name = request.customer_name || "there";
@@ -107,6 +111,25 @@ export default function AdminPage() {
     setSelectedIds(new Set());
     fetchRequests();
     setBulkUpdating(false);
+  }
+
+  async function sendBroadcast() {
+    const selected = requests.filter(r => selectedIds.has(r.id));
+    if (!selected.length || !broadcastMsg.trim()) return;
+    setBroadcastSending(true);
+    for (let i = 0; i < selected.length; i++) {
+      const r = selected[i];
+      const phone = (r.phone_number || "").replace(/\D/g, "");
+      const msg = broadcastMsg.replace("{name}", r.customer_name || "there").replace("{part}", r.part_needed || "your part");
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
+      setBroadcastDone(i + 1);
+      await new Promise(res => setTimeout(res, 800));
+    }
+    setBroadcastSending(false);
+    setBroadcastModal(false);
+    setBroadcastMsg("");
+    setBroadcastDone(0);
+    setSelectedIds(new Set());
   }
 
   function toggleSelect(id: number) {
@@ -296,6 +319,12 @@ export default function AdminPage() {
                     className="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer transition"
                     style={{ color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>
                     Clear
+                  </button>
+                  <button onClick={() => { setBroadcastModal(true); setBroadcastMsg(""); setBroadcastDone(0); }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer transition"
+                    style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366" }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                    WhatsApp Broadcast ({selectedIds.size})
                   </button>
                 </div>
               )}
@@ -489,6 +518,67 @@ export default function AdminPage() {
           </div>
         </div>
       </div>
+
+
+      {/* BROADCAST MODAL */}
+      {broadcastModal && (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <h2 className="font-bold text-[15px] text-white">WhatsApp Broadcast</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">Sending to {selectedIds.size} customer{selectedIds.size > 1 ? "s" : ""}</p>
+              </div>
+              <button onClick={() => setBroadcastModal(false)} className="text-gray-500 hover:text-white text-lg cursor-pointer bg-transparent border-none">×</button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>Quick Templates</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Follow Up", msg: "Hi {name}, just checking in on your request for {part}. Can we help you with anything?\n\nCape Parts Finder" },
+                    { label: "Promotion", msg: "Hi {name}, Cape Parts Finder has great deals this week! Contact us for fast quotes on any part.\n\nCape Parts Finder" },
+                    { label: "Quote Ready", msg: "Hi {name}, great news! We have a quote ready for {part}. Please reply and we will send you the details.\n\nCape Parts Finder" },
+                    { label: "Check In", msg: "Hi {name}, we are still working on sourcing {part} for you. We will update you very soon.\n\nCape Parts Finder" },
+                  ].map(t => (
+                    <button key={t.label} onClick={() => setBroadcastMsg(t.msg)}
+                      className="px-3 py-2 rounded-lg text-[11px] font-medium cursor-pointer transition text-left"
+                      style={{ background: broadcastMsg === t.msg ? "rgba(37,211,102,0.12)" : "rgba(255,255,255,0.04)", border: broadcastMsg === t.msg ? "1px solid rgba(37,211,102,0.3)" : "1px solid rgba(255,255,255,0.08)", color: broadcastMsg === t.msg ? "#25D366" : "rgba(255,255,255,0.6)" }}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>Message <span style={{ color: "rgba(255,255,255,0.2)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>· use {"{name}"} and {"{part}"} as placeholders</span></p>
+                <textarea value={broadcastMsg} onChange={e => setBroadcastMsg(e.target.value)} rows={5}
+                  placeholder="Type your message..."
+                  className="w-full rounded-xl px-4 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              </div>
+              {broadcastSending && (
+                <div className="rounded-xl p-3 text-center" style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)" }}>
+                  <p className="text-[12px] font-medium" style={{ color: "#25D366" }}>Opening WhatsApp {broadcastDone} of {selectedIds.size}...</p>
+                  <p className="text-[10px] text-gray-500 mt-1">Allow popups · Each opens in a new tab</p>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button onClick={sendBroadcast} disabled={broadcastSending || !broadcastMsg.trim()}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white flex items-center justify-center gap-2"
+                  style={{ background: broadcastMsg.trim() ? "linear-gradient(135deg, #25D366, #128C7E)" : "rgba(37,211,102,0.3)", boxShadow: broadcastMsg.trim() ? "0 4px 16px rgba(37,211,102,0.25)" : "none" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                  {broadcastSending ? `Sending ${broadcastDone}/${selectedIds.size}...` : `Send to ${selectedIds.size} customer${selectedIds.size > 1 ? "s" : ""}`}
+                </button>
+                <button onClick={() => setBroadcastModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* WHATSAPP TEMPLATE MODAL */}
       {templateModal && (
