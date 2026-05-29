@@ -1,5 +1,0 @@
-﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-c=c.replace("{request.photo_url && (","((request.photo_urls||[]).length > 0 || request.photo_url) && (",1)
-c=c.replace("<img src={request.photo_url} alt=\"Uploaded\" className=\"w-32 rounded-xl cursor-pointer\" style={{ border: \"1px solid rgba(255,255,255,0.08)\" }}\n                            onClick={() => window.open(request.photo_url)} />","<div className=\"flex gap-2 flex-wrap\">{(request.photo_urls||[request.photo_url]).filter(Boolean).map((url,i)=>(<img key={i} src={url} alt=\"photo\" className=\"w-24 h-20 object-cover rounded-xl cursor-pointer\" style={{border:\"1px solid rgba(255,255,255,0.08)\"}} onClick={()=>window.open(url)} />))}</div>",1)
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
-print("Done")
