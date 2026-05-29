@@ -39,6 +39,8 @@ export default function Home() {
     }
     setLoading(true);
     try {
+      const {data:ex}=await supabase.from("parts_requests").select("id,part_needed,created_at,status").eq("phone_number",formData.phone_number).in("status",["New","Searching","Quoted"]).order("created_at",{ascending:false}).limit(1);
+      if(ex&&ex.length>0){const p=ex[0];const d=new Date(p.created_at).toLocaleDateString("en-ZA");const go=window.confirm("You already have an active request for "+p.part_needed+" submitted on "+d+" (Status: "+p.status+"). Submit a new one anyway?");if(!go){setLoading(false);return;}}
       // Upload all photos
       const uploadedUrls: string[] = [];
       for (const photo of photos) {
