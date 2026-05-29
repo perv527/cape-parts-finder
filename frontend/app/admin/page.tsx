@@ -150,7 +150,6 @@ export default function AdminPage() {
     const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
     const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
-
     return matchesSearch && matchesStatus && matchesArchive;
   });
 
@@ -339,14 +338,15 @@ export default function AdminPage() {
               const isExpanded = expandedId === request.id;
               const isSelected = selectedIds.has(request.id);
               const isClosed = (request.status || "New") === "Closed";
+              const isStale = !isClosed && (Date.now() - new Date(request.updated_at || request.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000;
               const initial = (request.customer_name || "?")[0].toUpperCase();
-              const isStale = !isClosed && (Date.now()-new Date(request.updated_at||request.created_at).getTime())>3*24*60*60*1000;
+              const allPhotos: string[] = request.photo_urls?.length ? request.photo_urls : request.photo_url ? [request.photo_url] : [];
 
               return (
                 <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
                   ...cardStyle,
-                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isStale ? "1px solid rgba(239,68,68,0.25)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
-                  background: isSelected ? "rgba(249,115,22,0.05)" : isStale ? "rgba(239,68,68,0.04)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
+                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
+                  background: isSelected ? "rgba(249,115,22,0.05)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
                   opacity: isClosed ? 0.7 : 1,
                 }}>
 
@@ -373,19 +373,17 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] text-gray-600">{new Date(request.created_at).toLocaleDateString("en-ZA")}</span>
                         <span className="text-gray-700 text-[10px]">·</span>
-
-                        <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>{isStale && <span style={{marginLeft:6,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 7px"}}>Follow up</span>}
-
+                        <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>{isStale && <span style={{marginLeft:6,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 6px"}}>&#9200; Follow up</span>}
                       </div>
-
+                    </div>
                     <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
                         style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
                         <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
                         {request.status || "New"}
                       </span>
-
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
                         <polyline points="6 9 12 15 18 9"/>
                       </svg>
                     </div>
