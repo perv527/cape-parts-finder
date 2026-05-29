@@ -39,8 +39,26 @@ export default function Home() {
     }
     setLoading(true);
     try {
-      const {data:ex}=await supabase.from("parts_requests").select("id,part_needed,created_at,status").eq("phone_number",formData.phone_number).neq("status","Delivered").neq("status","Closed").order("created_at",{ascending:false}).limit(1);
-      if(ex&&ex.length>0){const p=ex[0];const d=new Date(p.created_at).toLocaleDateString("en-ZA");const go=window.confirm("You already have an active request for "+p.part_needed+" submitted on "+d+" (Status: "+p.status+"). Submit a new one anyway?");if(!go){setLoading(false);return;}}
+      // Check for duplicate active request
+      const { data: existing } = await supabase
+        .from("parts_requests")
+        .select("id, part_needed, created_at, status")
+        .eq("phone_number", formData.phone_number)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const active = (existing || []).find(
+        r => !["Delivered", "Closed"].includes(r.status || "New")
+      );
+
+      if (active) {
+        const date = new Date(active.created_at).toLocaleDateString("en-ZA");
+        const proceed = window.confirm(
+          `You already have an active request for "${active.part_needed}" submitted on ${date} (Status: ${active.status || "New"}).\n\nDo you want to submit a new request anyway?`
+        );
+        if (!proceed) { setLoading(false); return; }
+      }
+
       // Upload all photos
       const uploadedUrls: string[] = [];
       for (const photo of photos) {
@@ -67,9 +85,15 @@ export default function Home() {
             body: JSON.stringify(formData),
           });
         } catch {}
+        // Reset everything cleanly so button never stays stuck
         setSuccess(true);
+        setLoading(false);
+        setPhotos([]);
       }
-    } catch { alert("Something went wrong."); setLoading(false); }
+    } catch {
+      alert("Something went wrong.");
+      setLoading(false);
+    }
   }
 
   const darkBg = { background: "#111111" };
