@@ -149,7 +149,7 @@ export default function AdminPage() {
   const filteredRequests = requests.filter((r) => {
     const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed + " " + (r.phone_number || "") + " " + (r.area || "")).toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
-    const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
+    const matchesArchive = search.trim() ? true : (!hideArchived || (r.status || "New") !== "Closed");
     return matchesSearch && matchesStatus && matchesArchive;
   });
 
@@ -376,8 +376,8 @@ export default function AdminPage() {
                         <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>{isStale && <span style={{marginLeft:6,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 6px"}}>&#9200; Follow up</span>}
                       </div>
                     </div>
-                      </div>
-
+                    <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
                         style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
                         <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
                         {request.status || "New"}
