@@ -4,6 +4,29 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+function StarRating({ rating, onRate, readonly }: { rating: number; onRate?: (r: number) => void; readonly?: boolean }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button key={star} type="button"
+          onClick={() => !readonly && onRate?.(star)}
+          onMouseEnter={() => !readonly && setHover(star)}
+          onMouseLeave={() => !readonly && setHover(0)}
+          className={readonly ? "cursor-default" : "cursor-pointer"}
+          style={{ background: "none", border: "none", padding: "1px" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24"
+            fill={(hover || rating) >= star ? "#f97316" : "none"}
+            stroke={(hover || rating) >= star ? "#f97316" : "rgba(255,255,255,0.2)"}
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function SuppliersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -16,6 +39,7 @@ function SuppliersContent() {
   const requestVin = searchParams.get("vin") || "";
 
   const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [ratings, setRatings] = useState<Record<number, { avg: number; count: number; list: any[] }>>({});
   const [authChecked, setAuthChecked] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -25,6 +49,10 @@ function SuppliersContent() {
   const [quoteNote, setQuoteNote] = useState("");
   const [sendingQuote, setSendingQuote] = useState(false);
   const [quoteSuccess, setQuoteSuccess] = useState(false);
+  const [ratingModal, setRatingModal] = useState<any>(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingNote, setRatingNote] = useState("");
+  const [savingRating, setSavingRating] = useState(false);
   const [formData, setFormData] = useState({ name: "", contact_person: "", whatsapp_number: "", email: "", area: "", speciality: "" });
 
   useEffect(() => { checkAuth(); }, []);
@@ -34,11 +62,41 @@ function SuppliersContent() {
     if (!session) { router.push("/login"); return; }
     setAuthChecked(true);
     fetchSuppliers();
+    fetchRatings();
   }
 
   async function fetchSuppliers() {
     const { data } = await supabase.from("suppliers").select("*").order("created_at", { ascending: false });
     if (data) setSuppliers(data);
+  }
+
+  async function fetchRatings() {
+    const { data } = await supabase.from("supplier_ratings").select("*").order("created_at", { ascending: false });
+    if (!data) return;
+    const map: Record<number, { avg: number; count: number; list: any[] }> = {};
+    data.forEach((r: any) => {
+      if (!map[r.supplier_id]) map[r.supplier_id] = { avg: 0, count: 0, list: [] };
+      map[r.supplier_id].list.push(r);
+      map[r.supplier_id].count++;
+    });
+    Object.keys(map).forEach(id => {
+      const entry = map[Number(id)];
+      entry.avg = entry.list.reduce((s, r) => s + r.rating, 0) / entry.count;
+    });
+    setRatings(map);
+  }
+
+  async function saveRating() {
+    if (!ratingValue) { alert("Please select a rating"); return; }
+    setSavingRating(true);
+    await supabase.from("supplier_ratings").insert([{
+      supplier_id: ratingModal.id,
+      rating: ratingValue,
+      note: ratingNote || null,
+    }]);
+    setRatingModal(null); setRatingValue(0); setRatingNote("");
+    fetchRatings();
+    setSavingRating(false);
   }
 
   async function saveSupplier() {
@@ -141,7 +199,7 @@ function SuppliersContent() {
               <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
             </div>
             <div className="flex gap-1">
-              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers", active: true }, { label: "Sales", href: "/sales" }].map((n) => (
+              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers", active: true }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
                   style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
                   {n.label}
@@ -239,84 +297,182 @@ function SuppliersContent() {
 
           {/* SUPPLIER CARDS */}
           <div className="grid xl:grid-cols-2 gap-3">
-            {filteredSuppliers.map((supplier) => (
-              <div key={supplier.id} className="rounded-2xl overflow-hidden transition" style={{ ...cardStyle, border: requestId ? "1px solid rgba(249,115,22,0.15)" : "1px solid rgba(255,255,255,0.07)" }}>
+            {filteredSuppliers.map((supplier) => {
+              const supplierRating = ratings[supplier.id];
+              return (
+                <div key={supplier.id} className="rounded-2xl overflow-hidden transition" style={{ ...cardStyle, border: requestId ? "1px solid rgba(249,115,22,0.15)" : "1px solid rgba(255,255,255,0.07)" }}>
 
-                <div className="p-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 font-bold text-[14px]"
-                        style={{ background: "rgba(249,115,22,0.12)" }}>
-                        {(supplier.name || "?")[0].toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="font-bold text-[14px] text-white">{supplier.name}</h2>
-                          <span className={`w-1.5 h-1.5 rounded-full ${supplier.active ? "bg-green-400" : "bg-gray-600"}`} />
+                  <div className="p-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-orange-400 font-bold text-[14px]"
+                          style={{ background: "rgba(249,115,22,0.12)" }}>
+                          {(supplier.name || "?")[0].toUpperCase()}
                         </div>
-                        <p className="text-[11px] text-gray-500 mt-0.5">{supplier.speciality || "General Parts"}</p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="font-bold text-[14px] text-white">{supplier.name}</h2>
+                            <span className={`w-1.5 h-1.5 rounded-full ${supplier.active ? "bg-green-400" : "bg-gray-600"}`} />
+                          </div>
+                          <p className="text-[11px] text-gray-500 mt-0.5">{supplier.speciality || "General Parts"}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-[10px] font-bold px-2 py-1 rounded-full"
+                          style={supplier.active ? { background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" } : { background: "rgba(107,114,128,0.1)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.2)" }}>
+                          {supplier.active ? "Active" : "Inactive"}
+                        </span>
+                        {/* Rating display */}
+                        {supplierRating ? (
+                          <div className="flex items-center gap-1.5">
+                            <StarRating rating={Math.round(supplierRating.avg)} readonly />
+                            <span className="text-[10px] text-gray-500">{supplierRating.avg.toFixed(1)} ({supplierRating.count})</span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-gray-700">No ratings yet</span>
+                        )}
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-1 rounded-full"
-                      style={supplier.active ? { background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" } : { background: "rgba(107,114,128,0.1)", color: "#6b7280", border: "1px solid rgba(107,114,128,0.2)" }}>
-                      {supplier.active ? "Active" : "Inactive"}
-                    </span>
                   </div>
-                </div>
 
-                <div className="p-4">
-                  <div className="grid grid-cols-2 gap-2 mb-3 text-[12px]">
-                    {[{ label: "Contact", value: supplier.contact_person }, { label: "Area", value: supplier.area }, { label: "WhatsApp", value: supplier.whatsapp_number }, { label: "Email", value: supplier.email }].map(({ label, value }) => (
-                      <div key={label}>
-                        <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
-                        <p className="text-gray-300 font-medium text-[12px]">{value || "—"}</p>
+                  <div className="p-4">
+                    <div className="grid grid-cols-2 gap-2 mb-3 text-[12px]">
+                      {[{ label: "Contact", value: supplier.contact_person }, { label: "Area", value: supplier.area }, { label: "WhatsApp", value: supplier.whatsapp_number }, { label: "Email", value: supplier.email }].map(({ label, value }) => (
+                        <div key={label}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
+                          <p className="text-gray-300 font-medium text-[12px]">{value || "—"}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <button onClick={() => window.open("https://wa.me/" + (supplier.whatsapp_number || "").replace(/\D/g, ""))}
+                        className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                        style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.15)", color: "#25D366" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        WhatsApp
+                      </button>
+                      <button onClick={() => window.open("mailto:" + supplier.email)}
+                        className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                        Email
+                      </button>
+                      <button onClick={() => editSupplier(supplier)}
+                        className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition text-white"
+                        style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        Edit
+                      </button>
+                      <button onClick={() => toggleActive(supplier.id, supplier.active)}
+                        className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
+                        {supplier.active ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
+
+                    {/* Rate supplier button */}
+                    <button onClick={() => { setRatingModal(supplier); setRatingValue(0); setRatingNote(""); }}
+                      className="w-full py-2 rounded-xl text-[12px] font-medium cursor-pointer transition mb-2"
+                      style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)", color: "#fb923c" }}>
+                      ⭐ Rate this Supplier
+                    </button>
+
+                    <button onClick={() => openQuoteModal(supplier)}
+                      className="w-full py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition mb-2 text-white"
+                      style={requestId
+                        ? { background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249,115,22,0.25)" }
+                        : { background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
+                      {requestId ? "Send Quote Request for This Part" : "Send Quote Request"}
+                    </button>
+
+                    <button onClick={() => deleteSupplier(supplier.id)}
+                      className="w-full py-2 rounded-xl text-[12px] font-medium cursor-pointer transition"
+                      style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)", color: "#f87171" }}>
+                      Delete Supplier
+                    </button>
+
+                    {/* Rating history */}
+                    {supplierRating && supplierRating.list.length > 0 && (
+                      <div className="mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                        <p className="text-[9px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Rating History</p>
+                        <div className="space-y-1.5">
+                          {supplierRating.list.slice(0, 3).map((r: any, i: number) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <StarRating rating={r.rating} readonly />
+                              <span className="text-[10px] text-gray-600">{new Date(r.created_at).toLocaleDateString("en-ZA")}</span>
+                              {r.note && <span className="text-[10px] text-gray-500 truncate flex-1">{r.note}</span>}
+                            </div>
+                          ))}
+                          {supplierRating.list.length > 3 && (
+                            <p className="text-[10px] text-gray-700">+{supplierRating.list.length - 3} more ratings</p>
+                          )}
+                        </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <button onClick={() => window.open("https://wa.me/" + (supplier.whatsapp_number || "").replace(/\D/g, ""))}
-                      className="flex items-center justify-center gap-1.5 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                      style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.15)", color: "#25D366" }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                      WhatsApp
-                    </button>
-                    <button onClick={() => window.open("mailto:" + supplier.email)}
-                      className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                      Email
-                    </button>
-                    <button onClick={() => editSupplier(supplier)}
-                      className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition text-white"
-                      style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                      Edit
-                    </button>
-                    <button onClick={() => toggleActive(supplier.id, supplier.active)}
-                      className="py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                      {supplier.active ? "Deactivate" : "Activate"}
-                    </button>
-                  </div>
-
-                  <button onClick={() => openQuoteModal(supplier)}
-                    className="w-full py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition mb-2 text-white"
-                    style={requestId
-                      ? { background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249,115,22,0.25)" }
-                      : { background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
-                    {requestId ? "Send Quote Request for This Part" : "Send Quote Request"}
-                  </button>
-
-                  <button onClick={() => deleteSupplier(supplier.id)}
-                    className="w-full py-2 rounded-xl text-[12px] font-medium cursor-pointer transition"
-                    style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.12)", color: "#f87171" }}>
-                    Delete Supplier
-                  </button>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* RATING MODAL */}
+      {ratingModal && (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <h2 className="font-bold text-[15px] text-white">Rate Supplier</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">{ratingModal.name}</p>
+              </div>
+              <button onClick={() => setRatingModal(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <p className="text-[11px] text-gray-500 mb-3">How would you rate this supplier?</p>
+                <div className="flex justify-center">
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} type="button" onClick={() => setRatingValue(star)}
+                        className="cursor-pointer transition"
+                        style={{ background: "none", border: "none", padding: "4px" }}>
+                        <svg width="32" height="32" viewBox="0 0 24 24"
+                          fill={ratingValue >= star ? "#f97316" : "none"}
+                          stroke={ratingValue >= star ? "#f97316" : "rgba(255,255,255,0.2)"}
+                          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                          style={{ transform: ratingValue >= star ? "scale(1.15)" : "scale(1)", transition: "transform 0.1s" }}>
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {ratingValue > 0 && (
+                  <p className="text-center text-[12px] mt-2" style={{ color: "#fb923c" }}>
+                    {["", "Poor", "Fair", "Good", "Very Good", "Excellent"][ratingValue]}
+                  </p>
+                )}
+              </div>
+              <textarea value={ratingNote} onChange={(e) => setRatingNote(e.target.value)} rows={2}
+                placeholder="Add a note (optional)..."
+                className="w-full rounded-xl px-4 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+              <div className="flex gap-2">
+                <button onClick={saveRating} disabled={savingRating || !ratingValue}
+                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white"
+                  style={{ background: ratingValue ? "linear-gradient(135deg, #f97316, #ea580c)" : "rgba(249,115,22,0.3)", boxShadow: ratingValue ? "0 4px 16px rgba(249,115,22,0.25)" : "none" }}>
+                  {savingRating ? "Saving..." : "Save Rating"}
+                </button>
+                <button onClick={() => setRatingModal(null)}
+                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
+                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QUOTE MODAL */}
       {quoteModal && (
@@ -375,10 +531,6 @@ function SuppliersContent() {
                   <textarea value={quoteNote} onChange={(e) => setQuoteNote(e.target.value)} rows={3}
                     placeholder="Note to supplier..." className="w-full rounded-xl px-4 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-                  <div className="rounded-xl p-3" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
-                    <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.6)" }}>Supplier Contact</p>
-                    <p className="text-[13px] text-white">{quoteModal.whatsapp_number}</p>
-                  </div>
                   <div className="flex gap-2">
                     <button onClick={sendQuoteToSupplier} disabled={sendingQuote}
                       className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white"
