@@ -233,8 +233,9 @@ export default function QuotesPage() {
     .footer-right .fo { color: #f97316; font-weight: 700; font-size: 10.5px; }
 
     @media print {
+      @page { size: A4; margin: 10mm; }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 26px 36px; }
+      .page { padding: 20px 30px; }
     }
   </style>
 </head>
