@@ -132,6 +132,169 @@ export default function QuotesPage() {
     window.open(`https://wa.me/${request.phone_number.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`);
   }
 
+
+  function printInvoice(quote: any) {
+    const invNum = `INV-${String(request.id).padStart(4,"0")}-${String(quote.id).padStart(4,"0")}`;
+    const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
+    const base = Number(quote.marked_up_price);
+    const vat = base * 0.15;
+    const total = base + vat;
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Invoice ${invNum} — Cape Parts Finder</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:11.5px;line-height:1.45;}
+.page{max-width:720px;margin:0 auto;padding:36px 44px;}
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+.logo-wrap{display:flex;align-items:center;gap:11px;}
+.logo-box{width:38px;height:38px;background:#f97316;border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.logo-box svg{width:19px;height:19px;}
+.brand-name{font-size:16px;font-weight:800;color:#0a0a0a;}
+.brand-sub{font-size:9.5px;color:#aaa;margin-top:2px;}
+.inv-info{text-align:right;}
+.inv-tag{font-size:7.5px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:#ccc;margin-bottom:3px;}
+.inv-num{font-size:17px;font-weight:900;color:#0a0a0a;}
+.inv-badge{display:inline-block;margin-top:6px;background:#14b8a6;color:white;font-size:9px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:1px;text-transform:uppercase;}
+.inv-meta{font-size:9.5px;color:#aaa;margin-top:4px;line-height:1.7;}
+.accent-line{height:1.5px;background:linear-gradient(90deg,#f97316 0%,#fdba74 50%,#fff 100%);margin-bottom:20px;}
+.sec{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:#ccc;margin-bottom:8px;}
+.panels{display:grid;grid-template-columns:1fr 1fr;border:1px solid #e8e8e8;border-radius:8px;overflow:hidden;margin-bottom:20px;}
+.panel{padding:13px 18px;}
+.panel:first-child{border-right:1px solid #e8e8e8;}
+.panel-row{display:flex;justify-content:space-between;align-items:baseline;padding:3.5px 0;}
+.panel-row+.panel-row{border-top:1px solid #f3f3f3;}
+.pl{font-size:9.5px;color:#bbb;font-weight:500;}
+.pv{font-size:10.5px;font-weight:600;color:#1a1a1a;text-align:right;}
+.part-block{padding:14px 0;border-top:1px solid #e8e8e8;border-bottom:1px solid #e8e8e8;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+.part-name{font-size:19px;font-weight:900;color:#0a0a0a;text-transform:capitalize;}
+.part-sub{font-size:10px;color:#aaa;margin-top:3px;}
+.pref-badge{flex-shrink:0;border:1px solid #14b8a6;border-radius:20px;padding:2px 10px;font-size:9.5px;font-weight:700;color:#14b8a6;}
+.paid-stamp{text-align:center;padding:16px;margin-bottom:20px;border-radius:10px;background:rgba(20,184,166,0.06);border:2px solid rgba(20,184,166,0.3);}
+.paid-text{font-size:32px;font-weight:900;color:#14b8a6;letter-spacing:4px;opacity:0.8;}
+.paid-sub{font-size:10px;color:#aaa;margin-top:4px;}
+.pricing-wrap{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:18px;align-items:start;}
+.price-table{width:100%;border-collapse:collapse;}
+.price-table td{padding:5.5px 0;font-size:11px;vertical-align:baseline;}
+.price-table tr+tr td{border-top:1px solid #f0f0f0;}
+.pt-label{color:#888;width:60%;}
+.pt-value{text-align:right;font-weight:600;color:#333;}
+.price-total td{border-top:1.5px solid #1a1a1a!important;padding-top:8px;}
+.pt-total-label{font-size:12px;font-weight:800;color:#0a0a0a;}
+.pt-total-value{font-size:21px;font-weight:900;color:#14b8a6;text-align:right;}
+.bank-table{width:100%;border-collapse:collapse;}
+.bank-table td{padding:5px 0;font-size:10px;vertical-align:baseline;}
+.bank-table tr+tr td{border-top:1px solid #f0f0f0;}
+.bl{color:#bbb;font-weight:500;width:45%;}
+.bv{text-align:right;font-weight:700;color:#1a1a1a;}
+.bv.accent{color:#14b8a6;font-size:11px;}
+.disclaimer{border:1px solid #efefef;border-radius:7px;padding:11px 15px;margin-bottom:18px;}
+.disclaimer p{font-size:8.5px;color:#999;line-height:1.7;}
+.footer{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid #e8e8e8;}
+.footer-left .fb{font-size:11px;font-weight:800;color:#0a0a0a;}
+.footer-left .ft{font-size:8.5px;color:#ccc;margin-top:2px;}
+.footer-right{text-align:right;}
+.footer-right div{font-size:8.5px;color:#aaa;line-height:1.85;}
+.footer-right .fo{color:#14b8a6;font-weight:700;font-size:10px;}
+@media print{@page{size:A4;margin:10mm;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:20px 30px;}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo-wrap">
+      <div class="logo-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Cape Parts Finder</div>
+        <div class="brand-sub">Your Trusted Auto Parts Network · Cape Town</div>
+      </div>
+    </div>
+    <div class="inv-info">
+      <div class="inv-tag">Tax Invoice</div>
+      <div class="inv-num">${invNum}</div>
+      <div class="inv-badge">✓ PAID</div>
+      <div class="inv-meta">Date: ${date}</div>
+    </div>
+  </div>
+  <div class="accent-line"></div>
+  <div class="panels">
+    <div class="panel">
+      <div class="sec">Invoiced To</div>
+      <div class="panel-row"><span class="pl">Full Name</span><span class="pv">${request.customer_name || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Phone</span><span class="pv">${request.phone_number || "—"}</span></div>
+      ${request.email ? `<div class="panel-row"><span class="pl">Email</span><span class="pv">${request.email}</span></div>` : ""}
+      ${request.area ? `<div class="panel-row"><span class="pl">Area</span><span class="pv">${request.area}</span></div>` : ""}
+    </div>
+    <div class="panel">
+      <div class="sec">Vehicle Details</div>
+      <div class="panel-row"><span class="pl">Make</span><span class="pv">${request.vehicle_make || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Model</span><span class="pv">${request.vehicle_model || "—"}</span></div>
+      <div class="panel-row"><span class="pl">Year</span><span class="pv">${request.vehicle_year || "—"}</span></div>
+      ${request.vin_number ? `<div class="panel-row"><span class="pl">VIN</span><span class="pv">${request.vin_number}</span></div>` : ""}
+    </div>
+  </div>
+  <div class="sec">Part Supplied</div>
+  <div class="part-block">
+    <div>
+      <div class="part-name">${request.part_needed || "—"}</div>
+      <div class="part-sub">${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}${request.engine_size ? " · " + request.engine_size : ""}</div>
+    </div>
+    ${request.part_preference ? `<div class="pref-badge">${request.part_preference}</div>` : ""}
+  </div>
+  <div class="paid-stamp">
+    <div class="paid-text">PAID</div>
+    <div class="paid-sub">Thank you for your payment · Cape Parts Finder</div>
+  </div>
+  <div class="pricing-wrap">
+    <div>
+      <div class="sec">Invoice Summary</div>
+      <table class="price-table">
+        <tr><td class="pt-label">Part &amp; Sourcing Fee</td><td class="pt-value">R${base.toFixed(2)}</td></tr>
+        <tr><td class="pt-label">VAT (15%)</td><td class="pt-value">R${vat.toFixed(2)}</td></tr>
+        <tr class="price-total"><td class="pt-total-label">Total Paid</td><td class="pt-total-value">R${total.toFixed(2)}</td></tr>
+      </table>
+      <div style="font-size:8.5px;color:#bbb;margin-top:5px;">All amounts in South African Rand (ZAR)</div>
+    </div>
+    <div>
+      <div class="sec">Payment Details</div>
+      <table class="bank-table">
+        <tr><td class="bl">Bank</td><td class="bv">First National Bank (FNB)</td></tr>
+        <tr><td class="bl">Account Name</td><td class="bv">Cape Parts Finder</td></tr>
+        <tr><td class="bl">Account Number</td><td class="bv accent">62863344596</td></tr>
+        <tr><td class="bl">Account Type</td><td class="bv">Savings Account</td></tr>
+        <tr><td class="bl">Reference</td><td class="bv">${invNum}</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="disclaimer">
+    <p>This is an official tax invoice issued by Cape Parts Finder. Parts supplied are subject to supplier warranty only. Cape Parts Finder acts as intermediary and accepts no liability for fitment or compatibility issues. This invoice confirms payment received in full.</p>
+  </div>
+  <div class="footer">
+    <div class="footer-left">
+      <div class="fb">Cape Parts Finder</div>
+      <div class="ft">Connecting you with quality parts across Cape Town</div>
+    </div>
+    <div class="footer-right">
+      <div class="fo">+27 69 686 3952</div>
+      <div>cape-parts-finder.vercel.app</div>
+      <div>Cape Town, South Africa</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+    const win = window.open("", "_blank");
+    if (!win) { alert("Allow popups to print"); return; }
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.focus(); win.print(); };
+  }
+
   function printQuote(quote: any) {
     const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
@@ -149,11 +312,11 @@ export default function QuotesPage() {
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; font-size: 12px; line-height: 1.5; }
+    body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; font-size: 11.5px; line-height: 1.45; }
     .page { max-width: 720px; margin: 0 auto; padding: 36px 44px; }
 
     /* ── HEADER ── */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
     .logo-wrap { display: flex; align-items: center; gap: 13px; }
     .logo-box { width: 42px; height: 42px; background: #f97316; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .logo-box svg { width: 21px; height: 21px; }
@@ -165,14 +328,14 @@ export default function QuotesPage() {
     .quote-meta { font-size: 10px; color: #aaa; margin-top: 5px; line-height: 1.8; }
 
     /* ── ACCENT LINE ── */
-    .accent-line { height: 1.5px; background: linear-gradient(90deg, #f97316 0%, #fdba74 50%, #fff 100%); margin-bottom: 36px; }
+    .accent-line { height: 1.5px; background: linear-gradient(90deg, #f97316 0%, #fdba74 50%, #fff 100%); margin-bottom: 20px; }
 
     /* ── SECTION HEADING ── */
     .sec { font-size: 7.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: #ccc; margin-bottom: 10px; }
 
     /* ── INFO PANELS ── */
-    .panels { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; margin-bottom: 36px; }
-    .panel { padding: 18px 22px; }
+    .panels { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .panel { padding: 13px 18px; }
     .panel:first-child { border-right: 1px solid #e8e8e8; }
     .panel-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
     .panel-row + .panel-row { border-top: 1px solid #f3f3f3; }
@@ -180,14 +343,14 @@ export default function QuotesPage() {
     .pv { font-size: 11px; font-weight: 600; color: #1a1a1a; text-align: right; max-width: 60%; }
 
     /* ── PART BLOCK ── */
-    .part-block { padding: 20px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 36px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .part-name { font-size: 22px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; text-transform: capitalize; }
+    .part-block { padding: 14px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .part-name { font-size: 19px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; text-transform: capitalize; }
     .part-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
     .part-extra { font-size: 10.5px; color: #777; margin-top: 6px; font-style: italic; }
     .pref-badge { flex-shrink: 0; margin-top: 4px; border: 1px solid #f97316; border-radius: 20px; padding: 3px 11px; font-size: 10px; font-weight: 700; color: #f97316; white-space: nowrap; letter-spacing: 0.3px; }
 
     /* ── PRICING ── */
-    .pricing-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; align-items: start; }
+    .pricing-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 18px; align-items: start; }
     .price-table { width: 100%; border-collapse: collapse; }
     .price-table td { padding: 7px 0; font-size: 11.5px; vertical-align: baseline; }
     .price-table tr + tr td { border-top: 1px solid #f0f0f0; }
@@ -195,7 +358,7 @@ export default function QuotesPage() {
     .pt-value { text-align: right; font-weight: 600; color: #333; }
     .price-total td { border-top: 1.5px solid #1a1a1a !important; padding-top: 10px; }
     .pt-total-label { font-size: 13px; font-weight: 800; color: #0a0a0a; }
-    .pt-total-value { font-size: 24px; font-weight: 900; color: #f97316; text-align: right; letter-spacing: -0.5px; }
+    .pt-total-value { font-size: 21px; font-weight: 900; color: #f97316; text-align: right; letter-spacing: -0.5px; }
     .vat-note { font-size: 9.5px; color: #bbb; margin-top: 6px; line-height: 1.5; }
 
     /* ── BANKING ── */
@@ -219,13 +382,13 @@ export default function QuotesPage() {
     .note-box { border-left: 2px solid #f97316; padding: 9px 14px; margin-bottom: 28px; font-size: 10.5px; color: #666; line-height: 1.65; }
 
     /* ── DISCLAIMER ── */
-    .disclaimer { background: #fafafa; border: 1px solid #efefef; border-radius: 8px; padding: 14px 18px; margin-bottom: 32px; }
+    .disclaimer { background: #fafafa; border: 1px solid #efefef; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; }
     .disclaimer p { font-size: 9.5px; color: #888; line-height: 1.75; margin-bottom: 5px; }
     .disclaimer p:last-child { margin-bottom: 0; }
     .disclaimer strong { color: #666; font-weight: 600; }
 
     /* ── FOOTER ── */
-    .footer { display: flex; justify-content: space-between; align-items: center; padding-top: 20px; border-top: 1px solid #e8e8e8; }
+    .footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid #e8e8e8; }
     .footer-left .fb { font-size: 12px; font-weight: 800; color: #0a0a0a; }
     .footer-left .ft { font-size: 9.5px; color: #ccc; margin-top: 2px; }
     .footer-right { text-align: right; }
@@ -233,9 +396,8 @@ export default function QuotesPage() {
     .footer-right .fo { color: #f97316; font-weight: 700; font-size: 10.5px; }
 
     @media print {
-      @page { size: A4; margin: 10mm; }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { padding: 20px 30px; }
+      .page { padding: 28px 36px; }
     }
   </style>
 </head>
@@ -348,14 +510,15 @@ export default function QuotesPage() {
 
   </div>
 
-
-
   ${quote.notes ? `<div class="note-box">${quote.notes}</div>` : ""}
 
   <!-- DISCLAIMER -->
   <div class="disclaimer">
     <div class="sec" style="margin-bottom:8px;">Terms &amp; Disclaimer</div>
-    <p><p>Parts sourced are subject to supplier warranty only. Cape Parts Finder acts as intermediary and accepts no liability for fitment or compatibility issues. Valid for <strong>3 days</strong> from issue date, subject to stock availability.</p></div>
+    <p>All parts sourced are subject to the <strong>manufacturer's or supplier's warranty</strong> only. Cape Parts Finder acts solely as an intermediary between the customer and supplier. The applicable guarantee and warranty terms are as provided by the supplying party and Cape Parts Finder accepts no responsibility beyond that warranty.</p>
+    <p>Cape Parts Finder accepts no liability for parts incompatibility, fitment issues, or any damage arising from incorrect installation. It is the customer's sole responsibility to verify part compatibility with their vehicle prior to fitment.</p>
+    <p>This quotation is valid for <strong>3 days</strong> from the date of issue and is subject to stock availability at time of order confirmation. This document does not constitute a binding agreement until full payment has been received and confirmed by Cape Parts Finder.</p>
+  </div>
 
   <!-- FOOTER -->
   <div class="footer">
@@ -626,6 +789,12 @@ export default function QuotesPage() {
                       style={{ background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", color: "#c084fc" }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                       Print Quote
+                    </button>
+                    <button onClick={() => printInvoice(quote)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                      style={{ background: "rgba(20,184,166,0.1)", border: "1px solid rgba(20,184,166,0.2)", color: "#2dd4bf" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      Print Invoice
                     </button>
 
                     <button onClick={() => convertToSale(quote)}
