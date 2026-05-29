@@ -375,6 +375,7 @@ export default function AdminPage() {
                         <span className="text-gray-700 text-[10px]">·</span>
 
                         <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>{isStale && <span style={{marginLeft:6,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 7px"}}>Follow up</span>}
+
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
