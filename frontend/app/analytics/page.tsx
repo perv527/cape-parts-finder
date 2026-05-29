@@ -25,6 +25,12 @@ export default function AnalyticsPage() {
     });
   }, []);
 
+  function isToday(dateStr: string) {
+    const d = new Date(dateStr);
+    const now = new Date();
+    return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
+
   function getPeriodSales() {
     const now = new Date();
     return sales.filter(s => {
@@ -73,6 +79,32 @@ export default function AnalyticsPage() {
     requests.forEach(r => { if (r.vehicle_make) counts[r.vehicle_make] = (counts[r.vehicle_make] || 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
   }
+
+  function timeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (hrs < 24) return `${hrs}h ago`;
+    return `${days}d ago`;
+  }
+
+  // Today's stats
+  const todayRequests = requests.filter(r => isToday(r.created_at));
+  const todaySales = sales.filter(s => isToday(s.created_at));
+  const todayRevenue = todaySales.reduce((s, x) => s + Number(x.selling_price || 0), 0);
+  const todayProfit = todaySales.reduce((s, x) => s + Number(x.profit || 0), 0);
+  const staleCount = requests.filter(r => {
+    const isClosed = (r.status || "New") === "Closed" || r.status === "Delivered";
+    return !isClosed && (Date.now() - new Date(r.updated_at || r.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000;
+  }).length;
+
+  // Activity feed — last 7 requests sorted by updated_at or created_at
+  const recentActivity = [...requests]
+    .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+    .slice(0, 6);
 
   const periodSales = getPeriodSales();
   const totalRevenue = periodSales.reduce((s, x) => s + Number(x.selling_price || 0), 0);
@@ -147,6 +179,70 @@ export default function AnalyticsPage() {
 
         <div className="max-w-7xl mx-auto px-5 py-6">
 
+          {/* TODAY'S SUMMARY */}
+          <div className="rounded-2xl p-5 mb-6" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.15)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                  <h2 className="font-bold text-[15px] text-white">Today's Summary</h2>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-0.5">{new Date().toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long" })}</p>
+              </div>
+              {staleCount > 0 && (
+                <a href="/admin" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold no-underline"
+                  style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171" }}>
+                  ⏰ {staleCount} need follow-up
+                </a>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+              {[
+                { label: "New Requests", value: todayRequests.length, color: "#f97316", icon: "📥" },
+                { label: "Sales Today", value: todaySales.length, color: "#4ade80", icon: "✅" },
+                { label: "Revenue Today", value: `R${todayRevenue.toFixed(0)}`, color: "#4ade80", icon: "💰" },
+                { label: "Profit Today", value: `R${todayProfit.toFixed(0)}`, color: "#60a5fa", icon: "📈" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[16px]">{item.icon}</span>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.3)" }}>{item.label}</p>
+                  </div>
+                  <p className="text-[26px] font-black leading-none" style={{ color: item.color }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* ACTIVITY FEED */}
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: "rgba(255,255,255,0.25)" }}>Recent Activity</p>
+              <div className="space-y-2">
+                {recentActivity.length === 0 ? (
+                  <p className="text-gray-600 text-sm">No activity yet</p>
+                ) : recentActivity.map((r) => {
+                  const st = r.status || "New";
+                  const color = statusColors[st] || "#6b7280";
+                  return (
+                    <div key={r.id} className="flex items-center gap-3 py-2 px-3 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[12px] font-medium text-white">{r.customer_name}</span>
+                        <span className="text-gray-600 text-[12px]"> · </span>
+                        <span className="text-gray-400 text-[12px] truncate">{r.part_needed}</span>
+                      </div>
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{ background: `${color}20`, color: color, border: `1px solid ${color}40` }}>
+                        {st}
+                      </span>
+                      <span className="text-[10px] text-gray-600 flex-shrink-0">{timeAgo(r.updated_at || r.created_at)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           <div className="mb-6">
             <h1 className="text-[22px] font-black text-white tracking-tight">Analytics</h1>
             <p className="text-gray-500 text-sm mt-0.5">Business performance overview</p>
@@ -213,7 +309,7 @@ export default function AnalyticsPage() {
                         <span className="text-[11px] text-gray-500">{count} req{count !== 1 ? "s" : ""}</span>
                       </div>
                       <div className="h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
-                        <div className="h-full rounded-full transition-all" style={{ width: `${(count / maxPartCount) * 100}%`, background: `linear-gradient(90deg, #f97316, #fb923c)` }} />
+                        <div className="h-full rounded-full transition-all" style={{ width: `${(count / maxPartCount) * 100}%`, background: "linear-gradient(90deg, #f97316, #fb923c)" }} />
                       </div>
                     </div>
                   ))}
