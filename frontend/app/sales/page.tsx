@@ -278,8 +278,8 @@ export default function SalesPage() {
                     </div>
                   )}
                 </div>
-              );
-            })}
+              )}
+
 
         </div>
       </div>
