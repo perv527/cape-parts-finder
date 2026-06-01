@@ -477,7 +477,7 @@ function SuppliersContent() {
       {/* QUOTE MODAL */}
       {quoteModal && (
         <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", width: "100vw", maxWidth: "100vw", boxSizing: "border-box", overflowX: "hidden" }}>
+          <div className="w-full sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflowX: "hidden", position: "relative" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Send Quote Request</h2>
@@ -486,7 +486,7 @@ function SuppliersContent() {
               <button onClick={() => setQuoteModal(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
-            <div className="space-y-3" style={{ padding: "16px", overflowX: "hidden", boxSizing: "border-box", width: "100%" }}>
+            <div style={{ padding: "16px", overflowX: "hidden", boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
               {quoteSuccess ? (
                 <div className="text-center py-6">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(34,197,94,0.15)" }}>
@@ -512,7 +512,7 @@ function SuppliersContent() {
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.3)" }}>Quote Image (optional)</p>
                     <div onClick={() => document.getElementById("quote-image-input")?.click()}
-                      className="rounded-xl p-4 text-center cursor-pointer transition"
+                      className="w-full rounded-xl p-4 text-center cursor-pointer transition"
                       style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
                       {quoteImage ? (
                         <div className="flex items-center gap-3">
@@ -529,7 +529,7 @@ function SuppliersContent() {
                     <input id="quote-image-input" type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => setQuoteImage(e.target.files?.[0] || null)} />
                   </div>
                   <textarea value={quoteNote} onChange={(e) => setQuoteNote(e.target.value)} rows={3}
-                    placeholder="Note to supplier..." className="w-full rounded-xl px-3 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600 box-border"
+                    placeholder="Note to supplier..." className="w-full rounded-xl px-3 py-3 text-[13px] box-border outline-none resize-none text-white placeholder-gray-600 box-border"
                     style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", maxWidth: "100%" }} />
                   <div className="flex gap-2">
                     <button onClick={sendQuoteToSupplier} disabled={sendingQuote}
