@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
   const maxPartCount = Math.max(...topParts.map(p => p.count), 1);
   const statusBreakdown = getStatusBreakdown();
   const topMakes = getTopMakes();
-  const referralSources = getReferralSources();
+  const referralSources=(()=>{const co={};requests.forEach(r=>{if(r.referral_source)co[r.referral_source]=(co[r.referral_source]||0)+1;});return Object.entries(co).sort((a,b)=>Number(b[1])-Number(a[1]));})();
   const maxReferral = Math.max(...referralSources.map(r => r[1]), 1);
   const maxMakeCount = Math.max(...topMakes.map(m => m[1]), 1);
 
