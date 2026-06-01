@@ -273,12 +273,12 @@ export default function SalesPage() {
                             style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
                             {savingNote === sale.id ? "Saving..." : "Save Note"}
                           </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
+
+
+
+
+
+
             })}
           </div>
         </div>

@@ -1,3 +1,3 @@
-﻿c=open("frontend/app/sales/page.tsx",encoding="utf-8").read()
+﻿c=open("frontend/app/analytics/page.tsx",encoding="utf-8").read()
 lines=c.split(chr(10))
-[print(i+1,repr(lines[i])) for i in range(272,286)]
+[print(i+1,repr(lines[i])) for i in range(125,135)]
