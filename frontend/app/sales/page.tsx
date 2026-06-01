@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -277,11 +277,11 @@ export default function SalesPage() {
                       </div>
                     </div>
                   )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </div>
-
       </div>
     </main>
   );
