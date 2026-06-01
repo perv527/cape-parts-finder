@@ -216,13 +216,14 @@ export default function AdminPage() {
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
             </div>
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-0.5 overflow-x-auto scrollbar-hide">
               {[{ label: "Requests", href: "/admin", active: true }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
                   style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
-                  {n.label}{n.href === "/admin" && newCount > 0 && (<span style={{ marginLeft: 6, background: "#f97316", color: "white", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px", lineHeight: "16px", display: "inline-block" }}>{newCount}</span>)}
+                  <span className="hidden sm:block">{n.label}</span>
+                  <span className="sm:hidden text-[11px]">{n.label}</span>{n.href === "/admin" && newCount > 0 && (<span style={{ marginLeft: 6, background: "#f97316", color: "white", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px", lineHeight: "16px", display: "inline-block" }}>{newCount}</span>)}
                 </a>
               ))}
             </div>
