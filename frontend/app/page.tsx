@@ -1,557 +1,422 @@
 ﻿"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
+export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    customer_name: "", phone_number: "", email: "", area: "",
+    vehicle_make: "", vehicle_model: "", vehicle_year: "",
+    vin_number: "", engine_size: "", part_needed: "",
+    part_preference: "aftermarket", extra_details: "",
+  });
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  New:       { bg: "rgba(249,115,22,0.12)", text: "#fb923c", dot: "#f97316", border: "rgba(249,115,22,0.25)" },
-  Searching: { bg: "rgba(59,130,246,0.12)", text: "#60a5fa", dot: "#3b82f6", border: "rgba(59,130,246,0.25)" },
-  Quoted:    { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", dot: "#22c55e", border: "rgba(34,197,94,0.25)" },
-  Ordered:   { bg: "rgba(168,85,247,0.12)", text: "#c084fc", dot: "#a855f7", border: "rgba(168,85,247,0.25)" },
-  Delivered: { bg: "rgba(20,184,166,0.12)", text: "#2dd4bf", dot: "#14b8a6", border: "rgba(20,184,166,0.25)" },
-  Closed:    { bg: "rgba(107,114,128,0.12)",text: "#9ca3af", dot: "#6b7280", border: "rgba(107,114,128,0.25)" },
-};
-
-export default function AdminPage() {
-  const router = useRouter();
-  const [requests, setRequests] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [authChecked, setAuthChecked] = useState(false);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [templateModal, setTemplateModal] = useState<any>(null);
-  const [notifyModal, setNotifyModal] = useState<any>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [savingNote, setSavingNote] = useState<number | null>(null);
-  const [notes, setNotes] = useState<Record<number, string>>({});
-  const [newCount, setNewCount] = useState(0);
-  const [hideArchived, setHideArchived] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState("Searching");
-  const [bulkUpdating, setBulkUpdating] = useState(false);
-
-  function getWhatsAppMessage(request: any, template: string) {
-    const name = request.customer_name || "there";
-    const part = request.part_needed || "part";
-    const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
-    const messages: Record<string, string> = {
-      new:       `Hi ${name}, thanks for your request! We received your inquiry for a ${part} for your ${vehicle}. We are searching our supplier network and will get back to you shortly.\n\nCape Parts Finder`,
-      searching: `Hi ${name}, just an update - we are actively searching for your ${part} for your ${vehicle}. We have multiple suppliers checking stock right now.\n\nCape Parts Finder`,
-      quoted:    `Hi ${name}, great news! We found your ${part} for your ${vehicle}. Please reply and we will send you the price and details.\n\nCape Parts Finder`,
-      ordered:   `Hi ${name}, your ${part} has been ordered and is on its way! We will update you once ready for delivery.\n\nCape Parts Finder`,
-      delivered: `Hi ${name}, your ${part} has been delivered successfully. Thank you for using Cape Parts Finder!\n\nCape Parts Finder`,
-      followup:  `Hi ${name}, just checking in on your ${part} request for your ${vehicle}. Can we help you with anything?\n\nCape Parts Finder`,
-    };
-    return messages[template] || messages.new;
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   }
 
-  function getStatusMessage(request: any, status: string) {
-    const name = request.customer_name || "there";
-    const part = request.part_needed || "part";
-    const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
-    const msgs: Record<string, string> = {
-      Searching: `Hi ${name}, we are now actively searching for your ${part} for your ${vehicle}. We will update you shortly.\n\nCape Parts Finder`,
-      Quoted:    `Hi ${name}, great news! We have a quote ready for your ${part}. Please reply and we will send you the details.\n\nCape Parts Finder`,
-      Ordered:   `Hi ${name}, your ${part} has been ordered! We will let you know once it is ready.\n\nCape Parts Finder`,
-      Delivered: `Hi ${name}, your ${part} has been delivered. Thank you for choosing Cape Parts Finder!\n\nCape Parts Finder`,
-      Closed:    `Hi ${name}, your request for a ${part} has been completed. Thank you!\n\nCape Parts Finder`,
-    };
-    return msgs[status] || null;
-  }
-
-  useEffect(() => { checkAuth(); }, []);
-
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push("/login"); return; }
-    fetchRequests();
-    setAuthChecked(true);
-  }
-
-  async function fetchRequests() {
-    const { data, error } = await supabase.from("parts_requests").select("*").order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setRequests(data || []);
-    setNewCount((data || []).filter((r: any) => r.status === "New").length);
-    const nm: Record<number, string> = {};
-    (data || []).forEach((r: any) => { if (r.internal_notes) nm[r.id] = r.internal_notes; });
-    setNotes(nm);
-  }
-
-  async function saveNote(id: number) {
-    setSavingNote(id);
-    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
-    setSavingNote(null);
-  }
-
-  async function updateStatus(id: number, status: string) {
-    setUpdatingId(id);
-    const request = requests.find(r => r.id === id);
-    const { error } = await supabase.from("parts_requests").update({ status }).eq("id", id);
-    if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
-    fetchRequests();
-    setUpdatingId(null);
-    if (request && getStatusMessage(request, status)) {
-      setNotifyModal({ request: { ...request, status }, status });
-    }
-  }
-
-  async function bulkUpdateStatus() {
-    if (selectedIds.size === 0) return;
-    setBulkUpdating(true);
-    const ids = Array.from(selectedIds);
-    await Promise.all(ids.map(id => supabase.from("parts_requests").update({ status: bulkStatus }).eq("id", id)));
-    setSelectedIds(new Set());
-    fetchRequests();
-    setBulkUpdating(false);
-  }
-
-  function toggleSelect(id: number) {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+  function addPhotos(files: FileList | null) {
+    if (!files) return;
+    const newFiles = Array.from(files);
+    setPhotos(prev => {
+      const combined = [...prev, ...newFiles];
+      return combined.slice(0, 5); // max 5
     });
   }
 
-  function toggleSelectAll() {
-    if (selectedIds.size === filteredRequests.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredRequests.map(r => r.id)));
+  function removePhoto(index: number) {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!formData.customer_name || !formData.phone_number || !formData.part_needed) {
+      alert("Please fill in your name, phone number and the part you need.");
+      return;
+    }
+    setLoading(true);
+    try {
+      // Check for duplicate active request
+      const { data: existing } = await supabase
+        .from("parts_requests")
+        .select("id, part_needed, created_at, status")
+        .eq("phone_number", formData.phone_number)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      const active = (existing || []).find(
+        r => !["Delivered", "Closed"].includes(r.status || "New")
+      );
+
+      if (active) {
+        const date = new Date(active.created_at).toLocaleDateString("en-ZA");
+        const proceed = window.confirm(
+          `You already have an active request for "${active.part_needed}" submitted on ${date} (Status: ${active.status || "New"}).\n\nDo you want to submit a new request anyway?`
+        );
+        if (!proceed) { setLoading(false); return; }
+      }
+
+      // Upload all photos
+      const uploadedUrls: string[] = [];
+      for (const photo of photos) {
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${photo.name}`;
+        const { error: uploadError } = await supabase.storage.from("parts-photos").upload(fileName, photo);
+        if (!uploadError) {
+          const { data } = supabase.storage.from("parts-photos").getPublicUrl(fileName);
+          uploadedUrls.push(data.publicUrl);
+        }
+      }
+
+      const photo_url = uploadedUrls[0] || "";
+      const photo_urls = uploadedUrls;
+
+      const { error } = await supabase.from("parts_requests").insert([{
+        ...formData, photo_url, photo_urls,
+      }]);
+
+      if (error) { alert("Something went wrong. Please try again."); setLoading(false); }
+      else {
+        try {
+          await fetch("/api/send-email", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData),
+          });
+        } catch {}
+        // Reset everything cleanly so button never stays stuck
+        setSuccess(true);
+        setLoading(false);
+        setPhotos([]);
+      }
+    } catch {
+      alert("Something went wrong.");
+      setLoading(false);
     }
   }
 
-  async function deleteRequest(id: number) {
-    if (!confirm("Delete this request?")) return;
-    await supabase.from("parts_requests").delete().eq("id", id);
-    fetchRequests();
-  }
+  const darkBg = { background: "#111111" };
 
-  async function logout() {
-    await supabase.auth.signOut();
-    router.push("/login");
-  }
+  const glowBlobs = (
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+      <div style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%)" }} />
+      <div style={{ position: "absolute", bottom: "10%", left: "-15%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
+      <div style={{ position: "absolute", top: "40%", left: "40%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 70%)" }} />
+    </div>
+  );
 
-  function exportToCSV() {
-    const headers = ["Name","Phone","Email","Area","Make","Model","Year","VIN","Engine","Part","Preference","Details","Status","Date"];
-    const rows = requests.map((r) => [r.customer_name, r.phone_number, r.email, r.area, r.vehicle_make, r.vehicle_model, r.vehicle_year, r.vin_number, r.engine_size, r.part_needed, r.part_preference, r.extra_details, r.status, new Date(r.created_at).toLocaleDateString("en-ZA")]);
-    const csv = [headers, ...rows].map((row) => row.map((c) => `"${c || ""}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "parts-requests.csv"; a.click();
-  }
+  const mountain = (
+    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 0, opacity: 0.35, pointerEvents: "none" }}>
+      <svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet" style={{ width: "100%", display: "block" }}>
+        <defs>
+          <linearGradient id="mtnGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(249,115,22,0.09)" />
+            <stop offset="100%" stopColor="rgba(249,115,22,0.01)" />
+          </linearGradient>
+        </defs>
+        <path d="M0,320 L0,220 Q40,215 70,210 Q110,204 140,198 Q170,192 195,186 Q220,180 240,174 Q260,168 278,160 Q296,152 310,146 Q324,140 335,136 Q346,132 354,129 Q362,126 368,124 Q374,122 379,120 Q384,118 388,117 Q392,116 395,115 Q398,114 401,113 Q404,112 408,112 Q412,112 416,112 Q440,112 480,112 Q520,112 560,112 Q600,112 640,112 Q680,112 720,112 Q760,112 800,112 Q840,112 880,112 Q910,112 930,113 Q950,114 960,116 Q970,118 978,120 Q986,122 992,124 Q998,126 1003,128 Q1008,130 1014,133 Q1020,136 1028,140 Q1036,144 1046,150 Q1056,156 1068,163 Q1080,170 1095,177 Q1110,184 1128,190 Q1146,196 1165,202 Q1184,208 1205,213 Q1226,218 1250,223 Q1290,230 1330,236 Q1370,242 1410,247 Q1430,249 1440,251 L1440,320 Z" fill="url(#mtnGrad)" />
+      </svg>
+    </div>
+  );
 
-  const filteredRequests = requests.filter((r) => {
-    const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed).toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
-    const matchesArchive = !hideArchived || (r.status || "New") !== "Closed";
-    return matchesSearch && matchesStatus && matchesArchive;
-  });
+  const waButton = (
+    <a href="https://wa.me/27696863952?text=Hi%20Cape%20Parts%20Finder%2C%20I%20need%20help%20finding%20a%20car%20part." target="_blank"
+      style={{ position: "fixed", bottom: "24px", right: "24px", zIndex: 999, width: "56px", height: "56px", borderRadius: "50%", background: "#25D366", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 24px rgba(37,211,102,0.45)", textDecoration: "none" }}>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+      </svg>
+    </a>
+  );
 
-  const counts = {
-    All: requests.length,
-    New: requests.filter((r) => !r.status || r.status === "New").length,
-    Searching: requests.filter((r) => r.status === "Searching").length,
-    Quoted: requests.filter((r) => r.status === "Quoted").length,
-    Ordered: requests.filter((r) => r.status === "Ordered").length,
-    Delivered: requests.filter((r) => r.status === "Delivered").length,
-    Closed: requests.filter((r) => r.status === "Closed").length,
-  };
+  const inputClass = "w-full rounded-xl px-4 py-3 text-[14px] outline-none transition text-white placeholder-gray-600";
+  const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
 
-  const darkBg = { background: "#111111", minHeight: "100vh" };
-  const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
-
-  if (!authChecked) {
+  if (success) {
     return (
-      <main style={darkBg} className="flex items-center justify-center">
-        <div className="flex items-center gap-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 32px" }}>
-          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-          <p className="text-gray-300 text-sm font-medium">Loading Dashboard...</p>
+      <main className="min-h-screen flex items-center justify-center p-6" style={darkBg}>
+        {glowBlobs}
+        {waButton}
+        <div className="text-center" style={{ position: "relative", zIndex: 1 }}>
+          <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-6" style={{ boxShadow: "0 0 40px rgba(249,115,22,0.4)" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          </div>
+          <h2 className="text-3xl font-black text-white mb-3">You're all set.</h2>
+          <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+            Request received for <span className="text-orange-400 font-semibold">{formData.part_needed}</span>. We'll WhatsApp you on <span className="text-white font-semibold">{formData.phone_number}</span> shortly.
+          </p>
+          <button onClick={() => {
+            setSuccess(false); setShowForm(false); setPhotos([]);
+            setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "" });
+          }} className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">
+            Submit another →
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (showForm) {
+    return (
+      <main className="min-h-screen" style={darkBg}>
+        {glowBlobs}
+        {waButton}
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 10 }}>
+            <div className="max-w-lg mx-auto px-5 h-14 flex items-center justify-between">
+              <button onClick={() => setShowForm(false)} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition cursor-pointer bg-transparent border-none">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+                Back
+              </button>
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-md bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 12px rgba(249,115,22,0.4)" }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
+                </div>
+                <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              </div>
+              <div className="w-12" />
+            </div>
+          </div>
+
+          <div className="max-w-lg mx-auto px-4 py-8 pb-20">
+            <div className="mb-7">
+              <h2 className="text-[28px] font-black text-white tracking-tight">Request a Part</h2>
+              <p className="text-gray-500 text-sm mt-1">Fill in below — we'll WhatsApp you a quote fast.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+
+              {/* CONTACT */}
+              <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Contact Info</p>
+                <input name="customer_name" placeholder="Full Name *" value={formData.customer_name} onChange={handleChange} required className={inputClass} style={inputStyle} />
+                <input name="phone_number" placeholder="WhatsApp Number *" value={formData.phone_number} onChange={handleChange} required type="tel" className={inputClass} style={inputStyle} />
+                <div className="grid grid-cols-2 gap-2">
+                  <input name="email" placeholder="Email (optional)" value={formData.email} onChange={handleChange} type="email" className={inputClass} style={inputStyle} />
+                  <input name="area" placeholder="Your Area" value={formData.area} onChange={handleChange} className={inputClass} style={inputStyle} />
+                </div>
+              </div>
+
+              {/* VEHICLE */}
+              <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Vehicle</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <input name="vehicle_make" placeholder="Make" value={formData.vehicle_make} onChange={handleChange} className={inputClass} style={inputStyle} />
+                  <input name="vehicle_model" placeholder="Model" value={formData.vehicle_model} onChange={handleChange} className={inputClass} style={inputStyle} />
+                  <input name="vehicle_year" placeholder="Year" value={formData.vehicle_year} onChange={handleChange} type="number" className={inputClass} style={inputStyle} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input name="vin_number" placeholder="VIN Number" value={formData.vin_number} onChange={handleChange} className={inputClass} style={inputStyle} />
+                  <input name="engine_size" placeholder="Engine Size" value={formData.engine_size} onChange={handleChange} className={inputClass} style={inputStyle} />
+                </div>
+              </div>
+
+              {/* PART */}
+              <div className="rounded-2xl p-5 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(249,115,22,0.8)" }}>Part Details</p>
+                <input name="part_needed" placeholder="What part do you need? *" value={formData.part_needed} onChange={handleChange} required className={inputClass} style={inputStyle} />
+                <div>
+                  <p className="text-[11px] text-gray-600 mb-2">Preference</p>
+                  <div className="flex gap-2">
+                    {[{ val: "aftermarket", label: "Aftermarket" }, { val: "original", label: "Original OEM" }, { val: "either", label: "Either" }].map((p) => (
+                      <button key={p.val} type="button" onClick={() => setFormData({ ...formData, part_preference: p.val })}
+                        className="flex-1 py-2.5 rounded-xl text-[12px] font-medium transition cursor-pointer"
+                        style={formData.part_preference === p.val
+                          ? { background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.4)", color: "#fb923c" }
+                          : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "#6b7280" }}>
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <textarea name="extra_details" placeholder="Extra details — colour, side, condition (optional)" value={formData.extra_details} onChange={handleChange} rows={2}
+                  className={`${inputClass} resize-none`} style={inputStyle} />
+
+                {/* MULTI PHOTO UPLOAD */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[11px] text-gray-600">Photos <span style={{ color: "rgba(255,255,255,0.2)" }}>(up to 5)</span></p>
+                    {photos.length > 0 && (
+                      <span className="text-[10px] font-medium" style={{ color: "rgba(249,115,22,0.7)" }}>{photos.length}/5 added</span>
+                    )}
+                  </div>
+
+                  {/* Thumbnails */}
+                  {photos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap mb-2">
+                      {photos.map((file, i) => (
+                        <div key={i} className="relative group">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={`Photo ${i + 1}`}
+                            className="w-16 h-16 object-cover rounded-xl"
+                            style={{ border: "1px solid rgba(255,255,255,0.1)" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(i)}
+                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center cursor-pointer transition"
+                            style={{ background: "#ef4444", border: "1.5px solid #111" }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Add more button */}
+                      {photos.length < 5 && (
+                        <div
+                          onClick={() => document.getElementById("photo-input")?.click()}
+                          className="w-16 h-16 rounded-xl flex flex-col items-center justify-center cursor-pointer transition"
+                          style={{ border: "1px dashed rgba(249,115,22,0.3)", background: "rgba(249,115,22,0.04)" }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                          <span className="text-[9px] mt-1" style={{ color: "rgba(249,115,22,0.6)" }}>Add</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Initial upload area — only show when no photos yet */}
+                  {photos.length === 0 && (
+                    <div
+                      onClick={() => document.getElementById("photo-input")?.click()}
+                      className="rounded-xl p-4 cursor-pointer transition"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)" }}>
+                      <div className="flex items-center gap-2.5 text-gray-600">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span className="text-[13px]">Add up to 5 photos of the part or damage</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <input
+                    id="photo-input"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => addPhotos(e.target.files)}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="w-full text-white py-4 rounded-2xl font-bold text-[15px] transition cursor-pointer"
+                style={{ background: loading ? "rgba(249,115,22,0.4)" : "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: loading ? "none" : "0 8px 32px rgba(249,115,22,0.3)" }}>
+                {loading ? `Uploading${photos.length > 0 ? ` ${photos.length} photo${photos.length > 1 ? "s" : ""}` : ""}...` : "Submit Request"}
+              </button>
+              <p className="text-center text-[11px] text-gray-600 pb-4">We'll reach out via WhatsApp with your quote</p>
+            </form>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main style={darkBg}>
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)" }} />
-        <div style={{ position: "absolute", bottom: "20%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.04) 0%, transparent 70%)" }} />
-      </div>
-
+    <main className="min-h-screen overflow-hidden" style={{ ...darkBg, position: "relative" }}>
+      {glowBlobs}
+      {mountain}
+      {waButton}
       <div style={{ position: "relative", zIndex: 1 }}>
-
-        {/* NAV */}
-        <header style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 50 }}>
-          <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-              </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+        <nav className="px-6 py-5 flex items-center justify-between max-w-6xl mx-auto">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 20px rgba(249,115,22,0.35)" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
             </div>
-            <div className="flex gap-1">
-              {[{ label: "Requests", href: "/admin", active: true }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
-                <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
-                  style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
-                  {n.label}{n.href === "/admin" && newCount > 0 && (<span style={{ marginLeft: 6, background: "#f97316", color: "white", borderRadius: 999, fontSize: 10, fontWeight: 700, padding: "1px 6px", lineHeight: "16px", display: "inline-block" }}>{newCount}</span>)}
-                </a>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={exportToCSV} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition cursor-pointer"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Export
-              </button>
-              <button onClick={fetchRequests} className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              </button>
-              <button onClick={logout} className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
-                Logout
-              </button>
-            </div>
+            <span className="font-bold text-white text-[15px] tracking-tight">Cape Parts Finder</span>
           </div>
-        </header>
+          <a href="/track" className="text-[12px] text-gray-500 hover:text-orange-400 transition no-underline">Track my request →</a>
+        </nav>
 
-        <div className="max-w-7xl mx-auto px-5 py-6">
-
-          {/* STATS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            {[
-              { label: "Total", value: counts.All, color: "#f97316" },
-              { label: "New", value: counts.New, color: "#f97316" },
-              { label: "In Progress", value: counts.Searching + counts.Quoted, color: "#3b82f6" },
-              { label: "Delivered", value: counts.Delivered, color: "#14b8a6" },
-            ].map((card) => (
-              <div key={card.label} className="rounded-xl p-4 relative overflow-hidden" style={cardStyle}>
-                <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: card.color }} />
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{card.label}</p>
-                <p className="text-[32px] font-black leading-none" style={{ color: card.color }}>{card.value}</p>
+        <div className="max-w-6xl mx-auto px-6 pt-16 pb-8 lg:pt-24">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold mb-8" style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.15)", color: "#fb923c" }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+            Serving Cape Town · Fast Turnaround
+          </div>
+          <h1 className="text-[52px] lg:text-[72px] font-black leading-[1.0] tracking-tight mb-6 text-white">
+            Find any car part<br />
+            <span style={{ background: "linear-gradient(90deg, #f97316, #fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              fast in Cape Town.
+            </span>
+          </h1>
+          <p className="text-gray-400 text-[17px] leading-relaxed max-w-xl mb-10">
+            We source parts from our trusted supplier network and deliver a quote straight to your WhatsApp — no hassle, no runaround.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 mb-16">
+            <button onClick={() => setShowForm(true)}
+              className="inline-flex items-center justify-center gap-2 text-white px-7 py-4 rounded-xl font-bold text-[15px] transition cursor-pointer"
+              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 28px rgba(249,115,22,0.30)" }}>
+              Request a Part
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </button>
+            <a href="/track" className="inline-flex items-center gap-2 text-[13px] text-gray-500 hover:text-orange-400 transition no-underline px-2 py-4">
+              Track existing request →
+            </a>
+          </div>
+          <div className="flex gap-8 pb-16" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            {[{ num: "500+", label: "Parts sourced" }, { num: "9+", label: "Trusted suppliers" }, { num: "< 24hr", label: "Avg response" }].map((s) => (
+              <div key={s.label}>
+                <div className="text-2xl font-black text-white">{s.num}</div>
+                <div className="text-[12px] text-gray-500 mt-0.5">{s.label}</div>
               </div>
             ))}
           </div>
+        </div>
 
-          {/* FILTERS */}
-          <div className="rounded-xl p-4 mb-4" style={cardStyle}>
-            <div className="flex flex-col lg:flex-row gap-3">
-              <input type="text" placeholder="Search customer, vehicle or part..." value={search} onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 rounded-lg px-4 py-2.5 text-[13px] outline-none text-white placeholder-gray-600"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg px-4 py-2.5 text-[13px] outline-none cursor-pointer text-white"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <option value="All" style={{ background: "#1a1a1a" }}>All ({counts.All})</option>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s} ({counts[s as keyof typeof counts] ?? 0})</option>)}
-              </select>
-            </div>
-            <div className="flex gap-1.5 flex-wrap mt-3">
-              {["All", ...STATUS_OPTIONS].map((s) => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className="px-2.5 py-1 rounded-full text-[11px] transition cursor-pointer font-medium"
-                  style={statusFilter === s
-                    ? { background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", color: "#fb923c" }
-                    : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.4)" }}>
-                  {s} {s === "All" ? `(${counts.All})` : `(${counts[s as keyof typeof counts] ?? 0})`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* BULK SELECT + ARCHIVE TOGGLE */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <button onClick={toggleSelectAll}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                <div className="w-3.5 h-3.5 rounded flex items-center justify-center"
-                  style={{ background: selectedIds.size === filteredRequests.length && filteredRequests.length > 0 ? "#f97316" : "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  {selectedIds.size === filteredRequests.length && filteredRequests.length > 0 && (
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  )}
-                </div>
-                {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-              </button>
-
-              {selectedIds.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}
-                    className="rounded-lg px-3 py-1.5 text-[12px] outline-none cursor-pointer text-white"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
-                  </select>
-                  <button onClick={bulkUpdateStatus} disabled={bulkUpdating}
-                    className="px-4 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer transition text-white"
-                    style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 2px 12px rgba(249,115,22,0.3)", opacity: bulkUpdating ? 0.6 : 1 }}>
-                    {bulkUpdating ? "Updating..." : `Update ${selectedIds.size} request${selectedIds.size > 1 ? "s" : ""}`}
-                  </button>
-                  <button onClick={() => setSelectedIds(new Set())}
-                    className="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer transition"
-                    style={{ color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    Clear
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {counts.Closed > 0 && (
-                <button onClick={() => setHideArchived(!hideArchived)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                  style={hideArchived
-                    ? { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }
-                    : { background: "rgba(107,114,128,0.12)", border: "1px solid rgba(107,114,128,0.25)", color: "#9ca3af" }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>
-                  </svg>
-                  {hideArchived ? `Show ${counts.Closed} archived` : "Hide archived"}
-                </button>
-              )}
-              <span className="text-[12px] text-gray-600">{filteredRequests.length} requests</span>
-            </div>
-          </div>
-
-          {/* REQUEST CARDS */}
-          <div className="space-y-2">
-            {filteredRequests.length === 0 && (
-              <div className="rounded-xl p-10 text-center" style={cardStyle}>
-                <p className="text-gray-600 text-sm">
-                  {hideArchived && counts.Closed > 0 ? `No active requests · ${counts.Closed} archived` : "No requests found"}
-                </p>
-                {hideArchived && counts.Closed > 0 && (
-                  <button onClick={() => setHideArchived(false)} className="mt-3 text-[12px] cursor-pointer transition" style={{ color: "#9ca3af" }}>
-                    Show archived →
-                  </button>
-                )}
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.25)" }}>How It Works</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { num: "01", title: "Submit your request", desc: "Tell us the part and vehicle details. Takes under 2 minutes.", highlight: true },
+              { num: "02", title: "We source it", desc: "Our team contacts our verified Cape Town suppliers to find the best price." },
+              { num: "03", title: "Get quoted on WhatsApp", desc: "We send you a quote on WhatsApp. Confirm and we arrange delivery or collection." },
+            ].map((s) => (
+              <div key={s.num} className="rounded-2xl p-6" style={{ background: s.highlight ? "rgba(249,115,22,0.06)" : "rgba(255,255,255,0.025)", border: `1px solid ${s.highlight ? "rgba(249,115,22,0.15)" : "rgba(255,255,255,0.05)"}` }}>
+                <div className="font-bold text-[12px] mb-4 font-mono" style={{ color: "#f97316" }}>{s.num}</div>
+                <h3 className="font-bold text-white text-[16px] mb-2 leading-tight">{s.title}</h3>
+                <p className="text-gray-500 text-[13px] leading-relaxed">{s.desc}</p>
               </div>
-            )}
-
-            {filteredRequests.map((request) => {
-              const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
-              const isExpanded = expandedId === request.id;
-              const isSelected = selectedIds.has(request.id);
-              const isClosed = (request.status || "New") === "Closed";
-              const isStale = !isClosed && (Date.now() - new Date(request.updated_at || request.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000;
-              const initial = (request.customer_name || "?")[0].toUpperCase();
-              const allPhotos: string[] = request.photo_urls?.length ? request.photo_urls : request.photo_url ? [request.photo_url] : [];
-
-              return (
-                <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
-                  ...cardStyle,
-                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
-                  background: isSelected ? "rgba(249,115,22,0.05)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
-                  opacity: isClosed ? 0.7 : 1,
-                }}>
-
-                  <div className="px-4 py-3 flex items-center gap-3">
-                    <div onClick={() => toggleSelect(request.id)}
-                      className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition"
-                      style={{ background: isSelected ? "#f97316" : "rgba(255,255,255,0.06)", border: isSelected ? "1px solid #f97316" : "1px solid rgba(255,255,255,0.15)" }}>
-                      {isSelected && (
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      )}
-                    </div>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-orange-400"
-                      style={{ background: "rgba(249,115,22,0.12)" }}>
-                      {initial}
-                    </div>
-                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-[13px] text-white">{request.customer_name}</span>
-                        <span className="text-gray-600 text-[12px]">·</span>
-                        <span className="text-gray-400 text-[12px] truncate">{request.part_needed || "—"}</span>
-                        <span className="text-gray-600 text-[12px]">·</span>
-                        <span className="text-gray-500 text-[12px]">{request.vehicle_make} {request.vehicle_model} {request.vehicle_year}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-gray-600">{new Date(request.created_at).toLocaleDateString("en-ZA")}</span>
-                        <span className="text-gray-700 text-[10px]">·</span>
-                        <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>{isStale && <span style={{marginLeft:6,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.25)",color:"#f87171",borderRadius:999,fontSize:9,fontWeight:700,padding:"2px 6px"}}>&#9200; Follow up</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                        style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
-                        <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
-                        {request.status || "New"}
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div className="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3 text-[12px]">
-                        {[
-                          { label: "Phone", value: request.phone_number },
-                          { label: "Email", value: request.email },
-                          { label: "Area", value: request.area },
-                          { label: "VIN", value: request.vin_number },
-                          { label: "Engine", value: request.engine_size },
-                          { label: "Preference", value: request.part_preference },
-                        ].map(({ label, value }) => (
-                          <div key={label}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
-                            <p className="text-gray-300 font-medium">{value || "—"}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {request.extra_details && (
-                        <div className="px-4 pb-3">
-                          <div className="rounded-lg px-3 py-2.5" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.7)" }}>Extra Details</p>
-                            <p className="text-gray-300 text-[12px] leading-relaxed">{request.extra_details}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {allPhotos.length > 0 && (
-                        <div className="px-4 pb-3">
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>
-                            Photos ({allPhotos.length})
-                          </p>
-                          <div className="flex gap-2 flex-wrap">
-                            {allPhotos.map((url, i) => (
-                              <img key={i} src={url} alt={`Photo ${i + 1}`}
-                                className="w-24 h-20 object-cover rounded-xl cursor-pointer"
-                                style={{ border: "1px solid rgba(255,255,255,0.08)" }}
-                                onClick={() => window.open(url)} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
-                        <select value={request.status || "New"} onChange={(e) => updateStatus(request.id, e.target.value)}
-                          disabled={updatingId === request.id}
-                          className="rounded-lg px-3 py-2 text-[12px] outline-none cursor-pointer text-white"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                          {STATUS_OPTIONS.map((s) => <option key={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
-                        </select>
-                        <button onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.25)", color: "#fb923c" }}>
-                          Request Quote
-                        </button>
-                        <button onClick={() => router.push(`/quotes/${request.id}`)}
-                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
-                          View Quotes
-                        </button>
-                        <button onClick={() => setTemplateModal(request)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.533 5.859L.057 23.5l5.802-1.522A11.93 11.93 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.86 0-3.605-.5-5.112-1.374l-.366-.217-3.443.903.921-3.36-.239-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-                          WhatsApp
-                        </button>
-                        <button onClick={() => window.open("mailto:" + request.email)}
-                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                          Email
-                        </button>
-                        <button onClick={() => deleteRequest(request.id)}
-                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition ml-auto"
-                          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
-                          Delete
-                        </button>
-                      </div>
-
-                      <div className="px-4 pb-4">
-                        <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Internal Notes</p>
-                          <textarea value={notes[request.id] || ""} onChange={(e) => setNotes(prev => ({ ...prev, [request.id]: e.target.value }))}
-                            placeholder="Add private notes..." rows={2}
-                            className="w-full rounded-lg px-3 py-2 text-[12px] outline-none resize-none text-gray-300 placeholder-gray-700"
-                            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }} />
-                          <button onClick={() => saveNote(request.id)} disabled={savingNote === request.id}
-                            className="mt-2 px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition"
-                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
-                            {savingNote === request.id ? "Saving..." : "Save Note"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            ))}
           </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 pb-16">
+          <p className="text-[11px] font-bold uppercase tracking-widest mb-10" style={{ color: "rgba(255,255,255,0.25)" }}>Why Choose Us</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: "⚡", title: "Fast", desc: "Same-day quotes on most requests" },
+              { icon: "🔧", title: "Any Make", desc: "Japanese, German, Korean & local" },
+              { icon: "💬", title: "WhatsApp First", desc: "All communication on WhatsApp" },
+              { icon: "✅", title: "Verified", desc: "Only trusted Cape Town suppliers" },
+            ].map((item) => (
+              <div key={item.title} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <div className="text-2xl mb-3">{item.icon}</div>
+                <h4 className="font-bold text-white text-[13px] mb-1">{item.title}</h4>
+                <p className="text-gray-500 text-[12px] leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 pb-16">
+          <div className="rounded-3xl p-10 text-center" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.09) 0%, rgba(249,115,22,0.03) 100%)", border: "1px solid rgba(249,115,22,0.15)" }}>
+            <h2 className="text-[32px] font-black text-white mb-3 tracking-tight">Need a part? Let's find it.</h2>
+            <p className="text-gray-400 text-sm mb-8 max-w-sm mx-auto">Submit a request and we'll have a quote on your WhatsApp within hours.</p>
+            <button onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 text-white px-7 py-3.5 rounded-xl font-semibold text-[14px] transition cursor-pointer"
+              style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 8px 28px rgba(249,115,22,0.28)" }}>
+              Request a Part
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </button>
+          </div>
+        </div>
+
+        <div className="py-6 px-6 text-center max-w-6xl mx-auto" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <a href="/track" className="text-gray-600 hover:text-orange-400 text-[11px] transition no-underline block mb-2">Track my request →</a>
+          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.15)" }}>© 2025 Cape Parts Finder · Cape Town, South Africa</p>
         </div>
       </div>
-
-      {/* WHATSAPP TEMPLATE MODAL */}
-      {templateModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div>
-                <h2 className="font-bold text-[15px] text-white">WhatsApp Templates</h2>
-                <p className="text-[11px] text-gray-500 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
-              </div>
-              <button onClick={() => setTemplateModal(null)} className="text-gray-500 hover:text-white text-lg cursor-pointer bg-transparent border-none">×</button>
-            </div>
-            <div className="p-4 space-y-2">
-              {[
-                { key: "new", label: "New Request" },
-                { key: "searching", label: "Searching for Part" },
-                { key: "quoted", label: "Quote Ready" },
-                { key: "ordered", label: "Part Ordered" },
-                { key: "delivered", label: "Part Delivered" },
-                { key: "followup", label: "Follow Up" },
-              ].map((t) => (
-                <button key={t.key}
-                  onClick={() => { const msg = getWhatsAppMessage(templateModal, t.key); const phone = templateModal.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`); setTemplateModal(null); }}
-                  className="w-full text-left px-4 py-3 rounded-xl transition cursor-pointer"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div className="font-semibold text-[12px] text-white">{t.label}</div>
-                  <div className="text-[11px] text-gray-500 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STATUS NOTIFICATION MODAL */}
-      {notifyModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <h2 className="font-bold text-[15px] text-white">Notify Customer?</h2>
-              <p className="text-[11px] text-gray-500 mt-0.5">Status changed to: <span style={{ color: "#fb923c" }}>{notifyModal.status}</span></p>
-            </div>
-            <div className="p-5">
-              <div className="rounded-xl p-3 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <p className="text-[12px] text-gray-300 whitespace-pre-line leading-relaxed">{getStatusMessage(notifyModal.request, notifyModal.status)}</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { const msg = getStatusMessage(notifyModal.request, notifyModal.status); const phone = notifyModal.request.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg || "")}`); setNotifyModal(null); }}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition text-white"
-                  style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 16px rgba(249,115,22,0.25)" }}>
-                  Send WhatsApp
-                </button>
-                <button onClick={() => setNotifyModal(null)}
-                  className="px-5 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                  Skip
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </main>
   );
 }
