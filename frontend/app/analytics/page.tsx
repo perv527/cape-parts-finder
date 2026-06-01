@@ -42,7 +42,17 @@ export default function AnalyticsPage() {
   }
 
   function getChartData() {
-    const periodSales = getPeriodSales();
+    function getReferralSources() {
+    const counts: Record<string, number> = {};
+    requests.forEach(r => {
+      if (r.referral_source) {
+        counts[r.referral_source] = (counts[r.referral_source] || 0) + 1;
+      }
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  }
+
+  const periodSales = getPeriodSales();
     const grouped: Record<string, { revenue: number; profit: number; count: number }> = {};
     periodSales.forEach(s => {
       const d = new Date(s.created_at);
@@ -117,6 +127,8 @@ export default function AnalyticsPage() {
   const maxPartCount = Math.max(...topParts.map(p => p.count), 1);
   const statusBreakdown = getStatusBreakdown();
   const topMakes = getTopMakes();
+  const referralSources = getReferralSources();
+  const maxReferral = Math.max(...referralSources.map(r => r[1]), 1);
   const maxMakeCount = Math.max(...topMakes.map(m => m[1]), 1);
 
   const statusColors: Record<string, string> = {
@@ -366,6 +378,26 @@ export default function AnalyticsPage() {
               </div>
             )}
           </div>
+
+          {/* REFERRAL SOURCES */}
+          {referralSources.length > 0 && (
+            <div className="rounded-2xl p-5 mb-5" style={cardStyle}>
+              <h2 className="font-bold text-[14px] text-white mb-4">How Customers Found Us</h2>
+              <div className="space-y-2.5">
+                {referralSources.map(([source, count]) => (
+                  <div key={source}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[12px] text-gray-300 font-medium">{source}</span>
+                      <span className="text-[11px] text-gray-500">{count} customer{count !== 1 ? "s" : ""} ({((count / requests.filter(r => r.referral_source).length) * 100).toFixed(0)}%)</span>
+                    </div>
+                    <div className="h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <div className="h-full rounded-full transition-all" style={{ width: `${(count / maxReferral) * 100}%`, background: "linear-gradient(90deg, #f97316, #fb923c)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* SUMMARY ROW */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

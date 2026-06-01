@@ -11,7 +11,7 @@ export default function Home() {
     customer_name: "", phone_number: "", email: "", area: "",
     vehicle_make: "", vehicle_model: "", vehicle_year: "",
     vin_number: "", engine_size: "", part_needed: "",
-    part_preference: "aftermarket", extra_details: "",
+    part_preference: "aftermarket", extra_details: "", referral_source: "",
   });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -148,7 +148,7 @@ export default function Home() {
           </p>
           <button onClick={() => {
             setSuccess(false); setShowForm(false); setPhotos([]);
-            setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "" });
+            setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", vin_number: "", engine_size: "", part_needed: "", part_preference: "aftermarket", extra_details: "", referral_source: "" });
           }} className="text-orange-400 hover:text-orange-300 font-medium text-sm transition">
             Submit another →
           </button>
@@ -232,6 +232,23 @@ export default function Home() {
                 </div>
                 <textarea name="extra_details" placeholder="Extra details — colour, side, condition (optional)" value={formData.extra_details} onChange={handleChange} rows={2}
                   className={`${inputClass} resize-none`} style={inputStyle} />
+
+                {/* REFERRAL SOURCE */}
+                <div>
+                  <p className="text-[11px] text-gray-600 mb-2">How did you hear about us?</p>
+                  <select name="referral_source" value={formData.referral_source} onChange={handleChange}
+                    className={inputClass} style={inputStyle}>
+                    <option value="">Select an option</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="Google">Google Search</option>
+                    <option value="Friend/Family">Friend or Family</option>
+                    <option value="TikTok">TikTok</option>
+                    <option value="Gumtree">Gumtree</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
 
                 {/* MULTI PHOTO UPLOAD */}
                 <div>
