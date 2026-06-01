@@ -45,6 +45,23 @@ function SuppliersContent() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [quoteModal, setQuoteModal] = useState<any>(null);
+
+  useEffect(() => {
+    if (quoteModal) {
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+    };
+  }, [quoteModal]);
   const [quoteImage, setQuoteImage] = useState<File | null>(null);
   const [quoteNote, setQuoteNote] = useState("");
   const [sendingQuote, setSendingQuote] = useState(false);
@@ -165,7 +182,7 @@ function SuppliersContent() {
   const filteredSuppliers = suppliers.filter(s => (s.name + " " + s.area + " " + s.speciality).toLowerCase().includes(search.toLowerCase()));
   const activeCount = suppliers.filter(s => s.active).length;
 
-  const darkBg = { background: "#111111", minHeight: "100vh" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const, width: "100%" };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
   const inputClass = "rounded-xl px-4 py-3 text-[13px] outline-none text-white placeholder-gray-600 transition";
@@ -196,7 +213,7 @@ function SuppliersContent() {
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
             </div>
             <div className="flex gap-1">
               {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers", active: true }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
@@ -215,7 +232,7 @@ function SuppliersContent() {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-5 py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-5 py-6">
 
           {/* ACTIVE REQUEST BANNER */}
           {requestId && (
