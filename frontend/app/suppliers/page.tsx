@@ -418,8 +418,8 @@ function SuppliersContent() {
 
       {/* RATING MODAL */}
       {ratingModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Rate Supplier</h2>
@@ -477,7 +477,7 @@ function SuppliersContent() {
       {/* QUOTE MODAL */}
       {quoteModal && (
         <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden mx-4" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Send Quote Request</h2>
