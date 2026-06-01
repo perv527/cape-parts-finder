@@ -476,8 +476,8 @@ function SuppliersContent() {
 
       {/* QUOTE MODAL */}
       {quoteModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)", padding: "0" }}>
-          <div className="w-full sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div style={{ width: "100%", maxWidth: "100vw", boxSizing: "border-box" }} className="sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Send Quote Request</h2>
@@ -486,7 +486,7 @@ function SuppliersContent() {
               <button onClick={() => setQuoteModal(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
-            <div className="p-5 space-y-3">
+            <div className="p-4 space-y-3" style={{ overflowX: "hidden" }}>
               {quoteSuccess ? (
                 <div className="text-center py-6">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(34,197,94,0.15)" }}>
@@ -529,8 +529,8 @@ function SuppliersContent() {
                     <input id="quote-image-input" type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => setQuoteImage(e.target.files?.[0] || null)} />
                   </div>
                   <textarea value={quoteNote} onChange={(e) => setQuoteNote(e.target.value)} rows={3}
-                    placeholder="Note to supplier..." className="w-full rounded-xl px-4 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600"
-                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
+                    placeholder="Note to supplier..." className="w-full rounded-xl px-3 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600 box-border"
+                    style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", maxWidth: "100%" }} />
                   <div className="flex gap-2">
                     <button onClick={sendQuoteToSupplier} disabled={sendingQuote}
                       className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white"
