@@ -477,7 +477,7 @@ function SuppliersContent() {
       {/* QUOTE MODAL */}
       {quoteModal && (
         <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ width: "100%", maxWidth: "100vw", boxSizing: "border-box", background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", width: "100vw", maxWidth: "100vw", boxSizing: "border-box", overflowX: "hidden" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Send Quote Request</h2>
@@ -486,7 +486,7 @@ function SuppliersContent() {
               <button onClick={() => setQuoteModal(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
-            <div className="p-4 space-y-3" style={{ overflowX: "hidden" }}>
+            <div className="space-y-3" style={{ padding: "16px", overflowX: "hidden", boxSizing: "border-box", width: "100%" }}>
               {quoteSuccess ? (
                 <div className="text-center py-6">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(34,197,94,0.15)" }}>
