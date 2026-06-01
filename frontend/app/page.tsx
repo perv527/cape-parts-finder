@@ -237,16 +237,16 @@ export default function Home() {
                 <div>
                   <p className="text-[11px] text-gray-600 mb-2">How did you hear about us?</p>
                   <select name="referral_source" value={formData.referral_source} onChange={handleChange}
-                    className={inputClass} style={inputStyle}>
-                    <option value="">Select an option</option>
-                    <option value="WhatsApp">WhatsApp</option>
-                    <option value="Facebook">Facebook</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Google">Google Search</option>
-                    <option value="Friend/Family">Friend or Family</option>
-                    <option value="TikTok">TikTok</option>
-                    <option value="Gumtree">Gumtree</option>
-                    <option value="Other">Other</option>
+                    className={inputClass} style={{...inputStyle, color: "white"}}>
+                    <option value="" style={{background:"#1a1a1a",color:"#6b7280"}}>Select an option</option>
+                    <option value="WhatsApp" style={{background:"#1a1a1a"}}>WhatsApp</option>
+                    <option value="Facebook" style={{background:"#1a1a1a"}}>Facebook</option>
+                    <option value="Instagram" style={{background:"#1a1a1a"}}>Instagram</option>
+                    <option value="Google" style={{background:"#1a1a1a"}}>Google Search</option>
+                    <option value="Friend/Family" style={{background:"#1a1a1a"}}>Friend or Family</option>
+                    <option value="TikTok" style={{background:"#1a1a1a"}}>TikTok</option>
+                    <option value="Gumtree" style={{background:"#1a1a1a"}}>Gumtree</option>
+                    <option value="Other" style={{background:"#1a1a1a"}}>Other</option>
                   </select>
                 </div>
 
