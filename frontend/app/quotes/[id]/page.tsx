@@ -628,9 +628,9 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
           {/* FAST QUOTE ENTRY */}
           <div className="rounded-2xl p-5 mb-5" style={cardStyle}>
             <h2 className="font-bold text-[15px] text-white mb-4">Add Quote</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
-                className="rounded-xl px-3 py-3 text-[13px] outline-none cursor-pointer text-white col-span-2 lg:col-span-1"
+                className="w-full rounded-xl px-3 py-2 text-[13px] outline-none cursor-pointer text-white col-span-2"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <option value="" style={{ background: "#1a1a1a" }}>Select Supplier</option>
                 {suppliers.map((s) => <option key={s.id} value={s.id} style={{ background: "#1a1a1a" }}>{s.name}</option>)}
@@ -669,15 +669,15 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
-                  <p className="text-[24px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
+                  <p className="text-[18px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.6)" }}>Your Markup</p>
-                  <p className="text-[24px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
+                  <p className="text-[18px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.7)" }}>Customer Price</p>
-                  <p className="text-[24px] font-black" style={{ color: "#4ade80" }}>R{customerPrice.toFixed(2)}</p>
+                  <p className="text-[18px] font-black" style={{ color: "#4ade80" }}>R{customerPrice.toFixed(2)}</p>
                 </div>
               </div>
             )}
