@@ -239,14 +239,14 @@ export default function AdminPage() {
 
         {/* NAV */}
         <header style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 50 }}>
-          <div className="max-w-7xl mx-auto px-5 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-3 h-14 flex items-center gap-2">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide flex-1 mx-2">
               {[{ label: "Requests", href: "/admin", active: true }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Inventory", href: "/inventory" }, { label: "Analytics", href: "/analytics" }, { label: "Reminders", href: "/reminders", badge: reminderDueCount }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
                   style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
@@ -254,13 +254,13 @@ export default function AdminPage() {
                 </a>
               ))}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button onClick={exportToCSV} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition cursor-pointer"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Export
               </button>
-              <button onClick={fetchRequests} className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition"
+              <button onClick={fetchRequests} className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition flex-shrink-0"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               </button>
