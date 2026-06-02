@@ -195,7 +195,7 @@ export default function AdminPage() {
     Closed: requests.filter((r) => r.status === "Closed").length,
   };
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {
@@ -263,6 +263,12 @@ export default function AdminPage() {
               <button onClick={fetchRequests} className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </button>
+              <button onClick={async () => { await supabase.auth.signOut(); router.push("/login"); }}
+                className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition"
+                style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}
+                title="Logout">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               </button>
               <button onClick={logout} className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
                 style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
@@ -556,8 +562,8 @@ export default function AdminPage() {
 
       {/* BROADCAST MODAL */}
       {broadcastModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 200 }} style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">WhatsApp Broadcast</h2>
@@ -616,8 +622,8 @@ export default function AdminPage() {
 
       {/* WHATSAPP TEMPLATE MODAL */}
       {templateModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 200 }} style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">WhatsApp Templates</h2>
@@ -649,8 +655,8 @@ export default function AdminPage() {
 
       {/* STATUS NOTIFICATION MODAL */}
       {notifyModal && (
-        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 200 }} style={{ background: "rgba(0,0,0,0.7)", zIndex: 100, backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
             <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <h2 className="font-bold text-[15px] text-white">Notify Customer?</h2>
               <p className="text-[11px] text-gray-500 mt-0.5">Status changed to: <span style={{ color: "#fb923c" }}>{notifyModal.status}</span></p>
@@ -678,9 +684,9 @@ export default function AdminPage() {
 
       {/* REMINDER MODAL */}
       {reminderModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 200 }} style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}
           onClick={e => { if (e.target === e.currentTarget) setReminderModal(null); }}>
-          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
             <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <h2 className="font-bold text-[15px] text-white">Set Callback Reminder</h2>
               <p className="text-[11px] text-gray-500 mt-0.5">{reminderModal.customer_name} · {reminderModal.phone_number}</p>

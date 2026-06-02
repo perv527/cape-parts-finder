@@ -182,7 +182,7 @@ function SuppliersContent() {
   const filteredSuppliers = suppliers.filter(s => (s.name + " " + s.area + " " + s.speciality).toLowerCase().includes(search.toLowerCase()));
   const activeCount = suppliers.filter(s => s.active).length;
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden", overflowX: "hidden" as const, width: "100%" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const as const, overflowX: "hidden" as const as const as const, width: "100%" };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
   const inputClass = "rounded-xl px-4 py-3 text-[13px] outline-none text-white placeholder-gray-600 transition";
@@ -494,7 +494,7 @@ function SuppliersContent() {
       {/* QUOTE MODAL */}
       {quoteModal && (
         <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 100, backdropFilter: "blur(4px)" }}>
-          <div className="w-full sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflowX: "hidden", position: "relative" }}>
+          <div className="w-full sm:max-w-md sm:mx-4 rounded-t-2xl sm:rounded-2xl overflow-hidden" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", width: "100%", maxWidth: "100%", boxSizing: "border-box", overflowX: "hidden" as const as const, position: "relative" }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">Send Quote Request</h2>
@@ -503,7 +503,7 @@ function SuppliersContent() {
               <button onClick={() => setQuoteModal(null)} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
             </div>
 
-            <div style={{ padding: "16px", overflowX: "hidden", boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
+            <div style={{ padding: "16px", overflowX: "hidden" as const as const, boxSizing: "border-box", width: "100%", maxWidth: "100%" }}>
               {quoteSuccess ? (
                 <div className="text-center py-6">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(34,197,94,0.15)" }}>
@@ -573,7 +573,7 @@ function SuppliersContent() {
 export default function SuppliersPage() {
   return (
     <Suspense fallback={
-      <main style={{ background: "#111111", minHeight: "100vh", overflowX: "hidden" }} className="flex items-center justify-center">
+      <main style={{ background: "#111111", minHeight: "100vh", overflowX: "hidden" as const as const }} className="flex items-center justify-center">
         <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
       </main>
     }>

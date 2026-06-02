@@ -22,7 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" /></head>
+      <body style={{overflowX:"hidden",maxWidth:"100vw"}}>{children}</body>
     </html>
   );
 }

@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
     Ordered: "#a855f7", Delivered: "#14b8a6", Closed: "#6b7280",
   };
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {
