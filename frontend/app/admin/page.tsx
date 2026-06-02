@@ -195,7 +195,7 @@ export default function AdminPage() {
     Closed: requests.filter((r) => r.status === "Closed").length,
   };
 
-  const darkBg = { background: "#111111", minHeight: "100vh" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {

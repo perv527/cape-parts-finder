@@ -182,7 +182,7 @@ function SuppliersContent() {
   const filteredSuppliers = suppliers.filter(s => (s.name + " " + s.area + " " + s.speciality).toLowerCase().includes(search.toLowerCase()));
   const activeCount = suppliers.filter(s => s.active).length;
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const, width: "100%" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden", overflowX: "hidden" as const, width: "100%" };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
   const inputClass = "rounded-xl px-4 py-3 text-[13px] outline-none text-white placeholder-gray-600 transition";
@@ -573,7 +573,7 @@ function SuppliersContent() {
 export default function SuppliersPage() {
   return (
     <Suspense fallback={
-      <main style={{ background: "#111111", minHeight: "100vh" }} className="flex items-center justify-center">
+      <main style={{ background: "#111111", minHeight: "100vh", overflowX: "hidden" }} className="flex items-center justify-center">
         <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
       </main>
     }>

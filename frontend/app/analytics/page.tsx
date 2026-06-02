@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
     Ordered: "#a855f7", Delivered: "#14b8a6", Closed: "#6b7280",
   };
 
-  const darkBg = { background: "#111111", minHeight: "100vh" };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {
@@ -165,7 +165,7 @@ export default function AnalyticsPage() {
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
             </div>
             <div className="flex gap-1">
               {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Inventory", href: "/inventory" }, { label: "Analytics", href: "/analytics", active: true }].map((n) => (
