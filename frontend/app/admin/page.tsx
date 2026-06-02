@@ -195,7 +195,7 @@ export default function AdminPage() {
     Closed: requests.filter((r) => r.status === "Closed").length,
   };
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const, };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   if (!authChecked) {
@@ -563,7 +563,7 @@ export default function AdminPage() {
       {/* BROADCAST MODAL */}
       {broadcastModal && (
         <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
+          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">WhatsApp Broadcast</h2>
@@ -623,7 +623,7 @@ export default function AdminPage() {
       {/* WHATSAPP TEMPLATE MODAL */}
       {templateModal && (
         <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
+          <div className="w-full max-w-md rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", }}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div>
                 <h2 className="font-bold text-[15px] text-white">WhatsApp Templates</h2>
@@ -656,7 +656,7 @@ export default function AdminPage() {
       {/* STATUS NOTIFICATION MODAL */}
       {notifyModal && (
         <div className="fixed inset-0 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-sm rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
+          <div className="w-full max-w-sm rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", }}>
             <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <h2 className="font-bold text-[15px] text-white">Notify Customer?</h2>
               <p className="text-[11px] text-gray-500 mt-0.5">Status changed to: <span style={{ color: "#fb923c" }}>{notifyModal.status}</span></p>
@@ -686,7 +686,7 @@ export default function AdminPage() {
       {reminderModal && (
         <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}
           onClick={e => { if (e.target === e.currentTarget) setReminderModal(null); }}>
-          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden" }}>
+          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto", overflowX: "hidden", }}>
             <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <h2 className="font-bold text-[15px] text-white">Set Callback Reminder</h2>
               <p className="text-[11px] text-gray-500 mt-0.5">{reminderModal.customer_name} · {reminderModal.phone_number}</p>
