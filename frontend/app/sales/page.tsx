@@ -166,7 +166,7 @@ export default function SalesPage() {
   const totalSales = filtered.length;
   const avgProfit = totalSales > 0 ? totalProfit / totalSales : 0;
 
-  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const as const };
+  const darkBg = { background: "#111111", minHeight: "100vh", overflowX: "hidden" as const };
   const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
 
   const filters: { key: DateFilter; label: string }[] = [
