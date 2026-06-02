@@ -1,7 +1,3 @@
 ﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-print("has signOut:", "signOut" in c)
-print("has logout:", "logout" in c.lower())
-i=c.find("reminderModal &&")
-print("reminder modal line:", c[:i].count(chr(10))+1 if i>0 else "not found")
-i2=c.find("inset-0")
-print("first inset-0 line:", c[:i2].count(chr(10))+1 if i2>0 else "not found")
+lines=c.split(chr(10))
+[print(i+1,repr(lines[i])) for i in range(len(lines)) if lines[i].count("style={{")>1 and "zIndex: 200" in lines[i]]
