@@ -1,3 +1,5 @@
-﻿c=open("frontend/app/expenses/page.tsx",encoding="utf-8").read()
-print("has supabase insert:", "from(\"expenses\").insert" in c)
-print("has amount field:", "amount" in c)
+﻿c=open("frontend/app/page.tsx",encoding="utf-8").read()
+c=c.replace("\"New\", \"Used\", \"Any\"","\"New\", \"Aftermarket\", \"Any\"",1)
+c=c.replace("part_preference: \"Any\"","part_preference: \"Aftermarket\"",1)
+open("frontend/app/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "Aftermarket" in c)

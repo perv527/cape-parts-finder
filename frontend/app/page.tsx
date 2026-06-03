@@ -13,7 +13,7 @@ export default function Home() {
     customer_name: "", phone_number: "", email: "", area: "",
     vehicle_make: "", vehicle_model: "", vehicle_year: "",
     engine_size: "", vin_number: "",
-    part_needed: "", part_preference: "Any", extra_details: "",
+    part_needed: "", part_preference: "Aftermarket", extra_details: "",
     referral_source: "",
   });
 
@@ -267,7 +267,7 @@ export default function Home() {
                     <div>
                       <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Part Preference</label>
                       <div className="grid grid-cols-3 gap-2">
-                        {["New", "Used", "Any"].map(p => (
+                        {["New", "Aftermarket", "Any"].map(p => (
                           <button key={p} type="button" onClick={() => setFormData(f => ({ ...f, part_preference: p }))}
                             className="py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition"
                             style={formData.part_preference === p
