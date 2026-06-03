@@ -214,106 +214,69 @@ export default function AdminPage() {
   async function sendDailyReport() {
     const now = new Date();
     const todayStr = now.toLocaleDateString("en-ZA", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    const n = "\n";
 
-    // Get today sales
     const { data: todaySales } = await supabase.from("sales").select("*")
       .gte("created_at", new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString());
     const revenue = (todaySales || []).reduce((s: number, x: any) => s + Number(x.selling_price || 0), 0);
     const profit = (todaySales || []).reduce((s: number, x: any) => s + Number(x.profit || 0), 0);
 
-    // Get month expenses
     const { data: monthExp } = await supabase.from("expenses").select("amount")
       .gte("date", new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0]);
-    const expenses = (monthExp || []).reduce((s: number, e: any) => s + Number(e.amount), 0);
+    const expTotal = (monthExp || []).reduce((s: number, e: any) => s + Number(e.amount), 0);
 
-    // Get due reminders
     const { data: dueRem } = await supabase.from("reminders").select("customer_name, note")
       .eq("completed", false).lte("remind_at", now.toISOString()).limit(5);
 
-    // Today requests
-    const todayReqs = requests.filter(r => {
+    const todayReqs = requests.filter((r: any) => {
       const d = new Date(r.created_at);
       return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     });
 
-    // Stale requests
-    const stale = requests.filter(r => {
+    const stale = requests.filter((r: any) => {
       const isClosed = r.status === "Closed" || r.status === "Delivered";
       return !isClosed && (Date.now() - new Date(r.updated_at || r.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000;
     });
 
-    // Pending (New + Searching)
-    const pending = requests.filter(r => !r.status || r.status === "New" || r.status === "Searching");
+    const pending = requests.filter((r: any) => !r.status || r.status === "New" || r.status === "Searching");
 
-    let msg = "🔧 *Cape Parts Finder — Daily Report*
-";
-    msg += `📅 ${todayStr}
-
-`;
-
-    msg += "📊 *Today's Performance*
-";
-    msg += `• New requests: ${todayReqs.length}
-`;
-    msg += `• Sales closed: ${(todaySales || []).length}
-`;
-    msg += `• Revenue: R${revenue.toFixed(0)}
-`;
-    msg += `• Profit: R${profit.toFixed(0)}
-
-`;
-
-    msg += "📋 *Pipeline*
-";
-    msg += `• Total active requests: ${requests.filter(r => r.status !== "Closed").length}
-`;
-    msg += `• Pending (New/Searching): ${pending.length}
-`;
-    msg += `• Quoted: ${counts.Quoted}
-`;
-    msg += `• Ordered: ${counts.Ordered}
-
-`;
+    let msg = "";
+    msg += "Cape Parts Finder - Daily Report" + n;
+    msg += todayStr + n + n;
+    msg += "TODAY" + n;
+    msg += "New requests: " + todayReqs.length + n;
+    msg += "Sales closed: " + (todaySales || []).length + n;
+    msg += "Revenue: R" + revenue.toFixed(0) + n;
+    msg += "Profit: R" + profit.toFixed(0) + n + n;
+    msg += "PIPELINE" + n;
+    msg += "Active requests: " + requests.filter((r: any) => r.status !== "Closed").length + n;
+    msg += "Pending: " + pending.length + n;
+    msg += "Quoted: " + counts.Quoted + n;
+    msg += "Ordered: " + counts.Ordered + n + n;
 
     if (stale.length > 0) {
-      msg += `⏰ *Follow-ups Needed (${stale.length})*
-`;
-      stale.slice(0, 3).forEach((r: any) => {
-        msg += `• ${r.customer_name} — ${r.part_needed}
-`;
-      });
-      if (stale.length > 3) msg += `• ...and ${stale.length - 3} more
-`;
-      msg += "
-";
+      msg += "FOLLOW-UPS NEEDED (" + stale.length + ")" + n;
+      stale.slice(0, 3).forEach((r: any) => { msg += "- " + r.customer_name + " / " + r.part_needed + n; });
+      if (stale.length > 3) msg += "...and " + (stale.length - 3) + " more" + n;
+      msg += n;
     }
 
     if ((dueRem || []).length > 0) {
-      msg += `🔔 *Reminders Due (${(dueRem || []).length})*
-`;
-      (dueRem || []).forEach((r: any) => {
-        msg += `• ${r.customer_name}${r.note ? " — " + r.note : ""}
-`;
-      });
-      msg += "
-";
+      msg += "REMINDERS DUE (" + (dueRem || []).length + ")" + n;
+      (dueRem || []).forEach((r: any) => { msg += "- " + r.customer_name + (r.note ? " / " + r.note : "") + n; });
+      msg += n;
     }
 
-    msg += "💸 *This Month Expenses*
-";
-    msg += `• Total spent: R${expenses.toFixed(0)}
+    msg += "THIS MONTH EXPENSES" + n;
+    msg += "Total spent: R" + expTotal.toFixed(0) + n + n;
+    msg += "---" + n;
+    msg += "Cape Parts Finder";
 
-`;
-
-    msg += "━━━━━━━━━━━━━━
-";
-    msg += "Cape Parts Finder 🔧";
-
-    const phone = "27696863952"; // your number - update this
+    const phone = "27696863952";
     window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(msg));
   }
 
-  const NAV_LINKS = [
+    const NAV_LINKS = [
     { label: "Requests", href: "/admin", active: true },
     { label: "Suppliers", href: "/suppliers" },
     { label: "Sales", href: "/sales" },
