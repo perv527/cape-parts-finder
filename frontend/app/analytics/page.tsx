@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
               <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
             </div>
             <div className="flex gap-1">
-              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Inventory", href: "/inventory" }, { label: "Analytics", href: "/analytics", active: true }].map((n) => (
+              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Inventory", href: "/inventory" }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics", active: true }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
                   style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
                   {n.label}

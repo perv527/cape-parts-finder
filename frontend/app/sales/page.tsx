@@ -210,6 +210,7 @@ export default function SalesPage() {
                 { label: "Suppliers", href: "/suppliers" },
                 { label: "Sales", href: "/sales", active: true },
                 { label: "Inventory", href: "/inventory" },
+                { label: "Expenses", href: "/expenses" },
                 { label: "Analytics", href: "/analytics" },
               ].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline transition font-medium"
