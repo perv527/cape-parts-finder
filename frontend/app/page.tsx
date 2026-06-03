@@ -1,718 +1,370 @@
 ﻿"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
+const VEHICLE_MAKES = ["Audi","BMW","Chevrolet","Chrysler","Citroen","Datsun","Fiat","Ford","GWM","Haval","Honda","Hyundai","Isuzu","Jeep","Kia","Land Rover","Mahindra","Mazda","Mercedes-Benz","MG","Mini","Mitsubishi","Nissan","Opel","Peugeot","Polo","Renault","Subaru","Suzuki","Toyota","Volkswagen","Volvo","Other"];
 
-const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  New:       { bg: "rgba(249,115,22,0.12)", text: "#fb923c", dot: "#f97316", border: "rgba(249,115,22,0.25)" },
-  Searching: { bg: "rgba(59,130,246,0.12)", text: "#60a5fa", dot: "#3b82f6", border: "rgba(59,130,246,0.25)" },
-  Quoted:    { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", dot: "#22c55e", border: "rgba(34,197,94,0.25)" },
-  Ordered:   { bg: "rgba(168,85,247,0.12)", text: "#c084fc", dot: "#a855f7", border: "rgba(168,85,247,0.25)" },
-  Delivered: { bg: "rgba(20,184,166,0.12)", text: "#2dd4bf", dot: "#14b8a6", border: "rgba(20,184,166,0.25)" },
-  Closed:    { bg: "rgba(107,114,128,0.12)",text: "#9ca3af", dot: "#6b7280", border: "rgba(107,114,128,0.25)" },
-};
-
-export default function AdminPage() {
-  const router = useRouter();
-  const [requests, setRequests] = useState<any[]>([]);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [authChecked, setAuthChecked] = useState(false);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
-  const [templateModal, setTemplateModal] = useState<any>(null);
-  const [notifyModal, setNotifyModal] = useState<any>(null);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [savingNote, setSavingNote] = useState<number | null>(null);
-  const [notes, setNotes] = useState<Record<number, string>>({});
-  const [newCount, setNewCount] = useState(0);
-  const [hideArchived, setHideArchived] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [bulkStatus, setBulkStatus] = useState("Searching");
-  const [bulkUpdating, setBulkUpdating] = useState(false);
-  const [broadcastModal, setBroadcastModal] = useState(false);
-  const [broadcastMsg, setBroadcastMsg] = useState("");
-  const [broadcastSending, setBroadcastSending] = useState(false);
-  const [broadcastDone, setBroadcastDone] = useState(0);
-  const [reminderModal, setReminderModal] = useState<any>(null);
-  const [reminderDate, setReminderDate] = useState("");
-  const [reminderTime, setReminderTime] = useState("");
-  const [reminderNote, setReminderNote] = useState("");
-  const [savingReminder, setSavingReminder] = useState(false);
-  const [reminderDueCount, setReminderDueCount] = useState(0);
-
-  function getWhatsAppMessage(request: any, template: string) {
-    const name = request.customer_name || "there";
-    const part = request.part_needed || "part";
-    const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
-    const messages: Record<string, string> = {
-      new:       `Hi ${name}, thanks for your request! We received your inquiry for a ${part} for your ${vehicle}. We are searching our supplier network and will get back to you shortly.\n\nCape Parts Finder`,
-      searching: `Hi ${name}, just an update - we are actively searching for your ${part} for your ${vehicle}. We have multiple suppliers checking stock right now.\n\nCape Parts Finder`,
-      quoted:    `Hi ${name}, great news! We found your ${part} for your ${vehicle}. Please reply and we will send you the price and details.\n\nCape Parts Finder`,
-      ordered:   `Hi ${name}, your ${part} has been ordered and is on its way! We will update you once ready for delivery.\n\nCape Parts Finder`,
-      delivered: `Hi ${name}, your ${part} has been delivered successfully. Thank you for using Cape Parts Finder!\n\nCape Parts Finder`,
-      followup:  `Hi ${name}, just checking in on your ${part} request for your ${vehicle}. Can we help you with anything?\n\nCape Parts Finder`,
-    };
-    return messages[template] || messages.new;
-  }
-
-  function getStatusMessage(request: any, status: string) {
-    const name = request.customer_name || "there";
-    const part = request.part_needed || "part";
-    const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
-    const msgs: Record<string, string> = {
-      Searching: `Hi ${name}, we are now actively searching for your ${part} for your ${vehicle}. We will update you shortly.\n\nCape Parts Finder`,
-      Quoted:    `Hi ${name}, great news! We have a quote ready for your ${part}. Please reply and we will send you the details.\n\nCape Parts Finder`,
-      Ordered:   `Hi ${name}, your ${part} has been ordered! We will let you know once it is ready.\n\nCape Parts Finder`,
-      Delivered: `Hi ${name}, your ${part} has been delivered. Thank you for choosing Cape Parts Finder!\n\nCape Parts Finder`,
-      Closed:    `Hi ${name}, your request for a ${part} has been completed. Thank you!\n\nCape Parts Finder`,
-    };
-    return msgs[status] || null;
-  }
-
-  useEffect(() => { checkAuth(); }, []);
-
-  async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.push("/login"); return; }
-    fetchRequests();
-    setAuthChecked(true);
-  }
-
-  async function fetchRequests() {
-    const { data, error } = await supabase.from("parts_requests").select("*").order("created_at", { ascending: false });
-    if (error) { console.error(error); return; }
-    setRequests(data || []);
-    setNewCount((data || []).filter((r: any) => r.status === "New").length);
-    const nm: Record<number, string> = {};
-    (data || []).forEach((r: any) => { if (r.internal_notes) nm[r.id] = r.internal_notes; });
-    setNotes(nm);
-    const { data: rem } = await supabase.from("reminders").select("id").eq("completed", false).lte("remind_at", new Date().toISOString());
-    setReminderDueCount((rem || []).length);
-  }
-
-  async function saveNote(id: number) {
-    setSavingNote(id);
-    await supabase.from("parts_requests").update({ internal_notes: notes[id] || "" }).eq("id", id);
-    setSavingNote(null);
-  }
-
-  async function updateStatus(id: number, status: string) {
-    setUpdatingId(id);
-    const request = requests.find(r => r.id === id);
-    const { error } = await supabase.from("parts_requests").update({ status }).eq("id", id);
-    if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
-    fetchRequests();
-    setUpdatingId(null);
-    if (request && getStatusMessage(request, status)) {
-      setNotifyModal({ request: { ...request, status }, status });
-    }
-  }
-
-  async function bulkUpdateStatus() {
-    if (selectedIds.size === 0) return;
-    setBulkUpdating(true);
-    const ids = Array.from(selectedIds);
-    await Promise.all(ids.map(id => supabase.from("parts_requests").update({ status: bulkStatus }).eq("id", id)));
-    setSelectedIds(new Set());
-    fetchRequests();
-    setBulkUpdating(false);
-  }
-
-  async function sendBroadcast() {
-    const selected = requests.filter(r => selectedIds.has(r.id));
-    if (!selected.length || !broadcastMsg.trim()) return;
-    setBroadcastSending(true);
-    for (let i = 0; i < selected.length; i++) {
-      const r = selected[i];
-      const phone = (r.phone_number || "").replace(/\D/g, "");
-      const msg = broadcastMsg.replace("{name}", r.customer_name || "there").replace("{part}", r.part_needed || "your part");
-      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`);
-      setBroadcastDone(i + 1);
-      await new Promise(res => setTimeout(res, 800));
-    }
-    setBroadcastSending(false);
-    setBroadcastModal(false);
-    setBroadcastMsg("");
-    setBroadcastDone(0);
-    setSelectedIds(new Set());
-  }
-
-  async function saveReminder() {
-    if (!reminderDate || !reminderTime) { alert("Pick a date and time"); return; }
-    setSavingReminder(true);
-    const remind_at = new Date(reminderDate + "T" + reminderTime).toISOString();
-    await supabase.from("reminders").insert([{
-      request_id: reminderModal.id,
-      customer_name: reminderModal.customer_name,
-      phone_number: reminderModal.phone_number,
-      note: reminderNote,
-      remind_at,
-    }]);
-    setSavingReminder(false);
-    setReminderModal(null);
-    setReminderDate("");
-    setReminderTime("");
-    setReminderNote("");
-    alert("Reminder set for " + reminderModal.customer_name + "!");
-  }
-
-  function toggleSelect(id: number) {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }
-
-  function toggleSelectAll() {
-    if (selectedIds.size === filteredRequests.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredRequests.map(r => r.id)));
-    }
-  }
-
-  async function deleteRequest(id: number) {
-    if (!confirm("Delete this request?")) return;
-    await supabase.from("parts_requests").delete().eq("id", id);
-    fetchRequests();
-  }
-
-  function exportToCSV() {
-    const headers = ["Name","Phone","Email","Area","Make","Model","Year","VIN","Engine","Part","Preference","Details","Status","Date"];
-    const rows = requests.map((r) => [r.customer_name, r.phone_number, r.email, r.area, r.vehicle_make, r.vehicle_model, r.vehicle_year, r.vin_number, r.engine_size, r.part_needed, r.part_preference, r.extra_details, r.status, new Date(r.created_at).toLocaleDateString("en-ZA")]);
-    const csv = [headers, ...rows].map((row) => row.map((c) => `"${c || ""}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "parts-requests.csv"; a.click();
-  }
-
-  const filteredRequests = requests.filter((r) => {
-    const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed + " " + (r.phone_number || "") + " " + (r.area || "")).toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "All" || (r.status || "New") === statusFilter;
-    const matchesArchive = search.trim() ? true : (!hideArchived || (r.status || "New") !== "Closed");
-    return matchesSearch && matchesStatus && matchesArchive;
+export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    customer_name: "", phone_number: "", email: "", area: "",
+    vehicle_make: "", vehicle_model: "", vehicle_year: "",
+    engine_size: "", vin_number: "",
+    part_needed: "", part_preference: "Any", extra_details: "",
+    referral_source: "",
   });
 
-  const counts = {
-    All: requests.length,
-    New: requests.filter((r) => !r.status || r.status === "New").length,
-    Searching: requests.filter((r) => r.status === "Searching").length,
-    Quoted: requests.filter((r) => r.status === "Quoted").length,
-    Ordered: requests.filter((r) => r.status === "Ordered").length,
-    Delivered: requests.filter((r) => r.status === "Delivered").length,
-    Closed: requests.filter((r) => r.status === "Closed").length,
-  };
-
-  const darkBg = { background: "#111111", minHeight: "100vh" };
-  const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" };
-
-  const NAV_LINKS = [
-    { label: "Requests", href: "/admin", active: true },
-    { label: "Suppliers", href: "/suppliers" },
-    { label: "Sales", href: "/sales" },
-    { label: "Inventory", href: "/inventory" },
-    { label: "Analytics", href: "/analytics" },
-    { label: "Reminders", href: "/reminders", badge: reminderDueCount },
-  ];
-
-  if (!authChecked) {
-    return (
-      <main style={darkBg} className="flex items-center justify-center">
-        <div className="flex items-center gap-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 32px" }}>
-          <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-          <p className="text-gray-300 text-sm font-medium">Loading Dashboard...</p>
-        </div>
-      </main>
-    );
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
+  function handlePhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    setPhotos(prev => [...prev, ...files].slice(0, 5));
+  }
+
+  function removePhoto(i: number) {
+    setPhotos(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  function canProceed() {
+    if (step === 1) return formData.customer_name.trim() && formData.phone_number.trim();
+    if (step === 2) return formData.vehicle_make.trim() && formData.vehicle_model.trim();
+    if (step === 3) return formData.part_needed.trim();
+    return true;
+  }
+
+  async function handleSubmit() {
+    setLoading(true);
+    try {
+      // Duplicate check
+      const { data: existing } = await supabase.from("parts_requests").select("id, part_needed, created_at, status")
+        .eq("phone_number", formData.phone_number).not("status", "in", "(Delivered,Closed)")
+        .order("created_at", { ascending: false }).limit(1);
+      if (existing && existing.length > 0) {
+        const prev = existing[0];
+        const date = new Date(prev.created_at).toLocaleDateString("en-ZA");
+        const proceed = window.confirm(`You already have an active request for "${prev.part_needed}" submitted on ${date}.\n\nSubmit a new request anyway?`);
+        if (!proceed) { setLoading(false); return; }
+      }
+
+      // Upload photos
+      const uploadedUrls: string[] = [];
+      for (const photo of photos) {
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-${photo.name}`;
+        const { error: uploadError } = await supabase.storage.from("parts-photos").upload(fileName, photo);
+        if (!uploadError) {
+          const { data } = supabase.storage.from("parts-photos").getPublicUrl(fileName);
+          if (data?.publicUrl) uploadedUrls.push(data.publicUrl);
+        }
+      }
+
+      const photo_url = uploadedUrls[0] || "";
+      const photo_urls = uploadedUrls;
+      const { error } = await supabase.from("parts_requests").insert([{ ...formData, photo_url, photo_urls }]);
+      if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
+      setSuccess(true);
+    } catch (err) { alert("Something went wrong. Please try again."); }
+    setLoading(false);
+  }
+
+  const inputCls = "w-full rounded-xl px-4 py-3 text-[14px] outline-none transition text-white placeholder-gray-500";
+  const inputStyle = { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" };
+  const inputFocus = "focus:border-orange-500/50 focus:bg-white/8";
+
+  if (success) return (
+    <main style={{ minHeight: "100vh", background: "#0a0a0a" }} className="flex items-center justify-center p-4">
+      <div className="text-center max-w-sm">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.2), rgba(249,115,22,0.1))", border: "2px solid rgba(249,115,22,0.4)" }}>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 className="text-[28px] font-black text-white mb-3">Request Sent!</h2>
+        <p className="text-gray-400 text-[15px] leading-relaxed mb-6">We received your request for a <span style={{ color: "#fb923c" }}>{formData.part_needed}</span>. We'll search our supplier network and contact you shortly on <span style={{ color: "#fb923c" }}>{formData.phone_number}</span>.</p>
+        <div className="rounded-2xl p-4 mb-6" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-[12px] text-gray-500 mb-2">Track your request status</p>
+          <a href="/track" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-[14px] font-bold text-white no-underline"
+            style={{ background: "linear-gradient(135deg,#f97316,#ea580c)" }}>
+            Track My Request →
+          </a>
+        </div>
+        <button onClick={() => { setSuccess(false); setStep(1); setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", engine_size: "", vin_number: "", part_needed: "", part_preference: "Any", extra_details: "", referral_source: "" }); setPhotos([]); }}
+          className="text-gray-600 text-[13px] cursor-pointer hover:text-gray-400 transition">
+          Submit another request
+        </button>
+      </div>
+    </main>
+  );
+
   return (
-    <main style={darkBg}>
+    <main style={{ minHeight: "100vh", background: "#0a0a0a", overflowX: "hidden" }}>
+      {/* Background glow */}
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-10%", right: "-5%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.07) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", top: "-20%", right: "-10%", width: "600px", height: "600px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", bottom: "-10%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 70%)" }} />
       </div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-
         {/* NAV */}
-        <header style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)", background: "rgba(17,17,17,0.85)", position: "sticky", top: 0, zIndex: 50 }}>
-          <div className="max-w-7xl mx-auto px-3 h-14 flex items-center gap-2">
-            {/* Logo */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <nav style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,10,10,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
+          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg,#f97316,#ea580c)", boxShadow: "0 0 20px rgba(249,115,22,0.4)" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                </svg>
               </div>
-              <span className="font-bold text-white text-[14px] hidden md:block">Cape Parts Finder</span>
+              <div>
+                <div className="font-black text-white text-[15px] leading-none">Cape Parts Finder</div>
+                <div className="text-[10px] text-orange-400/70 leading-none mt-0.5">Cape Town Auto Parts</div>
+              </div>
             </div>
-
-            {/* Nav links - scrollable */}
-            <div className="flex gap-0.5 overflow-x-auto scrollbar-hide flex-1 mx-1">
-              {NAV_LINKS.map((n) => (
-                <a key={n.href} href={n.href}
-                  className="px-2.5 py-1.5 rounded-lg text-[11px] sm:text-[12px] no-underline transition font-medium whitespace-nowrap flex-shrink-0 flex items-center gap-1"
-                  style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.45)", border: "1px solid transparent" }}>
-                  {n.label}
-                  {n.href === "/admin" && newCount > 0 && (
-                    <span style={{ background: "#f97316", color: "white", borderRadius: 999, fontSize: 9, fontWeight: 700, padding: "1px 5px", lineHeight: "16px" }}>{newCount}</span>
-                  )}
-                  {n.badge && n.badge > 0 ? (
-                    <span style={{ background: "#fbbf24", color: "#0a0a0a", borderRadius: 999, fontSize: 9, fontWeight: 700, padding: "1px 5px", lineHeight: "16px" }}>{n.badge}</span>
-                  ) : null}
-                </a>
-              ))}
-            </div>
-
-            {/* Right actions */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <button onClick={exportToCSV}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition cursor-pointer"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Export
-              </button>
-              <button onClick={fetchRequests}
-                className="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              </button>
-              <button onClick={async () => { await supabase.auth.signOut(); router.push("/login"); }}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span className="hidden sm:block">Logout</span>
-              </button>
-            </div>
+            <a href="/track" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium no-underline transition"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+              Track Request →
+            </a>
           </div>
-        </header>
+        </nav>
 
-        <div className="max-w-7xl mx-auto px-4 py-5">
+        {/* HERO */}
+        <div className="max-w-5xl mx-auto px-4 pt-12 pb-8">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 text-[12px] font-medium"
+              style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)", color: "#fb923c" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+              Free Service · Cape Town & Surrounds
+            </div>
+            <h1 className="text-[36px] sm:text-[48px] font-black text-white leading-tight mb-4">
+              Find Any Car Part<br />
+              <span style={{ background: "linear-gradient(135deg,#f97316,#fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Fast in Cape Town</span>
+            </h1>
+            <p className="text-gray-400 text-[16px] max-w-md mx-auto leading-relaxed">
+              Submit your request and we'll search our trusted supplier network to find your part at the best price.
+            </p>
+          </div>
 
-          {/* STATS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          {/* TRUST BADGES */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
             {[
-              { label: "Total", value: counts.All, color: "#f97316" },
-              { label: "New", value: counts.New, color: "#f97316" },
-              { label: "In Progress", value: counts.Searching + counts.Quoted, color: "#3b82f6" },
-              { label: "Delivered", value: counts.Delivered, color: "#14b8a6" },
-            ].map((card) => (
-              <div key={card.label} className="rounded-xl p-4 relative overflow-hidden" style={cardStyle}>
-                <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: card.color }} />
-                <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{card.label}</p>
-                <p className="text-[32px] font-black leading-none" style={{ color: card.color }}>{card.value}</p>
+              { icon: "⚡", text: "Fast Response" },
+              { icon: "🔍", text: "Multiple Suppliers" },
+              { icon: "💰", text: "Best Prices" },
+              { icon: "🛡️", text: "Trusted Service" },
+            ].map(b => (
+              <div key={b.text} className="flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-medium text-gray-400"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <span>{b.icon}</span>{b.text}
               </div>
             ))}
           </div>
 
-          {/* FILTERS */}
-          <div className="rounded-xl p-4 mb-4" style={cardStyle}>
-            <div className="flex flex-col lg:flex-row gap-3">
-              <input type="text" placeholder="Search name, phone, vehicle or part..." value={search} onChange={(e) => setSearch(e.target.value)}
-                className="flex-1 rounded-lg px-4 py-2.5 text-[13px] outline-none text-white placeholder-gray-600"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} />
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg px-4 py-2.5 text-[13px] outline-none cursor-pointer text-white"
-                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <option value="All" style={{ background: "#1a1a1a" }}>All ({counts.All})</option>
-                {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s} ({counts[s as keyof typeof counts] ?? 0})</option>)}
-              </select>
+          {/* FORM CARD */}
+          <div className="max-w-xl mx-auto">
+            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)" }}>
+
+              {/* Step indicator */}
+              <div className="px-6 pt-6 pb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  {[1,2,3].map(s => (
+                    <div key={s} className="flex items-center gap-2 flex-1">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-bold flex-shrink-0 transition-all"
+                        style={{ background: step >= s ? "linear-gradient(135deg,#f97316,#ea580c)" : "rgba(255,255,255,0.06)", color: step >= s ? "white" : "rgba(255,255,255,0.3)", boxShadow: step === s ? "0 0 12px rgba(249,115,22,0.4)" : "none" }}>
+                        {step > s ? "✓" : s}
+                      </div>
+                      {s < 3 && <div className="flex-1 h-0.5 rounded-full" style={{ background: step > s ? "#f97316" : "rgba(255,255,255,0.08)" }} />}
+                    </div>
+                  ))}
+                </div>
+                <div className="text-[12px] text-gray-500">
+                  {step === 1 ? "Your contact details" : step === 2 ? "Your vehicle info" : "What part do you need?"}
+                </div>
+              </div>
+
+              <div className="px-6 pb-6 space-y-3">
+
+                {/* STEP 1 - Contact */}
+                {step === 1 && (
+                  <>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Full Name *</label>
+                      <input name="customer_name" value={formData.customer_name} onChange={handleChange}
+                        placeholder="e.g. John Smith" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">WhatsApp Number *</label>
+                      <input name="phone_number" value={formData.phone_number} onChange={handleChange}
+                        placeholder="e.g. 082 123 4567" type="tel" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Email (optional)</label>
+                      <input name="email" value={formData.email} onChange={handleChange}
+                        placeholder="your@email.com" type="email" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Your Area</label>
+                      <input name="area" value={formData.area} onChange={handleChange}
+                        placeholder="e.g. Bellville, Mitchells Plain" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">How did you hear about us?</label>
+                      <select name="referral_source" value={formData.referral_source} onChange={handleChange}
+                        className={inputCls} style={{ ...inputStyle, color: formData.referral_source ? "white" : "#6b7280" }}>
+                        <option value="" style={{ background: "#1a1a1a" }}>Select an option</option>
+                        {["WhatsApp","Facebook","Instagram","Google","Friend / Family","TikTok","Gumtree","Other"].map(o => (
+                          <option key={o} value={o} style={{ background: "#1a1a1a" }}>{o}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* STEP 2 - Vehicle */}
+                {step === 2 && (
+                  <>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Vehicle Make *</label>
+                      <select name="vehicle_make" value={formData.vehicle_make} onChange={handleChange}
+                        className={inputCls} style={{ ...inputStyle, color: formData.vehicle_make ? "white" : "#6b7280" }}>
+                        <option value="" style={{ background: "#1a1a1a" }}>Select make</option>
+                        {VEHICLE_MAKES.map(m => <option key={m} value={m} style={{ background: "#1a1a1a" }}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Model *</label>
+                      <input name="vehicle_model" value={formData.vehicle_model} onChange={handleChange}
+                        placeholder="e.g. Golf 7, Polo Vivo, Hilux" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Year</label>
+                        <input name="vehicle_year" value={formData.vehicle_year} onChange={handleChange}
+                          placeholder="e.g. 2018" className={inputCls} style={inputStyle} />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Engine Size</label>
+                        <input name="engine_size" value={formData.engine_size} onChange={handleChange}
+                          placeholder="e.g. 1.4 TSI" className={inputCls} style={inputStyle} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">VIN Number (optional)</label>
+                      <input name="vin_number" value={formData.vin_number} onChange={handleChange}
+                        placeholder="17-character VIN" className={inputCls} style={inputStyle} />
+                    </div>
+                  </>
+                )}
+
+                {/* STEP 3 - Part */}
+                {step === 3 && (
+                  <>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Part Needed *</label>
+                      <input name="part_needed" value={formData.part_needed} onChange={handleChange}
+                        placeholder="e.g. Front brake pads, alternator, gear lever" className={inputCls} style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Part Preference</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {["New", "Used", "Any"].map(p => (
+                          <button key={p} type="button" onClick={() => setFormData(f => ({ ...f, part_preference: p }))}
+                            className="py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition"
+                            style={formData.part_preference === p
+                              ? { background: "linear-gradient(135deg,#f97316,#ea580c)", color: "white", border: "none" }
+                              : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Extra Details (optional)</label>
+                      <textarea name="extra_details" value={formData.extra_details} onChange={handleChange}
+                        placeholder="Any specific details, OEM number, condition notes..." rows={3}
+                        className={inputCls} style={{ ...inputStyle, resize: "none" }} />
+                    </div>
+
+                    {/* Photo upload */}
+                    <div>
+                      <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Photos (optional, max 5)</label>
+                      {photos.length > 0 && (
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          {photos.map((p, i) => (
+                            <div key={i} className="relative">
+                              <img src={URL.createObjectURL(p)} alt="" className="w-16 h-16 object-cover rounded-xl" style={{ border: "1px solid rgba(255,255,255,0.1)" }} />
+                              <button type="button" onClick={() => removePhoto(i)}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] cursor-pointer"
+                                style={{ background: "#ef4444", color: "white", border: "none" }}>✕</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {photos.length < 5 && (
+                        <label className="flex items-center justify-center gap-2 w-full py-3 rounded-xl cursor-pointer transition text-[13px] text-gray-500"
+                          style={{ border: "1.5px dashed rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.02)" }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                          Add photo{photos.length > 0 ? "s" : ""} ({photos.length}/5)
+                          <input type="file" accept="image/*" multiple onChange={handlePhotos} className="hidden" />
+                        </label>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Navigation buttons */}
+                <div className="flex gap-3 pt-2">
+                  {step > 1 && (
+                    <button type="button" onClick={() => setStep(s => s - 1)}
+                      className="px-5 py-3 rounded-xl text-[14px] font-semibold cursor-pointer transition"
+                      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
+                      ← Back
+                    </button>
+                  )}
+                  {step < 3 ? (
+                    <button type="button" onClick={() => setStep(s => s + 1)} disabled={!canProceed()}
+                      className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
+                      style={{ background: canProceed() ? "linear-gradient(135deg,#f97316,#ea580c)" : "rgba(249,115,22,0.3)", border: "none", boxShadow: canProceed() ? "0 4px 20px rgba(249,115,22,0.3)" : "none" }}>
+                      Continue →
+                    </button>
+                  ) : (
+                    <button type="button" onClick={handleSubmit} disabled={loading || !canProceed()}
+                      className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
+                      style={{ background: loading ? "rgba(249,115,22,0.5)" : "linear-gradient(135deg,#f97316,#ea580c)", border: "none", boxShadow: "0 4px 20px rgba(249,115,22,0.3)" }}>
+                      {loading ? (photos.length > 0 ? `Uploading ${photos.length} photo${photos.length > 1 ? "s" : ""}...` : "Submitting...") : "Submit Request 🔧"}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex gap-1.5 overflow-x-auto mt-3 pb-1 scrollbar-hide">
-              {["All", ...STATUS_OPTIONS].map((s) => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className="px-2.5 py-1 rounded-full text-[11px] transition cursor-pointer font-medium whitespace-nowrap flex-shrink-0"
-                  style={statusFilter === s
-                    ? { background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", color: "#fb923c" }
-                    : { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.4)" }}>
-                  {s} {s === "All" ? `(${counts.All})` : `(${counts[s as keyof typeof counts] ?? 0})`}
-                </button>
+
+            {/* How it works */}
+            <div className="mt-8 grid grid-cols-3 gap-3">
+              {[
+                { step: "1", title: "Submit", desc: "Tell us what part you need" },
+                { step: "2", title: "We Search", desc: "We contact our suppliers" },
+                { step: "3", title: "Get Quote", desc: "Receive price via WhatsApp" },
+              ].map(s => (
+                <div key={s.step} className="text-center p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-black mx-auto mb-2" style={{ background: "rgba(249,115,22,0.15)", color: "#f97316" }}>{s.step}</div>
+                  <div className="font-bold text-white text-[12px] mb-0.5">{s.title}</div>
+                  <div className="text-gray-600 text-[11px]">{s.desc}</div>
+                </div>
               ))}
             </div>
-          </div>
 
-          {/* BULK + ARCHIVE */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <button onClick={toggleSelectAll}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>
-                <div className="w-3.5 h-3.5 rounded flex items-center justify-center"
-                  style={{ background: selectedIds.size === filteredRequests.length && filteredRequests.length > 0 ? "#f97316" : "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                  {selectedIds.size === filteredRequests.length && filteredRequests.length > 0 && (
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  )}
-                </div>
-                {selectedIds.size > 0 ? `${selectedIds.size} selected` : "Select all"}
-              </button>
-
-              {selectedIds.size > 0 && (
-                <>
-                  <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}
-                    className="rounded-lg px-3 py-1.5 text-[12px] outline-none cursor-pointer text-white"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                    {STATUS_OPTIONS.map(s => <option key={s} value={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
-                  </select>
-                  <button onClick={bulkUpdateStatus} disabled={bulkUpdating}
-                    className="px-4 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer transition text-white"
-                    style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", opacity: bulkUpdating ? 0.6 : 1 }}>
-                    {bulkUpdating ? "Updating..." : `Update ${selectedIds.size}`}
-                  </button>
-                  <button onClick={() => setSelectedIds(new Set())}
-                    className="px-3 py-1.5 rounded-lg text-[12px] cursor-pointer transition"
-                    style={{ color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                    Clear
-                  </button>
-                  <button onClick={() => { setBroadcastModal(true); setBroadcastMsg(""); setBroadcastDone(0); }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold cursor-pointer transition"
-                    style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366" }}>
-                    WhatsApp ({selectedIds.size})
-                  </button>
-                </>
-              )}
+            {/* Footer */}
+            <div className="text-center mt-8 pb-8">
+              <p className="text-gray-600 text-[12px]">Cape Town & surrounds · Free service · No obligation</p>
+              <p className="text-gray-700 text-[11px] mt-1">
+                <a href="/track" className="text-orange-500/60 no-underline hover:text-orange-400 transition">Track existing request</a>
+                {" · "}
+                <a href="/login" className="text-gray-700 no-underline hover:text-gray-500 transition">Admin</a>
+              </p>
             </div>
-
-            <div className="flex items-center gap-3">
-              {counts.Closed > 0 && (
-                <button onClick={() => setHideArchived(!hideArchived)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                  style={hideArchived
-                    ? { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.4)" }
-                    : { background: "rgba(107,114,128,0.12)", border: "1px solid rgba(107,114,128,0.25)", color: "#9ca3af" }}>
-                  {hideArchived ? `Show ${counts.Closed} archived` : "Hide archived"}
-                </button>
-              )}
-              <span className="text-[12px] text-gray-600">{filteredRequests.length} requests</span>
-            </div>
-          </div>
-
-          {/* REQUEST CARDS */}
-          <div className="space-y-2">
-            {filteredRequests.length === 0 && (
-              <div className="rounded-xl p-10 text-center" style={cardStyle}>
-                <p className="text-gray-600 text-sm">{hideArchived && counts.Closed > 0 ? `No active requests · ${counts.Closed} archived` : "No requests found"}</p>
-                {hideArchived && counts.Closed > 0 && (
-                  <button onClick={() => setHideArchived(false)} className="mt-3 text-[12px] cursor-pointer transition" style={{ color: "#9ca3af" }}>Show archived →</button>
-                )}
-              </div>
-            )}
-
-            {filteredRequests.map((request) => {
-              const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
-              const isExpanded = expandedId === request.id;
-              const isSelected = selectedIds.has(request.id);
-              const isClosed = (request.status || "New") === "Closed";
-              const isStale = !isClosed && (Date.now() - new Date(request.updated_at || request.created_at).getTime()) > 3 * 24 * 60 * 60 * 1000;
-              const initial = (request.customer_name || "?")[0].toUpperCase();
-              const allPhotos: string[] = request.photo_urls?.length ? request.photo_urls : request.photo_url ? [request.photo_url] : [];
-
-              return (
-                <div key={request.id} className="rounded-xl overflow-hidden transition" style={{
-                  ...cardStyle,
-                  border: isSelected ? "1px solid rgba(249,115,22,0.4)" : isClosed ? "1px solid rgba(107,114,128,0.15)" : "1px solid rgba(255,255,255,0.07)",
-                  background: isSelected ? "rgba(249,115,22,0.05)" : isClosed ? "rgba(107,114,128,0.04)" : "rgba(255,255,255,0.03)",
-                  opacity: isClosed ? 0.7 : 1,
-                }}>
-                  <div className="px-3 py-3 flex items-center gap-2">
-                    <div onClick={() => toggleSelect(request.id)}
-                      className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 cursor-pointer transition"
-                      style={{ background: isSelected ? "#f97316" : "rgba(255,255,255,0.06)", border: isSelected ? "1px solid #f97316" : "1px solid rgba(255,255,255,0.15)" }}>
-                      {isSelected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                    </div>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[13px] font-bold flex-shrink-0 text-orange-400" style={{ background: "rgba(249,115,22,0.12)" }}>
-                      {initial}
-                    </div>
-                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedId(isExpanded ? null : request.id)}>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-[13px] text-white">{request.customer_name}</span>
-                        <span className="text-gray-500 text-[11px] truncate">{request.part_needed}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <span className="text-[10px] text-gray-600">{new Date(request.created_at).toLocaleDateString("en-ZA")}</span>
-                        <span className="text-[10px]" style={{ color: st.text }}>{request.status || "New"}</span>
-                        {isStale && <span style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171", borderRadius: 999, fontSize: 9, fontWeight: 700, padding: "1px 5px" }}>Follow up</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                        style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
-                        <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
-                        {request.status || "New"}
-                      </span>
-                      <button onClick={(e) => { e.stopPropagation(); setReminderModal(request); setReminderDate(""); setReminderTime(""); setReminderNote(""); }}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer transition flex-shrink-0"
-                        style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.15)" }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                      </button>
-                      <button onClick={() => setExpandedId(isExpanded ? null : request.id)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center cursor-pointer"
-                        style={{ background: "rgba(255,255,255,0.04)" }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                          style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
-                          <polyline points="6 9 12 15 18 9"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  {isExpanded && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div className="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3 text-[12px]">
-                        {[
-                          { label: "Phone", value: request.phone_number },
-                          { label: "Email", value: request.email },
-                          { label: "Area", value: request.area },
-                          { label: "Vehicle", value: `${request.vehicle_make} ${request.vehicle_model} ${request.vehicle_year}` },
-                          { label: "VIN", value: request.vin_number },
-                          { label: "Engine", value: request.engine_size },
-                          { label: "Preference", value: request.part_preference },
-                        ].map(({ label, value }) => value ? (
-                          <div key={label}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: "rgba(255,255,255,0.25)" }}>{label}</p>
-                            <p className="text-gray-300 font-medium">{value}</p>
-                          </div>
-                        ) : null)}
-                      </div>
-
-                      {request.extra_details && (
-                        <div className="px-4 pb-3">
-                          <div className="rounded-lg px-3 py-2.5" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.7)" }}>Extra Details</p>
-                            <p className="text-gray-300 text-[12px] leading-relaxed">{request.extra_details}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {allPhotos.length > 0 && (
-                        <div className="px-4 pb-3">
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Photos ({allPhotos.length})</p>
-                          <div className="flex gap-2 flex-wrap">
-                            {allPhotos.map((url, i) => (
-                              <img key={i} src={url} alt={`Photo ${i + 1}`} className="w-24 h-20 object-cover rounded-xl cursor-pointer"
-                                style={{ border: "1px solid rgba(255,255,255,0.08)" }} onClick={() => window.open(url)} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="px-4 pb-3 flex flex-wrap items-center gap-2">
-                        <select value={request.status || "New"} onChange={(e) => updateStatus(request.id, e.target.value)}
-                          disabled={updatingId === request.id}
-                          className="rounded-lg px-3 py-2 text-[12px] outline-none cursor-pointer text-white"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                          {STATUS_OPTIONS.map((s) => <option key={s} style={{ background: "#1a1a1a" }}>{s}</option>)}
-                        </select>
-                        <button onClick={() => router.push(`/suppliers?requestId=${request.id}&part=${encodeURIComponent(request.part_needed||"")}&make=${encodeURIComponent(request.vehicle_make||"")}&model=${encodeURIComponent(request.vehicle_model||"")}&year=${encodeURIComponent(request.vehicle_year||"")}&photo=${encodeURIComponent(request.photo_url||"")}&vin=${encodeURIComponent(request.vin_number||"")}`)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.25)", color: "#fb923c" }}>
-                          Request Quote
-                        </button>
-                        <button onClick={() => router.push(`/quotes/${request.id}`)}
-                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}>
-                          View Quotes
-                        </button>
-                        <button onClick={() => setTemplateModal(request)}
-                          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
-                          style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>
-                          WhatsApp
-                        </button>
-                        <button onClick={() => deleteRequest(request.id)}
-                          className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition ml-auto"
-                          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.15)", color: "#f87171" }}>
-                          Delete
-                        </button>
-                      </div>
-
-                      <div className="px-4 pb-4">
-                        <div className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                          <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>Internal Notes</p>
-                          <textarea value={notes[request.id] || ""} onChange={(e) => setNotes(prev => ({ ...prev, [request.id]: e.target.value }))}
-                            placeholder="Add private notes..." rows={2}
-                            className="w-full rounded-lg px-3 py-2 text-[12px] outline-none resize-none text-gray-300 placeholder-gray-700"
-                            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }} />
-                          <button onClick={() => saveNote(request.id)} disabled={savingNote === request.id}
-                            className="mt-2 px-3 py-1.5 rounded-lg text-[11px] font-medium cursor-pointer transition"
-                            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
-                            {savingNote === request.id ? "Saving..." : "Save Note"}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
-
-      {/* REMINDER MODAL */}
-      {reminderModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setReminderModal(null); }}>
-          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <h2 className="font-bold text-[15px] text-white">Set Callback Reminder</h2>
-              <p className="text-[11px] text-gray-500 mt-0.5">{reminderModal.customer_name} · {reminderModal.phone_number}</p>
-            </div>
-            <div className="p-5 space-y-3">
-              <div>
-                <label className="text-[11px] text-gray-500 mb-1 block">Date</label>
-                <input type="date" value={reminderDate} onChange={e => setReminderDate(e.target.value)}
-                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none text-white"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
-              </div>
-              <div>
-                <label className="text-[11px] text-gray-500 mb-1 block">Time</label>
-                <input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)}
-                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none text-white"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
-              </div>
-              <div>
-                <label className="text-[11px] text-gray-500 mb-1 block">Note (optional)</label>
-                <textarea value={reminderNote} onChange={e => setReminderNote(e.target.value)}
-                  placeholder="e.g. Follow up on brake pad quote..." rows={2}
-                  className="w-full rounded-xl px-3 py-2.5 text-[13px] outline-none text-gray-300 resize-none"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={saveReminder} disabled={savingReminder}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition text-white"
-                  style={{ background: savingReminder ? "rgba(251,191,36,0.4)" : "linear-gradient(135deg,#f59e0b,#d97706)", border: "none" }}>
-                  {savingReminder ? "Saving..." : "Set Reminder 🔔"}
-                </button>
-                <button onClick={() => setReminderModal(null)}
-                  className="px-5 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* BROADCAST MODAL */}
-      {broadcastModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setBroadcastModal(false); }}>
-          <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div>
-                <h2 className="font-bold text-[15px] text-white">WhatsApp Broadcast</h2>
-                <p className="text-[11px] text-gray-500 mt-0.5">Sending to {selectedIds.size} customer{selectedIds.size > 1 ? "s" : ""}</p>
-              </div>
-              <button onClick={() => setBroadcastModal(false)} className="text-gray-500 text-lg cursor-pointer bg-transparent border-none">×</button>
-            </div>
-            <div className="p-5 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "Follow Up", msg: "Hi {name}, just checking in on your request for {part}. Can we help you?\n\nCape Parts Finder" },
-                  { label: "Promotion", msg: "Hi {name}, Cape Parts Finder has great deals this week! Contact us for fast quotes.\n\nCape Parts Finder" },
-                  { label: "Quote Ready", msg: "Hi {name}, we have a quote ready for {part}. Please reply for details.\n\nCape Parts Finder" },
-                  { label: "Check In", msg: "Hi {name}, we are still sourcing {part} for you. Update coming soon.\n\nCape Parts Finder" },
-                ].map(t => (
-                  <button key={t.label} onClick={() => setBroadcastMsg(t.msg)}
-                    className="px-3 py-2 rounded-lg text-[11px] font-medium cursor-pointer transition text-left"
-                    style={{ background: broadcastMsg === t.msg ? "rgba(37,211,102,0.12)" : "rgba(255,255,255,0.04)", border: broadcastMsg === t.msg ? "1px solid rgba(37,211,102,0.3)" : "1px solid rgba(255,255,255,0.08)", color: broadcastMsg === t.msg ? "#25D366" : "rgba(255,255,255,0.6)" }}>
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-              <textarea value={broadcastMsg} onChange={e => setBroadcastMsg(e.target.value)} rows={4}
-                placeholder="Type your message... use {name} and {part}"
-                className="w-full rounded-xl px-4 py-3 text-[13px] outline-none resize-none text-white placeholder-gray-600"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-              {broadcastSending && (
-                <div className="rounded-xl p-3 text-center" style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)" }}>
-                  <p className="text-[12px] font-medium" style={{ color: "#25D366" }}>Opening WhatsApp {broadcastDone} of {selectedIds.size}...</p>
-                </div>
-              )}
-              <div className="flex gap-2">
-                <button onClick={sendBroadcast} disabled={broadcastSending || !broadcastMsg.trim()}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-bold cursor-pointer transition text-white"
-                  style={{ background: broadcastMsg.trim() ? "linear-gradient(135deg, #25D366, #128C7E)" : "rgba(37,211,102,0.3)" }}>
-                  {broadcastSending ? `Sending ${broadcastDone}/${selectedIds.size}...` : `Send to ${selectedIds.size}`}
-                </button>
-                <button onClick={() => setBroadcastModal(false)}
-                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* WHATSAPP TEMPLATE MODAL */}
-      {templateModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setTemplateModal(null); }}>
-          <div className="w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div>
-                <h2 className="font-bold text-[15px] text-white">WhatsApp Templates</h2>
-                <p className="text-[11px] text-gray-500 mt-0.5">To: {templateModal.customer_name} · {templateModal.phone_number}</p>
-              </div>
-              <button onClick={() => setTemplateModal(null)} className="text-gray-500 text-lg cursor-pointer bg-transparent border-none">×</button>
-            </div>
-            <div className="p-4 space-y-2">
-              {[
-                { key: "new", label: "New Request" },
-                { key: "searching", label: "Searching for Part" },
-                { key: "quoted", label: "Quote Ready" },
-                { key: "ordered", label: "Part Ordered" },
-                { key: "delivered", label: "Part Delivered" },
-                { key: "followup", label: "Follow Up" },
-              ].map((t) => (
-                <button key={t.key}
-                  onClick={() => { const msg = getWhatsAppMessage(templateModal, t.key); const phone = templateModal.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`); setTemplateModal(null); }}
-                  className="w-full text-left px-4 py-3 rounded-xl transition cursor-pointer"
-                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div className="font-semibold text-[12px] text-white">{t.label}</div>
-                  <div className="text-[11px] text-gray-500 mt-0.5 truncate">{getWhatsAppMessage(templateModal, t.key).split("\n")[0]}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STATUS NOTIFICATION MODAL */}
-      {notifyModal && (
-        <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ background: "rgba(0,0,0,0.75)", zIndex: 200, backdropFilter: "blur(4px)" }}
-          onClick={e => { if (e.target === e.currentTarget) setNotifyModal(null); }}>
-          <div className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl" style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.1)", maxHeight: "90vh", overflowY: "auto" }}>
-            <div className="p-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <h2 className="font-bold text-[15px] text-white">Notify Customer?</h2>
-              <p className="text-[11px] text-gray-500 mt-0.5">Status changed to: <span style={{ color: "#fb923c" }}>{notifyModal.status}</span></p>
-            </div>
-            <div className="p-5">
-              <div className="rounded-xl p-3 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <p className="text-[12px] text-gray-300 whitespace-pre-line leading-relaxed">{getStatusMessage(notifyModal.request, notifyModal.status)}</p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { const msg = getStatusMessage(notifyModal.request, notifyModal.status); const phone = notifyModal.request.phone_number.replace(/\D/g, ""); window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg || "")}`); setNotifyModal(null); }}
-                  className="flex-1 py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition text-white"
-                  style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 16px rgba(249,115,22,0.25)" }}>
-                  Send WhatsApp
-                </button>
-                <button onClick={() => setNotifyModal(null)}
-                  className="px-5 py-2.5 rounded-xl text-[13px] font-medium cursor-pointer transition"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
-                  Skip
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </main>
   );
 }
