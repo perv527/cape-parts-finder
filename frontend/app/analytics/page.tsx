@@ -10,6 +10,7 @@ export default function AnalyticsPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [authChecked, setAuthChecked] = useState(false);
   const [period, setPeriod] = useState<"week" | "month" | "year">("month");
+  const [expenses, setExpenses] = useState<any[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -17,9 +18,11 @@ export default function AnalyticsPage() {
       Promise.all([
         supabase.from("sales").select("*").order("created_at", { ascending: true }),
         supabase.from("parts_requests").select("*").order("created_at", { ascending: false }),
-      ]).then(([{ data: s }, { data: r }]) => {
+        supabase.from("expenses").select("*").order("date", { ascending: false }),
+      ]).then(([{ data: s }, { data: r }, { data: e }]) => {
         setSales(s || []);
         setRequests(r || []);
+        setExpenses(e || []);
         setAuthChecked(true);
       });
     });
@@ -130,6 +133,25 @@ export default function AnalyticsPage() {
   const referralSources=(()=>{const co:Record<string,number>={};requests.forEach((r:any)=>{if(r.referral_source)co[r.referral_source]=(co[r.referral_source]||0)+1;});return Object.entries(co).sort((a,b)=>b[1]-a[1]);})();
   const maxReferral = Math.max(...referralSources.map(r => r[1]), 1);
   const maxMakeCount = Math.max(...topMakes.map(m => m[1]), 1);
+
+  // Expense calculations
+  const now2 = new Date();
+  const monthExpenses = expenses.filter(e => {
+    const d = new Date(e.date);
+    return d.getMonth() === now2.getMonth() && d.getFullYear() === now2.getFullYear();
+  });
+  const totalExpensesMonth = monthExpenses.reduce((s, e) => s + Number(e.amount), 0);
+  const allTimeExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
+  const allTimeProfit = sales.reduce((s, x) => s + Number(x.profit || 0), 0);
+  const netProfit = allTimeProfit - allTimeExpenses;
+  const periodExpenses = expenses.filter(e => {
+    const d = new Date(e.date);
+    if (period === "week") { const w = new Date(now2); w.setDate(now2.getDate() - 7); return d >= w; }
+    if (period === "month") return d.getMonth() === now2.getMonth() && d.getFullYear() === now2.getFullYear();
+    return d.getFullYear() === now2.getFullYear();
+  });
+  const totalExpensesPeriod = periodExpenses.reduce((s, e) => s + Number(e.amount), 0);
+  const netProfitPeriod = totalProfit - totalExpensesPeriod;
 
   const statusColors: Record<string, string> = {
     New: "#f97316", Searching: "#3b82f6", Quoted: "#22c55e",
@@ -261,10 +283,12 @@ export default function AnalyticsPage() {
           </div>
 
           {/* KPI CARDS */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-6">
             {[
               { label: "Revenue", value: `R${totalRevenue.toFixed(0)}`, sub: `${period}`, color: "#4ade80", glow: "rgba(34,197,94,0.1)" },
               { label: "Profit", value: `R${totalProfit.toFixed(0)}`, sub: `${period}`, color: "#60a5fa", glow: "rgba(59,130,246,0.1)" },
+              { label: "Expenses", value: `R${totalExpensesPeriod.toFixed(0)}`, sub: `${period}`, color: "#f87171", glow: "rgba(239,68,68,0.08)" },
+              { label: "Net Profit", value: `R${netProfitPeriod.toFixed(0)}`, sub: "after expenses", color: netProfitPeriod >= 0 ? "#4ade80" : "#f87171", glow: netProfitPeriod >= 0 ? "rgba(34,197,94,0.08)" : "rgba(239,68,68,0.08)" },
               { label: "Sales", value: totalSalesCount.toString(), sub: `${period}`, color: "#c084fc", glow: "rgba(168,85,247,0.1)" },
               { label: "Conversion", value: `${conversionRate}%`, sub: "requests → sales", color: "#fb923c", glow: "rgba(249,115,22,0.1)" },
             ].map((card) => (
@@ -400,12 +424,14 @@ export default function AnalyticsPage() {
           )}
 
           {/* SUMMARY ROW */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
             {[
               { label: "Total Requests", value: requests.length, color: "#fb923c" },
               { label: "Total Sales", value: sales.length, color: "#4ade80" },
               { label: "All-time Revenue", value: `R${sales.reduce((s, x) => s + Number(x.selling_price || 0), 0).toFixed(0)}`, color: "#4ade80" },
-              { label: "All-time Profit", value: `R${sales.reduce((s, x) => s + Number(x.profit || 0), 0).toFixed(0)}`, color: "#60a5fa" },
+              { label: "All-time Profit", value: `R${allTimeProfit.toFixed(0)}`, color: "#60a5fa" },
+              { label: "All-time Expenses", value: `R${allTimeExpenses.toFixed(0)}`, color: "#f87171" },
+              { label: "Net Profit", value: `R${netProfit.toFixed(0)}`, color: netProfit >= 0 ? "#4ade80" : "#f87171" },
             ].map((item) => (
               <div key={item.label} className="rounded-xl p-4" style={cardStyle}>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>{item.label}</p>

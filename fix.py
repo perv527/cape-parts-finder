@@ -1,4 +1,3 @@
-﻿c=open("frontend/app/analytics/page.tsx",encoding="utf-8").read()
-c=c.replace("{ label: \"Analytics\", href: \"/analytics\", active: true }].map","{ label: \"Expenses\", href: \"/expenses\" }, { label: \"Analytics\", href: \"/analytics\", active: true }].map",1)
-open("frontend/app/analytics/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "/expenses" in c)
+﻿c=open("frontend/app/expenses/page.tsx",encoding="utf-8").read()
+print("has supabase insert:", "from(\"expenses\").insert" in c)
+print("has amount field:", "amount" in c)
