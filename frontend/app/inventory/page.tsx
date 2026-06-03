@@ -141,7 +141,7 @@ export default function InventoryPage() {
             <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
           </div>
           <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-            {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Inventory", href: "/inventory", active: true }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }].map((n) => (
+            {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" }, { label: "Inventory", href: "/inventory", active: true }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }].map((n) => (
               <a key={n.href} href={n.href} className="px-3 py-1.5 rounded-lg text-[12px] no-underline transition font-medium whitespace-nowrap flex-shrink-0"
                 style={n.active ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.2)" } : { color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>
                 {n.label}

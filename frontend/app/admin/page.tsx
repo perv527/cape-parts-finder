@@ -279,7 +279,7 @@ export default function AdminPage() {
     const NAV_LINKS = [
     { label: "Requests", href: "/admin", active: true },
     { label: "Suppliers", href: "/suppliers" },
-    { label: "Sales", href: "/sales" },
+    { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
     { label: "Inventory", href: "/inventory" },
     { label: "Analytics", href: "/analytics" },
     { label: "Reminders", href: "/reminders", badge: reminderDueCount },

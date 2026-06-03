@@ -16,7 +16,7 @@ const cardStyle = { background: "rgba(255,255,255,0.03)", border: "1px solid rgb
 const NAV_LINKS = [
   { label: "Requests", href: "/admin" },
   { label: "Suppliers", href: "/suppliers" },
-  { label: "Sales", href: "/sales" },
+  { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
   { label: "Inventory", href: "/inventory" },
   { label: "Analytics", href: "/analytics" },
   { label: "Expenses", href: "/expenses", active: true },

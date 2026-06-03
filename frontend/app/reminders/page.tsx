@@ -98,7 +98,7 @@ export default function RemindersPage() {
             {[
               { label: "Requests", href: "/admin" },
               { label: "Suppliers", href: "/suppliers" },
-              { label: "Sales", href: "/sales" },
+              { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
               { label: "Inventory", href: "/inventory" },
               { label: "Analytics", href: "/analytics" },
               { label: "Expenses", href: "/expenses" }, { label: "Reminders", href: "/reminders", active: true },

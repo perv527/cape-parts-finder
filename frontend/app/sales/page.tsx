@@ -208,7 +208,7 @@ export default function SalesPage() {
               {[
                 { label: "Requests", href: "/admin" },
                 { label: "Suppliers", href: "/suppliers" },
-                { label: "Sales", href: "/sales", active: true },
+                { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers", active: true },
                 { label: "Inventory", href: "/inventory" },
                 { label: "Expenses", href: "/expenses" },
                 { label: "Analytics", href: "/analytics" },
