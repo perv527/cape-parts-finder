@@ -215,7 +215,6 @@ function SuppliersContent() {
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
   const inputClass = "rounded-xl px-4 py-3 text-[13px] outline-none text-white placeholder-gray-600 transition";
 
-  if (!authChecked) {
   function getSupplierStats(supplierId: number) {
     const supplierQuotes = quotes.filter((q: any) => q.supplier_id === supplierId);
     const wonSales = sales.filter((s: any) =>
@@ -235,6 +234,26 @@ function SuppliersContent() {
       score: supplierQuotes.length * 2 + wonSales.length * 5,
     };
   }
+  if (!authChecked) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const supplierStats = suppliers.map(s => ({ ...s, stats: getSupplierStats(s.id) }))
     .sort((a, b) => b.stats.score - a.stats.score);
