@@ -134,11 +134,11 @@ export default function SettingsPage() {
               </a>
             ))}
           </div>
-          <button onClick={saveSettings} disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer transition flex-shrink-0 text-white"
-            style={{ background: saved ? "rgba(34,197,94,0.8)" : saving ? "rgba(249,115,22,0.5)" : "linear-gradient(135deg,#f97316,#ea580c)", border: "none" }}>
-            {saved ? "✓ Saved!" : saving ? "Saving..." : "Save"}
-          </button>
+
+
+
+
+
         </div>
       </div>
 

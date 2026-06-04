@@ -1,5 +1,5 @@
 ﻿c=open("frontend/app/settings/page.tsx",encoding="utf-8").read()
-c=c.replace("{ label: \"Settings\", href: \"/settings\", active: true }","{ label: \"⚙ Settings\", href: \"/settings\", active: true }",1)
-c=c.replace("            </button>\n        </div>\n      </div>\n\n      <div className=\"max-w-3xl","        </div>\n      </div>\n\n      <div className=\"max-w-3xl",1)
-open("frontend/app/settings/page.tsx","w",encoding="utf-8").write(c)
+lines=c.split(chr(10))
+for i in range(136,141): lines[i]=""
+open("frontend/app/settings/page.tsx","w",encoding="utf-8").write(chr(10).join(lines))
 print("Done")
