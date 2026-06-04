@@ -279,10 +279,14 @@ export default function AdminPage() {
     const NAV_LINKS = [
     { label: "Requests", href: "/admin", active: true },
     { label: "Suppliers", href: "/suppliers" },
-    { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
+    { label: "Sales", href: "/sales" },
+    { label: "Customers", href: "/customers" },
     { label: "Inventory", href: "/inventory" },
+    { label: "Expenses", href: "/expenses" },
     { label: "Analytics", href: "/analytics" },
-    { label: "Reminders", href: "/reminders" }, { label: "Settings", href: "/settings" }, { label: "Reminders", href: "/reminders", badge: reminderDueCount },
+    { label: "Reminders", href: "/reminders", badge: reminderDueCount },
+    { label: "Reviews", href: "/reviews-admin" },
+    { label: "Settings", href: "/settings" },
   ];
 
   if (!authChecked) {
