@@ -717,7 +717,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
               </div>
             )}
 
-            {quotes.map((quote) => (
+            {quotes.map((quote) => { const now2=Date.now(); const isStale=!quote.sale_id&&(now2-new Date(quote.created_at).getTime())>172800000; const daysOld=Math.floor((now2-new Date(quote.created_at).getTime())/86400000); return (
               <div key={quote.id} className="rounded-2xl overflow-hidden" style={cardStyle}>
                 <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                   <div>

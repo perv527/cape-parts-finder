@@ -1,4 +1,5 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-c=c.replace("  function printQuote(quote: any) {\n    const isStale = !quote.sale_id && (now - new Date(quote.created_at).getTime()) > TWO_DAYS;\n      const daysOld = Math.floor((now - new Date(quote.created_at).getTime()) / 86400000);\n      const quoteNum","  function printQuote(quote: any) {\n      const quoteNum",1)
+c=c.replace("quotes.map((quote) => (\n              <div key={quote.id}","quotes.map((quote) => { const now2=Date.now(); const isStale=!quote.sale_id&&(now2-new Date(quote.created_at).getTime())>172800000; const daysOld=Math.floor((now2-new Date(quote.created_at).getTime())/86400000); return (\n              <div key={quote.id}",1)
+c=c.replace(");\n            })}",")};\n            })}",1)
 open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "printQuote(quote: any) {\n      const quoteNum" in c)
+print("Done:", "isStale" in c)
