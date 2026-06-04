@@ -14,7 +14,7 @@ const NAV_LINKS = [
   { label: "Expenses", href: "/expenses" },
   { label: "Analytics", href: "/analytics" },
   { label: "Reminders", href: "/reminders" },
-  { label: "Settings", href: "/settings", active: true },
+  { label: "⚙ Settings", href: "/settings", active: true },
 ];
 
 const inputStyle: React.CSSProperties = {
