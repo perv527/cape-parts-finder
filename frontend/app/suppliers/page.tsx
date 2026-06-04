@@ -6,30 +6,30 @@ import { supabase } from "@/lib/supabase";
 
 function StarRating({ rating, onRate, readonly }: { rating: number; onRate?: (r: number) => void; readonly?: boolean }) {
   const [hover, setHover] = useState(0);
-  function getSupplierStats(supplierId: number) {
-    const supplierQuotes = quotes.filter((q: any) => q.supplier_id === supplierId);
-    const wonSales = sales.filter((s: any) =>
-      supplierQuotes.some((q: any) => q.request_id === s.request_id)
-    );
-    const avgPrice = supplierQuotes.length > 0
-      ? supplierQuotes.reduce((sum: number, q: any) => sum + Number(q.supplier_price || 0), 0) / supplierQuotes.length
-      : 0;
-    const winRate = supplierQuotes.length > 0
-      ? ((wonSales.length / supplierQuotes.length) * 100).toFixed(0)
-      : "0";
-    return {
-      totalQuotes: supplierQuotes.length,
-      wonSales: wonSales.length,
-      avgPrice,
-      winRate,
-      score: supplierQuotes.length * 2 + wonSales.length * 5,
-    };
-  }
 
-  const supplierStats = suppliers.map(s => ({ ...s, stats: getSupplierStats(s.id) }))
-    .sort((a, b) => b.stats.score - a.stats.score);
 
-  const topSupplier = supplierStats[0];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="flex gap-0.5">
@@ -216,6 +216,31 @@ function SuppliersContent() {
   const inputClass = "rounded-xl px-4 py-3 text-[13px] outline-none text-white placeholder-gray-600 transition";
 
   if (!authChecked) {
+  function getSupplierStats(supplierId: number) {
+    const supplierQuotes = quotes.filter((q: any) => q.supplier_id === supplierId);
+    const wonSales = sales.filter((s: any) =>
+      supplierQuotes.some((q: any) => q.request_id === s.request_id)
+    );
+    const avgPrice = supplierQuotes.length > 0
+      ? supplierQuotes.reduce((sum: number, q: any) => sum + Number(q.supplier_price || 0), 0) / supplierQuotes.length
+      : 0;
+    const winRate = supplierQuotes.length > 0
+      ? ((wonSales.length / supplierQuotes.length) * 100).toFixed(0)
+      : "0";
+    return {
+      totalQuotes: supplierQuotes.length,
+      wonSales: wonSales.length,
+      avgPrice,
+      winRate,
+      score: supplierQuotes.length * 2 + wonSales.length * 5,
+    };
+  }
+
+  const supplierStats = suppliers.map(s => ({ ...s, stats: getSupplierStats(s.id) }))
+    .sort((a, b) => b.stats.score - a.stats.score);
+
+  const topSupplier = supplierStats[0];
+
     return (
       <main style={darkBg} className="flex items-center justify-center">
         <div className="flex items-center gap-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "20px 32px" }}>
