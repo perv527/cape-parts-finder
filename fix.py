@@ -1,24 +1,4 @@
-﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-old="""NAV_LINKS = [
-    { label: "Requests", href: "/admin", active: true },
-    { label: "Suppliers", href: "/suppliers" },
-    { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
-    { label: "Inventory", href: "/inventory" },
-    { label: "Analytics", href: "/analytics" },
-    { label: "Reminders", href: "/reminders" }, { label: "Settings", href: "/settings" }, { label: "Reminders", href: "/reminders", badge: reminderDueCount },
-  ];"""
-new="""NAV_LINKS = [
-    { label: "Requests", href: "/admin", active: true },
-    { label: "Suppliers", href: "/suppliers" },
-    { label: "Sales", href: "/sales" },
-    { label: "Customers", href: "/customers" },
-    { label: "Inventory", href: "/inventory" },
-    { label: "Expenses", href: "/expenses" },
-    { label: "Analytics", href: "/analytics" },
-    { label: "Reminders", href: "/reminders", badge: reminderDueCount },
-    { label: "Reviews", href: "/reviews-admin" },
-    { label: "Settings", href: "/settings" },
-  ];"""
-c=c.replace(old,new,1)
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "reviews-admin" in c and c.count("/reminders") == 1)
+﻿c=open("frontend/app/page.tsx",encoding="utf-8").read()
+c=c.replace("Track Request →\n            </a>","Track Request →\n            </a>\n            <a href=\"/catalogue\" className=\"px-3 py-1.5 rounded-lg text-[12px] font-medium no-underline transition\" style={{ background: \"rgba(255,255,255,0.05)\", border: \"1px solid rgba(255,255,255,0.1)\", color: \"rgba(255,255,255,0.6)\" }}>Parts Catalogue</a>",1)
+open("frontend/app/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "/catalogue" in c)

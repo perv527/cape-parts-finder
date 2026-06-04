@@ -125,6 +125,7 @@ export default function Home() {
               style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>
               Track Request →
             </a>
+            <a href="/catalogue" className="px-3 py-1.5 rounded-lg text-[12px] font-medium no-underline transition" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>Parts Catalogue</a>
           </div>
         </nav>
 
