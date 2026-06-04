@@ -826,7 +826,8 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       </div>
