@@ -133,7 +133,7 @@ export default function QuotesPage() {
   }
 
 
-  function printInvoice(quote: any) {
+  async function printInvoice(quote: any) {
     const invNum = `INV-${String(request.id).padStart(4,"0")}-${String(quote.id).padStart(4,"0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const base = Number(quote.marked_up_price);
@@ -295,8 +295,22 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     win.onload = () => { win.focus(); win.print(); };
   }
 
-  function printQuote(quote: any) {
-      const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
+  async function getNextNumber(type: "invoice" | "quote") {
+    const { data } = await supabase.from("invoice_counter").select("*").eq("id", 1).single();
+    const current = data || { last_invoice_number: 0, last_quote_number: 0 };
+    if (type === "invoice") {
+      const next = (current.last_invoice_number || 0) + 1;
+      await supabase.from("invoice_counter").update({ last_invoice_number: next, updated_at: new Date().toISOString() }).eq("id", 1);
+      return "INV-" + String(next).padStart(4, "0");
+    } else {
+      const next = (current.last_quote_number || 0) + 1;
+      await supabase.from("invoice_counter").update({ last_quote_number: next, updated_at: new Date().toISOString() }).eq("id", 1);
+      return "QUO-" + String(next).padStart(4, "0");
+    }
+  }
+
+  async function printQuote(quote: any) {
+      const quoteNum = await getNextNumber("quote");
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const basePrice = Number(quote.marked_up_price);

@@ -1,5 +1,5 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-lines=c.split(chr(10))
-for i in range(679,691): lines[i]=""
-open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(chr(10).join(lines))
-print("Done")
+c=c.replace("const quoteNum = `CPF-${String(request.id).padStart(4, \"0\")}-${String(quote.id).padStart(4, \"0\")}`;","const quoteNum = await getNextNumber(\"quote\");",1)
+c=c.replace("const invNum = \"INV-\" + String(request.id).padStart(4, \"0\") + \"-\" + String(quote.id).padStart(4, \"0\");","const invNum = await getNextNumber(\"invoice\");",1)
+open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "getNextNumber" in c)

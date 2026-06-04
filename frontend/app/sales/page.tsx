@@ -93,8 +93,15 @@ export default function SalesPage() {
     setSavingNote(null);
   }
 
-  function printInvoice(sale: any) {
-    const invNum = "INV-SALE-" + String(sale.id).padStart(4, "0");
+  async function getNextInvoiceNum() {
+    const { data } = await supabase.from("invoice_counter").select("*").eq("id", 1).single();
+    const next = ((data?.last_invoice_number) || 0) + 1;
+    await supabase.from("invoice_counter").update({ last_invoice_number: next, updated_at: new Date().toISOString() }).eq("id", 1);
+    return "INV-" + String(next).padStart(4, "0");
+  }
+
+  async function printInvoice(sale: any) {
+    const invNum = await getNextInvoiceNum();
     const date = new Date(sale.created_at).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const base = Number(sale.selling_price);
     const vat = base * 0.15;
