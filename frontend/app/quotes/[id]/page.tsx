@@ -296,8 +296,6 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
   }
 
   function printQuote(quote: any) {
-    const isStale = !quote.sale_id && (now - new Date(quote.created_at).getTime()) > TWO_DAYS;
-      const daysOld = Math.floor((now - new Date(quote.created_at).getTime()) / 86400000);
       const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
