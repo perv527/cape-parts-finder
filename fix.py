@@ -1,5 +1,3 @@
-﻿c=open("frontend/app/settings/page.tsx",encoding="utf-8").read()
-lines=c.split(chr(10))
-for i in range(136,141): lines[i]=""
-open("frontend/app/settings/page.tsx","w",encoding="utf-8").write(chr(10).join(lines))
-print("Done")
+﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
+i=c.find("Customer Price")
+print(repr(c[i-100:i+100]))

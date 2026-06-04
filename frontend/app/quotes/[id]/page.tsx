@@ -296,7 +296,9 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
   }
 
   function printQuote(quote: any) {
-    const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
+    const isStale = !quote.sale_id && (now - new Date(quote.created_at).getTime()) > TWO_DAYS;
+      const daysOld = Math.floor((now - new Date(quote.created_at).getTime()) / 86400000);
+      const quoteNum = `CPF-${String(request.id).padStart(4, "0")}-${String(quote.id).padStart(4, "0")}`;
     const date = new Date().toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const expiryDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString("en-ZA", { day: "numeric", month: "long", year: "numeric" });
     const basePrice = Number(quote.marked_up_price);
@@ -677,6 +679,17 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.7)" }}>Customer Price</p>
+                  {isStale && (
+                    <div className="mt-2 mb-2 flex items-center gap-2 px-3 py-2 rounded-xl flex-wrap" style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                      <span style={{ color: "#f87171", fontSize: 11 }}>Quote {daysOld} days old — no response</span>
+                      <a href={"https://wa.me/" + (request.phone_number || "").replace(/\D/g,"") + "?text=" + encodeURIComponent("Hi " + (request.customer_name || "there") + ", just following up on the quote we sent for " + (request.part_needed || "your part") + ". Are you still interested? Cape Parts Finder")}
+                        target="_blank" rel="noopener noreferrer"
+                        className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold no-underline flex-shrink-0"
+                        style={{ background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366" }}>
+                        Follow up
+                      </a>
+                    </div>
+                  )}
                   <p className="text-[18px] font-black" style={{ color: "#4ade80" }}>R{customerPrice.toFixed(2)}</p>
                 </div>
               </div>
