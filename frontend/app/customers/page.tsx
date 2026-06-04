@@ -14,7 +14,7 @@ const NAV_LINKS = [
   { label: "Inventory", href: "/inventory" },
   { label: "Expenses", href: "/expenses" },
   { label: "Analytics", href: "/analytics" },
-  { label: "Reminders", href: "/reminders" },
+  { label: "Reminders", href: "/reminders" }, { label: "Settings", href: "/settings" } },
 ];
 
 export default function CustomersPage() {

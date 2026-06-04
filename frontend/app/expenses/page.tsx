@@ -20,7 +20,7 @@ const NAV_LINKS = [
   { label: "Inventory", href: "/inventory" },
   { label: "Analytics", href: "/analytics" },
   { label: "Expenses", href: "/expenses", active: true },
-  { label: "Reminders", href: "/reminders" },
+  { label: "Reminders", href: "/reminders" }, { label: "Settings", href: "/settings" } },
 ];
 
 type DateFilter = "week" | "month" | "year" | "all";

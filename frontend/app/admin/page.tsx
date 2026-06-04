@@ -282,7 +282,7 @@ export default function AdminPage() {
     { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" },
     { label: "Inventory", href: "/inventory" },
     { label: "Analytics", href: "/analytics" },
-    { label: "Reminders", href: "/reminders", badge: reminderDueCount },
+    { label: "Reminders", href: "/reminders" }, { label: "Settings", href: "/settings" }, badge: reminderDueCount },
   ];
 
   if (!authChecked) {
