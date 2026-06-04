@@ -282,6 +282,7 @@ function SuppliersContent() {
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Add Supplier
             </button>
+            <button onClick={() => setShowPerf(!showPerf)} className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition" style={showPerf ? { background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" } : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>Performance</button>
           </div>
         </header>
 
