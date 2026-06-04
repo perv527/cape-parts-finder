@@ -1,4 +1,5 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-c=c.replace("            ))}\n          </div>","            );\n            })}\n          </div>",1)
-open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
+lines=c.split(chr(10))
+for i in range(679,691): lines[i]=""
+open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(chr(10).join(lines))
 print("Done")
