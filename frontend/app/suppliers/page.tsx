@@ -251,6 +251,9 @@ function SuppliersContent() {
     );
   }
 
+  const supplierStats = suppliers.map((s: any) => ({ ...s, stats: getSupplierStats(s.id) })).sort((a: any, b: any) => b.stats.score - a.stats.score);
+  const topSupplier = supplierStats[0];
+
   return (
     <main style={darkBg}>
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
