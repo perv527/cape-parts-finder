@@ -669,8 +669,8 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                 </div>
                 <div className="relative">
                   <input type="text" inputMode="decimal" value={markup} onChange={(e) => setMarkup(e.target.value.replace(/[^0-9.]/g,""))}
-                    className="w-full rounded-xl px-3 py-2 text-[13px] outline-none text-white"
-                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
+                    className="w-full rounded-xl px-3 py-3 text-[14px] outline-none text-white font-semibold"
+                    style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.15)" }} />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-[12px]">%</span>
                 </div>
               </div>

@@ -1,5 +1,3 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-c=c.replace("type=\"number\" placeholder=\"Supplier Price\" value={price} onChange={(e) => setPrice(e.target.value)}","type=\"text\" inputMode=\"decimal\" placeholder=\"Supplier Price\" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,\"\"))}",1)
-c=c.replace("type=\"number\" value={markup} onChange={(e) => setMarkup(e.target.value)} min=\"0\" max=\"200\"","type=\"text\" inputMode=\"decimal\" value={markup} onChange={(e) => setMarkup(e.target.value.replace(/[^0-9.]/g,\"\"))}",1)
-open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "inputMode" in c)
+i=c.find("Supplier Price")
+print(repr(c[i-300:i+400]))
