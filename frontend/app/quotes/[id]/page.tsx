@@ -651,7 +651,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
               </select>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-[13px]">R</span>
-                <input type="number" placeholder="Supplier Price" value={price} onChange={(e) => setPrice(e.target.value)}
+                <input type="text" inputMode="decimal" placeholder="Supplier Price" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,""))}
                   className="w-full rounded-xl pl-7 pr-3 py-3 text-[13px] outline-none text-white placeholder-gray-600"
                   style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
               </div>
@@ -668,7 +668,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                   ))}
                 </div>
                 <div className="relative">
-                  <input type="number" value={markup} onChange={(e) => setMarkup(e.target.value)} min="0" max="200"
+                  <input type="text" inputMode="decimal" value={markup} onChange={(e) => setMarkup(e.target.value.replace(/[^0-9.]/g,""))}
                     className="w-full rounded-xl px-3 py-2 text-[13px] outline-none text-white"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-[12px]">%</span>
