@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 
 const STATUS_INFO: Record<string, { label: string; desc: string; next: string; color: string; icon: string }> = {
@@ -18,6 +19,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 
 export default function TrackPage() {
+  const settings = useSettings();
   const [phone, setPhone] = useState("");
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);

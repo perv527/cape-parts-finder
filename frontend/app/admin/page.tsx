@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 
 const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
@@ -17,6 +18,7 @@ const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string; bord
 
 export default function AdminPage() {
   const router = useRouter();
+  const settings = useSettings();
   const [requests, setRequests] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -276,7 +278,7 @@ export default function AdminPage() {
     msg += "---" + n;
     msg += "Cape Parts Finder";
 
-    const phone = "27696863952";
+    const phone = settings.whatsapp_number;
     window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(msg));
   }
 

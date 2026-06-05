@@ -1,10 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 
 const VEHICLE_MAKES = ["Audi","BMW","Chevrolet","Chrysler","Citroen","Datsun","Fiat","Ford","GWM","Haval","Honda","Hyundai","Isuzu","Jeep","Kia","Land Rover","Mahindra","Mazda","Mercedes-Benz","MG","Mini","Mitsubishi","Nissan","Opel","Peugeot","Polo","Renault","Subaru","Suzuki","Toyota","Volkswagen","Volvo","Other"];
 
 export default function Home() {
+  const settings = useSettings();
   const [loading, setLoading] = useState(false);
   const [reviews, setReviews] = useState<any[]>([]);
 
@@ -423,7 +425,7 @@ export default function Home() {
       </div>
 
       {/* FLOATING WHATSAPP BUTTON */}
-      <a href="https://wa.me/27696863952?text=Hi%20Cape%20Parts%20Finder%2C%20I%20need%20help%20finding%20a%20part"
+      <a href={"https://wa.me/" + settings.whatsapp_number + "?text=Hi%20Cape%20Parts%20Finder%2C%20I%20need%20help%20finding%20a%20part"}
         target="_blank" rel="noopener noreferrer"
         className="fixed bottom-6 right-6 w-14 h-14 sm:w-auto sm:h-auto sm:px-5 sm:py-3 flex items-center justify-center sm:gap-2 rounded-full z-50 no-underline"
         style={{background:'linear-gradient(135deg,#25D366,#128C7E)',boxShadow:'0 8px 32px rgba(37,211,102,0.4)'}}>
