@@ -73,6 +73,7 @@ export default function SalesPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
+      await supabase.auth.refreshSession();
       fetchSales();
       setAuthChecked(true);
     });

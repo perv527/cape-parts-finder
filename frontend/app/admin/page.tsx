@@ -75,11 +75,22 @@ export default function AdminPage() {
     return msgs[status] || null;
   }
 
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => {
+    checkAuth();
+    // Listen for auth state changes - auto redirect on session expiry
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        router.push("/login");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { router.push("/login"); return; }
+    // Refresh session to keep it alive
+    await supabase.auth.refreshSession();
     fetchRequests();
     setAuthChecked(true);
   }

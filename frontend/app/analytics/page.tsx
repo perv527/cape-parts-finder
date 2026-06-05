@@ -19,6 +19,7 @@ export default function AnalyticsPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
+      await supabase.auth.refreshSession();
       const now = new Date();
       const monthKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
       Promise.all([

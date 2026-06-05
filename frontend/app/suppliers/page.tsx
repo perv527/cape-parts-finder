@@ -105,6 +105,7 @@ function SuppliersContent() {
   async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { router.push("/login"); return; }
+      await supabase.auth.refreshSession();
     setAuthChecked(true);
     fetchSuppliers();
     fetchRatings();

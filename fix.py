@@ -1,3 +1,3 @@
-﻿c=open("frontend/app/page.tsx",encoding="utf-8").read()
-i=c.find("async function handleSubmit")
-print(repr(c[i:i+600]))
+﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
+i=c.find("checkAuth")
+print(repr(c[i:i+300]))
