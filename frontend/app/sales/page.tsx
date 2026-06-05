@@ -275,14 +275,14 @@ export default function SalesPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
             {[
               { label: "Total Revenue", value: "R" + totalRevenue.toFixed(2), color: "#4ade80" },
-              { label: "Total Profit",  value: "R" + totalProfit.toFixed(2),  color: "#60a5fa" },
+              { label: "Total Profit",  value: "R" + totalProfit.toFixed(0),  color: "#60a5fa" },
               { label: "Total Sales",   value: String(totalSales),             color: "#c084fc" },
               { label: "Avg Profit",    value: "R" + avgProfit.toFixed(2),     color: "#fb923c" },
             ].map((card, i) => (
               <div key={i} className="rounded-xl p-4 relative overflow-hidden" style={cardStyle}>
                 <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-xl" style={{ background: card.color }} />
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{card.label}</p>
-                <p className="text-[28px] font-black leading-none" style={{ color: card.color }}>{card.value}</p>
+                <p className="text-[22px] font-black leading-none" style={{ color: card.color }}>{card.value}</p>
               </div>
             ))}
           </div>
