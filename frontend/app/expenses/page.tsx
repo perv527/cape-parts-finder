@@ -41,7 +41,6 @@ export default function ExpensesPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
-      await supabase.auth.refreshSession();
       fetchExpenses();
     });
   }, []);

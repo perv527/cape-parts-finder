@@ -29,7 +29,6 @@ export default function CustomersPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) { router.push("/login"); return; }
-      await supabase.auth.refreshSession();
       fetchData();
     });
   }, []);
