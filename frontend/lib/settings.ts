@@ -38,8 +38,8 @@ export async function getSettings(): Promise<AppSettings> {
   try {
     const { data } = await supabase.from("settings").select("*").limit(1).single();
     if (data) {
-      cached = { ...DEFAULTS, ...data };
-      return cached;
+      cached = { ...DEFAULTS, ...data } as AppSettings;
+      return cached as AppSettings;
     }
   } catch {}
   return DEFAULTS;
