@@ -1,3 +1,4 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-i=c.find("Supplier Price")
-print(repr(c[i-300:i+400]))
+c=c.replace("<span className=\"absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-[13px]\">R</span>\n                <input type=\"text\" inputMode=\"decimal\" placeholder=\"Supplier Price\" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,\"\"))}\n                  className=\"w-full rounded-xl pl-7 pr-3 py-3 text-[13px] outline-none text-white placeh","<span className=\"absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-[15px]\">R</span>\n                <input type=\"text\" inputMode=\"decimal\" placeholder=\"e.g. 350.00\" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,\"\"))}\n                  className=\"w-full rounded-xl pl-8 pr-3 py-4 text-[16px] font-semibold outline-none text-white placeh",1)
+open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
+print("Done")

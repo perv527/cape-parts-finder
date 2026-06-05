@@ -642,17 +642,17 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
           {/* FAST QUOTE ENTRY */}
           <div className="rounded-2xl p-5 mb-5" style={cardStyle}>
             <h2 className="font-bold text-[15px] text-white mb-4">Add Quote</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+            <div className="flex flex-col gap-3 mb-4">
               <select value={supplierId} onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full rounded-xl px-3 py-2 text-[13px] outline-none cursor-pointer text-white col-span-2"
+                className="w-full rounded-xl px-3 py-2 text-[13px] outline-none cursor-pointer text-white className_fix"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
                 <option value="" style={{ background: "#1a1a1a" }}>Select Supplier</option>
                 {suppliers.map((s) => <option key={s.id} value={s.id} style={{ background: "#1a1a1a" }}>{s.name}</option>)}
               </select>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-[13px]">R</span>
-                <input type="text" inputMode="decimal" placeholder="Supplier Price" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,""))}
-                  className="w-full rounded-xl pl-7 pr-3 py-3 text-[13px] outline-none text-white placeholder-gray-600"
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-[15px]">R</span>
+                <input type="text" inputMode="decimal" placeholder="e.g. 350.00" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^0-9.]/g,""))}
+                  className="w-full rounded-xl pl-8 pr-3 py-4 text-[16px] font-semibold outline-none text-white placeholder-gray-600"
                   style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
               </div>
               <div>
