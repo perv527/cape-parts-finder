@@ -254,7 +254,7 @@ export default function TrackPage() {
                     )}
 
                     {/* WhatsApp CTA */}
-                    <a href={`https://wa.me/27696863952?text=Hi%20Cape%20Parts%20Finder%2C%20I%27m%20following%20up%20on%20my%20request%20for%20${encodeURIComponent(req.part_needed || "a part")}`}
+                    <a href={`https://wa.me/${settings.whatsapp_number}?text=Hi%20Cape%20Parts%20Finder%2C%20I%27m%20following%20up%20on%20my%20request%20for%20${encodeURIComponent(req.part_needed || "a part")}`}
                       target="_blank"
                       className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl text-[13px] font-medium no-underline transition"
                       style={{ background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>

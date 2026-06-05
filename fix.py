@@ -1,4 +1,4 @@
-﻿c=open("frontend/lib/settings.ts",encoding="utf-8").read()
-c=c.replace("      cached = { ...DEFAULTS, ...data };\n      return cached;","      cached = { ...DEFAULTS, ...data } as AppSettings;\n      return cached as AppSettings;",1)
-open("frontend/lib/settings.ts","w",encoding="utf-8").write(c)
-print("Done")
+﻿c=open("frontend/app/track/page.tsx",encoding="utf-8").read()
+c=c.replace("{`https://wa.me/27696863952?text=","{`https://wa.me/${settings.whatsapp_number}?text=",1)
+open("frontend/app/track/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "settings.whatsapp_number" in c)
