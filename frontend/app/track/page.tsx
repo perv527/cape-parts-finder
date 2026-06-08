@@ -65,7 +65,7 @@ export default function TrackPage() {
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
 
   const [cancelledIds, setCancelledIds] = useState<number[]>([]);
-  const [cancelling, setCancelling] = useState(false);
+  const [cancelling, setCancelling] = useState<number|null>(null);
   const [cancelDone, setCancelDone] = useState(false);
 
     async function cancelRequest(req: any) {
