@@ -75,14 +75,21 @@ export default function AdminPage() {
     const name = request.customer_name || "there";
     const part = request.part_needed || "part";
     const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
-    const msgs: Record<string, string> = {
+        const custom: Record<string, string> = {
+      Searching: settings.msg_searching ? settings.msg_searching.replace(/{name}/g, name).replace(/{part}/g, part) : "",
+      Quoted: settings.msg_quoted ? settings.msg_quoted.replace(/{name}/g, name).replace(/{part}/g, part) : "",
+      Ordered: settings.msg_ordered ? settings.msg_ordered.replace(/{name}/g, name).replace(/{part}/g, part) : "",
+      Delivered: settings.msg_delivered ? settings.msg_delivered.replace(/{name}/g, name).replace(/{part}/g, part) : "",
+      Closed: settings.msg_followup ? settings.msg_followup.replace(/{name}/g, name).replace(/{part}/g, part) : "",
+    };
+const msgs: Record<string, string> = {
       Searching: `Hi ${name}, we are now actively searching for your ${part} for your ${vehicle}. We will update you shortly.\n\nCape Parts Finder`,
       Quoted:    `Hi ${name}, great news! We have a quote ready for your ${part}. Please reply and we will send you the details.\n\nCape Parts Finder`,
       Ordered:   `Hi ${name}, your ${part} has been ordered! We will let you know once it is ready.\n\nCape Parts Finder`,
       Delivered: `Hi ${name}, your ${part} has been delivered. Thank you for choosing Cape Parts Finder!\n\nCape Parts Finder`,
       Closed:    `Hi ${name}, your request for a ${part} has been completed. Thank you!\n\nCape Parts Finder`,
     };
-    return msgs[status] || null;
+    return custom[status] || msgs[status] || null;
   }
 
   useEffect(() => {
