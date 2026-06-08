@@ -124,6 +124,19 @@ export default function Home() {
       const { error } = await supabase.from("parts_requests").insert([{ ...sanitized, photo_url, photo_urls }]);
       if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
       setSuccess(true);
+
+      // Auto notify yourself via WhatsApp
+      const waMsg = "New Part Request!" +
+        "\nName: " + formData.customer_name +
+        "\nPhone: " + formData.phone_number +
+        "\nVehicle: " + formData.vehicle_year + " " + formData.vehicle_make + " " + formData.vehicle_model +
+        "\nPart: " + formData.part_needed +
+        "\nPreference: " + formData.part_preference +
+        (formData.area ? "\nArea: " + formData.area : "") +
+        (formData.referral_source ? "\nFrom: " + formData.referral_source : "");
+      const waUrl = "https://wa.me/" + settings.whatsapp_number + "?text=" + encodeURIComponent(waMsg);
+      window.open(waUrl, "_blank");
+
     } catch (err) { alert("Something went wrong. Please try again."); }
     setLoading(false);
   }
@@ -139,13 +152,26 @@ export default function Home() {
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h2 className="text-[28px] font-black text-white mb-3">Request Sent!</h2>
-        <p className="text-gray-400 text-[15px] leading-relaxed mb-6">We received your request for a <span style={{ color: "#fb923c" }}>{formData.part_needed}</span>. We'll search our supplier network and contact you shortly on <span style={{ color: "#fb923c" }}>{formData.phone_number}</span>.</p>
-        <div className="rounded-2xl p-4 mb-6" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-          <p className="text-[12px] text-gray-500 mb-2">Track your request status</p>
+        <p className="text-gray-400 text-[15px] leading-relaxed mb-4">We received your request for a <span style={{ color: "#fb923c" }}>{formData.part_needed}</span>. We will search our supplier network and contact you on <span style={{ color: "#fb923c" }}>{formData.phone_number}</span>.</p>
+
+        <div className="rounded-2xl p-4 mb-4" style={{ background: "rgba(37,211,102,0.06)", border: "1px solid rgba(37,211,102,0.15)" }}>
+          <div className="flex items-center gap-2 mb-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <p className="text-[13px] font-semibold" style={{ color: "#25D366" }}>Typical response time</p>
+          </div>
+          <p className="text-[13px] text-gray-400">We usually respond within <strong className="text-white">2-4 hours</strong> during business hours (Mon-Sat, 8am-6pm).</p>
+        </div>
+
+        <div className="rounded-2xl p-4 mb-4" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <p className="text-[12px] text-gray-500 mb-2">Track your request anytime</p>
           <a href="/track" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-[14px] font-bold text-white no-underline"
             style={{ background: "linear-gradient(135deg,#f97316,#ea580c)" }}>
             Track My Request →
           </a>
+        </div>
+
+        <div className="rounded-2xl p-3 mb-6" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <p className="text-[12px] text-gray-600">Need to cancel? Visit the tracking page and cancel before we source your part.</p>
         </div>
         <button onClick={() => { setSuccess(false); setStep(1); setFormData({ customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", engine_size: "", vin_number: "", part_needed: "", part_preference: "Aftermarket", extra_details: "", referral_source: "" }); setPhotos([]); }}
           className="text-gray-600 text-[13px] cursor-pointer hover:text-gray-400 transition">

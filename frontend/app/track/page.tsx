@@ -64,6 +64,24 @@ export default function TrackPage() {
   const darkBg = { background: "#111111", minHeight: "100vh" };
   const inputStyle = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" };
 
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelDone, setCancelDone] = useState(false);
+
+  async function cancelRequest() {
+    if (!request) return;
+    const canCancel = ["New", "Searching"].includes(request.status || "New");
+    if (!canCancel) {
+      alert("This request cannot be cancelled as it has already been quoted or ordered.");
+      return;
+    }
+    if (!confirm("Are you sure you want to cancel this request for " + request.part_needed + "?")) return;
+    setCancelling(true);
+    await supabase.from("parts_requests").update({ status: "Closed" }).eq("id", request.id);
+    setCancelling(false);
+    setCancelDone(true);
+    setRequest({ ...request, status: "Closed" });
+  }
+
   return (
     <main style={darkBg}>
       <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
