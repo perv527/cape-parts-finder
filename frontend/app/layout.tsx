@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 export const metadata: Metadata = {
   title: "Cape Parts Finder | Find Car Parts in Cape Town",
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" /></head>
-      <body style={{overflowX:"hidden",maxWidth:"100vw"}}>{children}</body>
+      <body style={{overflowX:"hidden",maxWidth:"100vw"}}><OfflineBanner />{children}</body>
     </html>
   );
 }

@@ -44,6 +44,8 @@ export default function AdminPage() {
   const [reminderNote, setReminderNote] = useState("");
   const [savingReminder, setSavingReminder] = useState(false);
   const [reminderDueCount, setReminderDueCount] = useState(0);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
   const [reviewModal, setReviewModal] = useState<any>(null);
   const [editModal, setEditModal] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
@@ -210,6 +212,9 @@ export default function AdminPage() {
     const a = document.createElement("a");
     a.href = url; a.download = "parts-requests.csv"; a.click();
   }
+
+  // Reset page when search or filter changes
+  useEffect(() => { setPage(0); }, [search, statusFilter]);
 
   const filteredRequests = requests.filter((r) => {
     const matchesSearch = (r.customer_name + " " + r.vehicle_make + " " + r.vehicle_model + " " + r.part_needed + " " + (r.phone_number || "") + " " + (r.area || "")).toLowerCase().includes(search.toLowerCase());
@@ -516,7 +521,7 @@ export default function AdminPage() {
               </div>
             )}
 
-            {filteredRequests.map((request) => {
+            {filteredRequests.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((request) => {
               const st = STATUS_STYLE[request.status || "New"] ?? STATUS_STYLE.New;
               const isExpanded = expandedId === request.id;
               const isSelected = selectedIds.has(request.id);
@@ -673,6 +678,27 @@ export default function AdminPage() {
               );
             })}
           </div>
+
+          {/* PAGINATION */}
+          {filteredRequests.length > PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-3 mt-4 pb-4">
+              <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
+                className="px-4 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: page === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)" }}>
+                ← Previous
+              </button>
+              <span className="text-[12px] text-gray-500">
+                Page {page + 1} of {Math.ceil(filteredRequests.length / PAGE_SIZE)} · {filteredRequests.length} total
+              </span>
+              <button onClick={() => setPage(p => Math.min(Math.ceil(filteredRequests.length / PAGE_SIZE) - 1, p + 1))}
+                disabled={page >= Math.ceil(filteredRequests.length / PAGE_SIZE) - 1}
+                className="px-4 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: page >= Math.ceil(filteredRequests.length / PAGE_SIZE) - 1 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)" }}>
+                Next →
+              </button>
+            </div>
+          )}
+
         </div>
       </div>
 
