@@ -23,8 +23,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" /></head>
-      <body style={{overflowX:"hidden",maxWidth:"100vw"}}><OfflineBanner />{children}</body>
+      <head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
+      <meta name="theme-color" content="#f97316" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-title" content="Parts Finder" />
+      <link rel="manifest" href="/manifest.json" />
+      <link rel="apple-touch-icon" href="/icon-192.png" /></head>
+      <body style={{overflowX:"hidden",maxWidth:"100vw"}}>
+      <script dangerouslySetInnerHTML={{__html: `if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/sw.js").catch(()=>{});})}` }} /><OfflineBanner />{children}</body>
     </html>
   );
 }
