@@ -7,6 +7,11 @@ const VEHICLE_MAKES = ["Audi","BMW","Chevrolet","Chrysler","Citroen","Datsun","F
 
 export default function Home() {
   const settings = useSettings();
+  const [requestCount, setRequestCount] = useState<number|null>(null);
+  useEffect(() => {
+    supabase.from("parts_requests").select("id", { count: "exact", head: true })
+      .then(({ count }) => setRequestCount(count));
+  }, []);
   const [loading, setLoading] = useState(false);
   const [honeypot, setHoneypot] = useState("");
 
@@ -253,6 +258,13 @@ export default function Home() {
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
               Free Service · Cape Town & Surrounds
             </div>
+            {requestCount && requestCount > 5 && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-medium mt-2"
+                style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", color: "#4ade80" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                {requestCount}+ customers found their part
+              </div>
+            )}
             <h1 className="text-[36px] sm:text-[48px] font-black text-white leading-tight mb-4">
               Find Any Car Part<br />
               <span style={{ background: "linear-gradient(135deg,#f97316,#fb923c)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Fast in Cape Town</span>
