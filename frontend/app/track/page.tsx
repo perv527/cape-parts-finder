@@ -68,22 +68,7 @@ export default function TrackPage() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelDone, setCancelDone] = useState(false);
 
-  async function cancelRequest() {
-    if (!request) return;
-    const canCancel = ["New", "Searching"].includes(request.status || "New");
-    if (!canCancel) {
-      alert("This request cannot be cancelled as it has already been quoted or ordered.");
-      return;
-    }
-    if (!confirm("Are you sure you want to cancel this request for " + request.part_needed + "?")) return;
-    setCancelling(true);
-    await supabase.from("parts_requests").update({ status: "Closed" }).eq("id", request.id);
-    setCancelling(false);
-    setCancelDone(true);
-    setRequest({ ...request, status: "Closed" });
-  }
-
-  async function cancelRequest(req: any) {
+    async function cancelRequest(req: any) {
     const canCancel = ["New", "Searching"].includes(req.status || "New");
     if (!canCancel) { alert("Cannot cancel — already quoted or ordered."); return; }
     if (!confirm("Cancel request for " + req.part_needed + "?")) return;
