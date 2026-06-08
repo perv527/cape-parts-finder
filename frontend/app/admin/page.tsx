@@ -47,6 +47,7 @@ export default function AdminPage() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [reviewModal, setReviewModal] = useState<any>(null);
+  const [sessionWarning, setSessionWarning] = useState(false);
   const [editModal, setEditModal] = useState<any>(null);
   const [quickSaleModal, setQuickSaleModal] = useState<any>(null);
   const [quickSalePrice, setQuickSalePrice] = useState("");
@@ -91,8 +92,22 @@ export default function AdminPage() {
       if (event === "SIGNED_OUT" || !session) {
         router.push("/login");
       }
+      if (event === "TOKEN_REFRESHED") {
+        setSessionWarning(false);
+      }
     });
-    return () => subscription.unsubscribe();
+
+    // Warn 5 minutes before session expires
+    const warningTimer = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const expiresAt = session.expires_at || 0;
+        const minutesLeft = (expiresAt - Date.now() / 1000) / 60;
+        if (minutesLeft < 5 && minutesLeft > 0) setSessionWarning(true);
+        else setSessionWarning(false);
+      }
+    }, 60000);
+    return () => { subscription.unsubscribe(); clearInterval(warningTimer); };
   }, []);
 
   async function checkAuth() {
@@ -1105,6 +1120,27 @@ export default function AdminPage() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* SESSION WARNING */}
+      {sessionWarning && (
+        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 rounded-2xl p-4 flex items-start gap-3"
+          style={{ background: "#1a1a1a", border: "1px solid rgba(251,191,36,0.3)", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(251,191,36,0.15)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div className="flex-1">
+            <p className="text-[13px] font-semibold text-white mb-0.5">Session expiring soon</p>
+            <p className="text-[12px] text-gray-400">Your session expires in less than 5 minutes.</p>
+            <button onClick={async () => { await supabase.auth.refreshSession(); setSessionWarning(false); }}
+              className="mt-2 px-3 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer"
+              style={{ background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.25)", color: "#fbbf24" }}>
+              Stay logged in
+            </button>
+          </div>
+          <button onClick={() => setSessionWarning(false)} className="text-gray-600 cursor-pointer text-lg" style={{ background: "none", border: "none" }}>×</button>
         </div>
       )}
     </main>
