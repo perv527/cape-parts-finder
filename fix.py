@@ -1,3 +1,5 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-i=c.find("Edit Price")
-print(repr(c[i+100:i+400]))
+c=c.replace("opacity: quote.rejected ? 0.7 : 1","opacity: quote.rejected ? 0.5 : 1",1)
+c=c.replace("background: quote.rejected ? \"rgba(107,114,128,0.05)\"","background: quote.rejected ? \"rgba(107,114,128,0.08)\"",1)
+open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
+print("Done")
