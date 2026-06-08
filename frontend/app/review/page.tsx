@@ -7,6 +7,13 @@ export default function ReviewPage() {
   const [hover, setHover] = useState(0);
   const [form, setForm] = useState({ customer_name: "", phone_number: "", comment: "", part_sourced: "" });
   const [loading, setLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [captchaAnswer, setCaptchaAnswer] = useState("");
+  const [captcha] = useState(() => {
+    const a = Math.floor(Math.random() * 9) + 1;
+    const b = Math.floor(Math.random() * 9) + 1;
+    return { a, b, answer: a + b };
+  });
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
@@ -145,6 +152,21 @@ export default function ReviewPage() {
                 className="w-full rounded-xl px-4 py-3 text-[14px] outline-none text-white placeholder-gray-600 resize-none"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
             </div>
+          </div>
+
+          {/* Honeypot - hidden from humans */}
+          <input type="text" name="website" value={honeypot} onChange={e => setHoneypot(e.target.value)}
+            style={{ display: "none" }} tabIndex={-1} autoComplete="off" />
+
+          {/* Math CAPTCHA */}
+          <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <label className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
+              Quick check — what is {captcha.a} + {captcha.b}?
+            </label>
+            <input type="text" inputMode="numeric" placeholder="Enter your answer"
+              value={captchaAnswer} onChange={e => setCaptchaAnswer(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 text-[14px] outline-none text-white placeholder-gray-600"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }} />
           </div>
 
           {error && <p className="text-[13px] text-red-400 text-center mb-3">{error}</p>}
