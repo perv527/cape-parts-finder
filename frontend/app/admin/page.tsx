@@ -316,26 +316,6 @@ export default function AdminPage() {
     fetchRequests();
   }
 
-  async function saveEdit() {
-    if (!editModal) return;
-    setSavingEdit(true);
-    await supabase.from("parts_requests").update({
-      customer_name: editForm.customer_name,
-      phone_number: editForm.phone_number,
-      email: editForm.email,
-      area: editForm.area,
-      vehicle_make: editForm.vehicle_make,
-      vehicle_model: editForm.vehicle_model,
-      vehicle_year: editForm.vehicle_year,
-      engine_size: editForm.engine_size,
-      part_needed: editForm.part_needed,
-      extra_details: editForm.extra_details,
-    }).eq("id", editModal.id);
-    setSavingEdit(false);
-    setEditModal(null);
-    fetchRequests();
-  }
-
   const NAV_LINKS = [
     { label: "Requests", href: "/admin", active: true },
     { label: "Suppliers", href: "/suppliers" },

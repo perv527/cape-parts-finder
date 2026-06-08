@@ -1,4 +1,9 @@
 ﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-c=c.replace("  const [editModal, setEditModal] = useState<any>(null);\n  const [editForm, setEditForm] = useState<any>({});\n  const [savingEdit, setSavingEdit] = useState(false);\n  const [editModal, setEditModal] = useState<any>(null);\n  const [editForm, setEditForm] = useState<any>({});\n  const [savingEdit, setSavingEdit] = useState(false);","  const [editModal, setEditModal] = useState<any>(null);\n  const [editForm, setEditForm] = useState<any>({});\n  const [savingEdit, setSavingEdit] = useState(false);",1)
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
-print("Done")
+i=c.find("async function saveEdit()")
+j=c.find("async function saveEdit()",i+1)
+print("first at:", i, "second at:", j)
+if j>0:
+    end=c.find("const NAV_LINKS",j)
+    c=c[:j]+c[end:]
+    open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
+    print("Removed duplicate!")
