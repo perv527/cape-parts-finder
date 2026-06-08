@@ -335,11 +335,11 @@ export default function AdminPage() {
       request_id: quickSaleModal.id,
       customer_name: quickSaleModal.customer_name,
       customer_phone: quickSaleModal.phone_number,
-      part_needed: quickSaleModal.part_needed,
       selling_price: selling,
       supplier_price: cost,
       profit: profit,
       status: "Completed",
+      notes: quickSaleModal.part_needed,
     }]);
     if (error) { alert("Failed to save sale"); setSavingQuickSale(false); return; }
     await supabase.from("parts_requests").update({ status: "Delivered" }).eq("id", quickSaleModal.id);
