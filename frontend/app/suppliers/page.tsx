@@ -65,6 +65,7 @@ function SuppliersContent() {
 
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
   const [showPerf, setShowPerf] = useState(false);
   const [ratings, setRatings] = useState<Record<number, { avg: number; count: number; list: any[] }>>({});
@@ -233,6 +234,7 @@ function SuppliersContent() {
       avgPrice,
       winRate,
       score: supplierQuotes.length * 2 + wonSales.length * 5,
+      avgResponseHrs: supplierQuotes.length > 0 ? (() => { const times = supplierQuotes.filter((q:any)=>q.created_at && q.request_id).map((q:any)=>{ const req = requests.find((r:any)=>r.id===q.request_id); return req ? (new Date(q.created_at).getTime()-new Date(req.created_at).getTime())/3600000 : null; }).filter((t:any)=>t!==null && t>=0 && t<168); return times.length>0 ? Math.round(times.reduce((a:number,b:any)=>a+b,0)/times.length) : null; })() : null,
     };
   }
   if (!authChecked) {
