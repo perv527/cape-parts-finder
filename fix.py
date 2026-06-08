@@ -1,5 +1,3 @@
-﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-c=c.replace("opacity: quote.rejected ? 0.7 : 1","opacity: quote.rejected ? 0.5 : 1",1)
-c=c.replace("background: quote.rejected ? \"rgba(107,114,128,0.05)\"","background: quote.rejected ? \"rgba(107,114,128,0.08)\"",1)
-open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
-print("Done")
+﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
+i=c.find("Internal Notes")
+print(repr(c[i-300:i+50]))
