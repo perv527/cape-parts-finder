@@ -14,6 +14,11 @@ export type AppSettings = {
   bank_account_type: string;
   vat_number: string;
   tagline: string;
+  msg_searching: string;
+  msg_quoted: string;
+  msg_ordered: string;
+  msg_delivered: string;
+  msg_followup: string;
 };
 
 const DEFAULTS: AppSettings = {
@@ -29,6 +34,11 @@ const DEFAULTS: AppSettings = {
   bank_account_type: "Savings Account",
   vat_number: "",
   tagline: "Your Trusted Auto Parts Network · Cape Town",
+  msg_searching: "",
+  msg_quoted: "",
+  msg_ordered: "",
+  msg_delivered: "",
+  msg_followup: "",
 };
 
 let cached: AppSettings | null = null;
