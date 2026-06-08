@@ -1,4 +1,3 @@
-﻿c=open("frontend/app/review/page.tsx",encoding="utf-8").read()
-print("lines:", len(c.split(chr(10))))
-i=c.find("handleSubmit")
-print(repr(c[i:i+300]))
+﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
+i=c.find("View Quotes")
+print(repr(c[i-100:i+200]))
