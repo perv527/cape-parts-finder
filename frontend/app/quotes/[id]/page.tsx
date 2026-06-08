@@ -838,16 +838,16 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                       Print Invoice
                     </button>
 
-                    <button onClick={() => convertToSale(quote)}
+                    {!quote.rejected && (<button onClick={() => convertToSale(quote)}
                       className="px-3 py-2 rounded-lg text-[12px] font-bold cursor-pointer transition text-white"
                       style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", boxShadow: "0 4px 12px rgba(249,115,22,0.2)" }}>
                       Convert to Sale
-                    </button>
-                    <button onClick={() => { setEditingQuote(quote); setEditPrice(String(quote.supplier_price)); setEditMarkup(String(Math.round((Number(quote.marked_up_price) / Number(quote.supplier_price) - 1) * 100))); }}
+                    </button>)}
+                    {!quote.rejected && (<button onClick={() => { setEditingQuote(quote); setEditPrice(String(quote.supplier_price)); setEditMarkup(String(Math.round((Number(quote.marked_up_price) / Number(quote.supplier_price) - 1) * 100))); }}
                       className="px-3 py-2 rounded-lg text-[12px] font-medium cursor-pointer transition"
                       style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.15)", color: "#fb923c" }}>
                       Edit Price
-                    </button>
+                    </button>)}
                     
                     {!quote.rejected && !quote.sale_id && (
                       <button onClick={() => { setRejectModal(quote); setRejectReason(""); }}
