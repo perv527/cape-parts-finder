@@ -48,9 +48,6 @@ export default function AdminPage() {
   const [editModal, setEditModal] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>({});
   const [savingEdit, setSavingEdit] = useState(false);
-  const [editModal, setEditModal] = useState<any>(null);
-  const [editForm, setEditForm] = useState<any>({});
-  const [savingEdit, setSavingEdit] = useState(false);
 
   function getWhatsAppMessage(request: any, template: string) {
     const name = request.customer_name || "there";
