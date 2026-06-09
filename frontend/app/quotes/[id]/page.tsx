@@ -757,18 +757,9 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.7)" }}>Customer Price</p>
-
-
-
-
-
-
-
-
-
-
-
-
+                <p className="text-[22px] font-black" style={{ color: "#4ade80" }}>
+                  {price && markup ? "R" + (Number(price) * (1 + Number(markup) / 100)).toFixed(2) : "—"}
+                </p>
                 </div>
               </div>
             )}
