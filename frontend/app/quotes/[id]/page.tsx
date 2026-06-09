@@ -717,6 +717,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                   <div className="rounded-xl p-3 mb-2" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
                     <div className="flex justify-between text-[12px] mb-1">
                       <span style={{ color: "#a78bfa" }}>AI: {aiSuggestion.markup}% → R{aiSuggestion.selling_price}</span>
+                      <button onClick={() => { setMarkup(String(aiSuggestion.markup)); setAiSuggestion(null); }} className="px-2 py-1 rounded-lg text-[11px] font-semibold cursor-pointer" style={{ background: "rgba(139,92,246,0.2)", border: "1px solid rgba(139,92,246,0.3)", color: "#a78bfa" }}>Use this</button>
                     </div>
                     <p className="text-[11px] text-gray-500">{aiSuggestion.reason}</p>
                   </div>
