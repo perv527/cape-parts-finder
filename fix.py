@@ -1,3 +1,3 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-i=c.find("display:\"flex\",alignItems:\"center\",justifyContent:\"space-between\"")
-print(repr(c[i-100:i+50]))
+lines=c.split(chr(10))
+print(chr(10).join(lines[960:985]))
