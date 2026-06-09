@@ -209,6 +209,28 @@ export default function CustomersPage() {
               const isRepeat = c.sales.length >= 2;
               const convRate = c.requests.length > 0 ? ((c.sales.length / c.requests.length) * 100).toFixed(0) : "0";
 
+              // LTV calculations
+              const ltv = c.totalSpend || 0;
+              const tier = ltv >= 5000 ? "Platinum" : ltv >= 2000 ? "Gold" : ltv >= 500 ? "Silver" : "Bronze";
+              const tierColor = tier === "Platinum" ? "#e2e8f0" : tier === "Gold" ? "#fbbf24" : tier === "Silver" ? "#94a3b8" : "#cd7f32";
+              const tierBg = tier === "Platinum" ? "rgba(226,232,240,0.1)" : tier === "Gold" ? "rgba(251,191,36,0.1)" : tier === "Silver" ? "rgba(148,163,184,0.1)" : "rgba(205,127,50,0.1)";
+              const daysSinceLastOrder = c.sales.length > 0
+                ? Math.floor((Date.now() - new Date(c.sales[c.sales.length-1].created_at).getTime()) / (1000*60*60*24))
+                : null;
+              const atRisk = daysSinceLastOrder !== null && daysSinceLastOrder > 60 && c.sales.length > 0;
+              const avgOrderValue = c.sales.length > 0 ? (ltv / c.sales.length).toFixed(0) : "0";
+              // Predict next order based on average gap
+              let predictedNext = null;
+              if (c.sales.length >= 2) {
+                const gaps: number[] = [];
+                for (let gi = 1; gi < c.sales.length; gi++) {
+                  gaps.push((new Date(c.sales[gi].created_at).getTime() - new Date(c.sales[gi-1].created_at).getTime()) / (1000*60*60*24));
+                }
+                const avgGap = gaps.reduce((a,b) => a+b, 0) / gaps.length;
+                const lastOrderDate = new Date(c.sales[c.sales.length-1].created_at);
+                predictedNext = new Date(lastOrderDate.getTime() + avgGap * 24*60*60*1000);
+              }
+
               return (
                 <div key={c.phone} style={{
                   ...cardStyle,
@@ -308,6 +330,18 @@ export default function CustomersPage() {
                         <div className="ml-auto text-right">
                           <div className="text-[10px] text-gray-600">Conversion rate</div>
                           <div className="font-bold text-[14px]" style={{ color: Number(convRate) >= 50 ? "#4ade80" : "#fb923c" }}>{convRate}%</div>
+                        <div className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
+                          <p className="text-[10px] text-gray-500 mb-0.5">Lifetime Value</p>
+                          <p className="font-bold text-[14px]" style={{ color: tierColor }}>R{ltv.toFixed(0)}</p>
+                        </div>
+                        <div className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
+                          <p className="text-[10px] text-gray-500 mb-0.5">Avg Order</p>
+                          <p className="font-bold text-white text-[14px]">R{avgOrderValue}</p>
+                        </div>
+                        <div className="rounded-xl p-3 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
+                          <p className="text-[10px] text-gray-500 mb-0.5">Last Order</p>
+                          <p className="font-bold text-[14px]" style={{ color: atRisk ? "#f87171" : "white" }}>{daysSinceLastOrder !== null ? String(daysSinceLastOrder) + "d ago" : "Never"}</p>
+                        </div>
                         </div>
                       </div>
                     </div>

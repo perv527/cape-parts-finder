@@ -1,4 +1,6 @@
-﻿c=open("frontend/app/suppliers/page.tsx",encoding="utf-8").read()
-c=c.replace("setRatingModal(supplier); setRatings(0); setRatingNote(\"\");","setRatingModal(supplier); setRatingNote(\"\");",1)
-open("frontend/app/suppliers/page.tsx","w",encoding="utf-8").write(c)
-print("Done")
+﻿c=open("frontend/app/customers/page.tsx",encoding="utf-8").read()
+old="convRate}%</div>\n                        </div>\n                      </div>\n                   </div>"
+new="convRate}%</div>\n                        </div>\n                        <div className=\"rounded-xl p-3 text-center\" style={{ background: \"rgba(255,255,255,0.04)\" }}><p className=\"text-[10px] text-gray-500 mb-0.5\">Lifetime Value</p><p className=\"font-bold text-[14px]\" style={{ color: tierColor }}>R{ltv.toFixed(0)}</p></div>\n                        <div className=\"rounded-xl p-3 text-center\" style={{ background: \"rgba(255,255,255,0.04)\" }}><p className=\"text-[10px] text-gray-500 mb-0.5\">Avg Order</p><p className=\"font-bold text-white text-[14px]\">R{avgOrderValue}</p></div>\n                        <div className=\"rounded-xl p-3 text-center\" style={{ background: \"rgba(255,255,255,0.04)\" }}><p className=\"text-[10px] text-gray-500 mb-0.5\">Last Order</p><p className=\"font-bold text-[14px]\" style={{ color: atRisk ? \"#f87171\" : \"white\" }}>{daysSinceLastOrder !== null ? daysSinceLastOrder + \"d ago\" : \"Never\"}</p></div>\n                      </div>\n                   </div>"
+c=c.replace(old,new,1)
+open("frontend/app/customers/page.tsx","w",encoding="utf-8").write(c)
+print("Done:", "Lifetime Value" in c)
