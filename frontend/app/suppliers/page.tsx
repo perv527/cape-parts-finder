@@ -66,6 +66,7 @@ function SuppliersContent() {
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
+  const [showScorecards, setShowScorecards] = useState(false);
   const [sales, setSales] = useState<any[]>([]);
   const [showPerf, setShowPerf] = useState(false);
   const [ratings, setRatings] = useState<Record<number, { avg: number; count: number; list: any[] }>>({});
