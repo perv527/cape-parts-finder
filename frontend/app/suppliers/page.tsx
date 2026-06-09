@@ -551,7 +551,7 @@ function SuppliersContent() {
                             <span className={`w-1.5 h-1.5 rounded-full ${supplier.active ? "bg-green-400" : "bg-gray-600"}`} />
                           </div>
                           <p className="text-[11px] text-gray-500 mt-0.5">{supplier.speciality || "General Parts"}</p>
-                  <button onClick={e => { e.stopPropagation(); setRatingModal(supplier); setRating(0); setRatingNote(""); }}
+                  <button onClick={e => { e.stopPropagation(); setRatingModal(supplier); setRatings(0); setRatingNote(""); }}
                     className="mt-1.5 flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium cursor-pointer"
                     style={{ background: "rgba(249,115,22,0.08)", border: "1px solid rgba(249,115,22,0.15)", color: "#fb923c" }}>
                     Rate Supplier
