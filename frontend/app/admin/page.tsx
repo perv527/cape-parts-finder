@@ -383,6 +383,7 @@ const msgs: Record<string, string> = {
     { label: "Analytics", href: "/analytics" },
     { label: "Reminders", href: "/reminders", badge: reminderDueCount },
     { label: "Reviews", href: "/reviews-admin" },
+  { label: "Watchlist", href: "/watchlist" },
     { label: "Settings", href: "/settings" },
   ];
 
