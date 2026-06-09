@@ -1,6 +1,4 @@
 ﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-old="<p className=\"text-[10px] font-bold uppercase tracking-widest mb-2\" style={{ color: \"rgba(255,255,255,0.3)\" }}>Markup %</p>"
-new="<div className=\"flex items-center justify-between mb-2\"><p className=\"text-[10px] font-bold uppercase tracking-widest\" style={{ color: \"rgba(255,255,255,0.3)\" }}>Markup %</p><button onClick={getAiSuggestion} disabled={loadingAi} className=\"px-2 py-1 rounded-lg text-[11px] font-medium cursor-pointer\" style={{ background: \"rgba(139,92,246,0.1)\", border: \"1px solid rgba(139,92,246,0.2)\", color: \"#a78bfa\" }}>{loadingAi ? \"Thinking...\" : \"AI Suggest\"}</button></div>{aiSuggestion && (<div className=\"rounded-xl p-3 mb-2\" style={{ background: \"rgba(139,92,246,0.06)\", border: \"1px solid rgba(139,92,246,0.15)\" }}><div className=\"flex justify-between text-[12px] mb-1\"><span className=\"font-semibold\" style={{ color: \"#a78bfa\" }}>AI: {aiSuggestion.markup}% markup</span><span className=\"text-white font-bold\">R{aiSuggestion.selling_price}</span></div><p className=\"text-[11px] text-gray-500\">{aiSuggestion.reason}</p></div>)}"
-c=c.replace(old,new,1)
+c=c.replace("  const [sales, setSales] = useState<any[]>([]);","  const [sales, setSales] = useState<any[]>([]);\n  const [aiSuggestion, setAiSuggestion] = useState<any>(null);\n  const [loadingAi, setLoadingAi] = useState(false);",1)
 open("frontend/app/quotes/[id]/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "AI Suggest" in c)
+print("Done:", "loadingAi" in c and "aiSuggestion" in c)

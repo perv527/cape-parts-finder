@@ -12,6 +12,8 @@ export default function QuotesPage() {
   const [request, setRequest] = useState<any>(null);
   const [quotes, setQuotes] = useState<any[]>([]);
   const [sales, setSales] = useState<any[]>([]);
+  const [aiSuggestion, setAiSuggestion] = useState<any>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
   const [suppliers, setSuppliers] = useState<any[]>([]);
 
   const [price, setPrice] = useState("");
