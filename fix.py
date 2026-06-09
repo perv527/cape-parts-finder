@@ -1,2 +1,15 @@
-﻿open("frontend/public/offline.html","w",encoding="utf-8").write("""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline - Cape Parts Finder</title><style>body{background:#0a0a0a;color:white;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:24px}.icon{width:64px;height:64px;background:rgba(249,115,22,0.15);border:2px solid rgba(249,115,22,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px}h1{font-size:22px;margin-bottom:8px}p{color:#6b7280;font-size:14px;line-height:1.6;max-width:300px;margin:0 auto 24px}button{background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer}</style></head><body><div><div class="icon">X</div><h1>No connection</h1><p>Cape Parts Finder needs internet. Check your connection and try again.</p><button onclick="window.location.reload()">Try Again</button></div></body></html>""")
-print("Done")
+﻿import struct,zlib
+def png(size,f):
+    w=h=size;r,g,b=249,115,22
+    d=b"".join(b"\x00"+bytes([r,g,b]*w) for _ in range(h))
+    def c(n,x):return struct.pack(">I",len(x))+n+x+struct.pack(">I",zlib.crc32(n+x)&0xffffffff)
+    open(f,"wb").write(b"\x89PNG\r\n\x1a\n"+c(b"IHDR",struct.pack(">IIBBBBB",w,h,8,2,0,0,0))+c(b"IDAT",zlib.compress(d))+c(b"IEND",b""))
+    print("Created",f)
+png(192,"frontend/public/icon-192.png")
+png(512,"frontend/public/icon-512.png")
+import json
+m=json.load(open("frontend/public/manifest.json"))
+m["display"]="standalone"
+m["icons"]=[{"src":"/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+json.dump(m,open("frontend/public/manifest.json","w"),indent=2)
+print("Manifest updated!")
