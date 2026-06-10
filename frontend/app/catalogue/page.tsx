@@ -16,7 +16,12 @@ export default function CataloguePage() {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("All");
 
-  useEffect(() => { fetchParts(); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { window.location.href = "/login"; return; }
+      fetchParts();
+    });
+  }, []);
 
   async function fetchParts() {
     setLoading(true);

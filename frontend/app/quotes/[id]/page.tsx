@@ -35,7 +35,12 @@ export default function QuotesPage() {
   const [editMarkup, setEditMarkup] = useState("20");
   const [savingEdit, setSavingEdit] = useState(false);
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) { router.push("/login"); return; }
+      fetchData();
+    });
+  }, []);
 
   async function fetchData() {
     const [{ data: req }, { data: q }, { data: s }] = await Promise.all([
