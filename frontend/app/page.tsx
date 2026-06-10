@@ -180,7 +180,6 @@ export default function Home() {
             partNeeded: sanitized.part_needed,
             vehicle: sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model,
             phone: sanitized.phone_number,
-            requestId: data?.[0]?.id,
           }),
         }).catch(() => {});
       }
