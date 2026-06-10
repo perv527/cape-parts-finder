@@ -164,6 +164,10 @@ export default function Home() {
       if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
       setSuccess(true);
 
+      // Send confirmation email
+      if (sanitized.email) {
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "customer_confirmation", to: sanitized.email, customerName: sanitized.customer_name, partNeeded: sanitized.part_needed, vehicle: sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model, phone: sanitized.phone_number }) }).catch(() => {}); }
+
       // Send confirmation email to customer
       if (sanitized.email) {
         fetch("/api/send-email", {
