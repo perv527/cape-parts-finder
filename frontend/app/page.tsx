@@ -196,6 +196,9 @@ export default function Home() {
       const waUrl = "https://wa.me/" + settings.whatsapp_number + "?text=" + encodeURIComponent(waMsg);
       window.open(waUrl, "_blank");
 
+      // Admin notification email
+      fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_notification", to: "admin@capepartsfinder.co.za", customerName: sanitized.customer_name, partNeeded: sanitized.part_needed, vehicle: (sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model).trim(), phone: sanitized.phone_number }) }).catch(() => {});
+
     } catch (err) { alert("Something went wrong. Please try again."); }
     setLoading(false);
   }
