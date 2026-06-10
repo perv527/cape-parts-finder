@@ -1,4 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import os
+
+# 1. Create email API route using Resend
+os.makedirs("frontend/app/api/send-email", exist_ok=True)
+
+route = '''import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -79,3 +84,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
 }
+'''
+open("frontend/app/api/send-email/route.ts", "w", encoding="utf-8").write(route)
+print("Created email API route!")
+
+# 2. Add email sending to customer form submission
+path = "frontend/app/page.tsx"
+c = open(path, encoding="utf-8").read()
+
+old_success = '      setSuccess(true);'
+new_success = '''      setSuccess(true);
+
+      // Send confirmation email to customer
+      if (sanitized.email) {
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "customer_confirmation",
+            to: sanitized.email,
+            customerName: sanitized.customer_name,
+            partNeeded: sanitized.part_needed,
+            vehicle: sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model,
+            phone: sanitized.phone_number,
+            requestId: data?.[0]?.id,
+          }),
+        }).catch(() => {});
+      }'''
+
+c = c.replace(old_success, new_success, 1)
+open(path, "w", encoding="utf-8").write(c)
+print("Added customer confirmation email!")
+print("Done!")
