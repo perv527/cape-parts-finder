@@ -1,7 +1,16 @@
-﻿c=open("frontend/app/quotes/[id]/page.tsx",encoding="utf-8").read()
-i=c.find("Customer Price")
-print("at:", i)
-i2=c.find("customer price")
-print("lower at:", i2)
-i3=c.find("toFixed(2)")
-print(repr(c[i3-100:i3+100]))
+﻿import os
+files=[]
+for root,dirs,fs in os.walk("frontend"):
+    dirs[:] = [d for d in dirs if d not in [".next","node_modules"]]
+    for f in fs:
+        if f.endswith(".tsx") or f.endswith(".ts"):
+            files.append(os.path.join(root,f))
+count=0
+for f in files:
+    c=open(f,encoding="utf-8").read()
+    if "cape-parts-finder.vercel.app" in c:
+        c=c.replace("cape-parts-finder.vercel.app","capepartsfinder.co.za")
+        open(f,"w",encoding="utf-8").write(c)
+        count+=1
+        print("Updated:", f)
+print("Total files updated:", count)

@@ -36,7 +36,7 @@ export default function SettingsPage() {
     owner_name: "",
     whatsapp_number: "27696863952",
     email: "",
-    website: "cape-parts-finder.vercel.app",
+    website: "capepartsfinder.co.za",
     address: "",
     bank_name: "First National Bank (FNB)",
     bank_account_name: "Cape Parts Finder",
@@ -67,7 +67,7 @@ export default function SettingsPage() {
         owner_name: data.owner_name || "",
         whatsapp_number: data.whatsapp_number || "27696863952",
         email: data.email || "",
-        website: data.website || "cape-parts-finder.vercel.app",
+        website: data.website || "capepartsfinder.co.za",
         address: data.address || "",
         bank_name: data.bank_name || "First National Bank (FNB)",
         bank_account_name: data.bank_account_name || "Cape Parts Finder",
@@ -214,7 +214,7 @@ export default function SettingsPage() {
             <Field label="Business Name" field="business_name" placeholder="Cape Parts Finder" />
             <Field label="Owner Name" field="owner_name" placeholder="Your name" />
             <Field label="Tagline" field="tagline" placeholder="Your trusted auto parts network" />
-            <Field label="Website" field="website" placeholder="cape-parts-finder.vercel.app" />
+            <Field label="Website" field="website" placeholder="capepartsfinder.co.za" />
             <Field label="Email" field="email" placeholder="your@email.com" type="email" />
             <Field label="Address" field="address" placeholder="Cape Town, South Africa" />
           </div>

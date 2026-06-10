@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Cape Parts Finder | Find Car Parts in Cape Town",
     description: "Find vehicle parts in Cape Town fast. Connect with trusted local suppliers.",
-    url: "https://cape-parts-finder.vercel.app",
+    url: "https://capepartsfinder.co.za",
     siteName: "Cape Parts Finder",
     locale: "en_ZA",
     type: "website",

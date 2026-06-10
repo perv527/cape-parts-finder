@@ -26,7 +26,7 @@ const DEFAULTS: AppSettings = {
   owner_name: "",
   whatsapp_number: "27696863952",
   email: "",
-  website: "cape-parts-finder.vercel.app",
+  website: "capepartsfinder.co.za",
   address: "",
   bank_name: "First National Bank (FNB)",
   bank_account_name: "Cape Parts Finder",

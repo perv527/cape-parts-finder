@@ -62,10 +62,10 @@ export default function AdminPage() {
     const vehicle = `${request.vehicle_year || ""} ${request.vehicle_make || ""} ${request.vehicle_model || ""}`.trim();
     const messages: Record<string, string> = {
       new:       `Hi ${name}, thanks for your request! We received your inquiry for a ${part} for your ${vehicle}. We are searching our supplier network and will get back to you shortly.\n\nCape Parts Finder`,
-      searching: `Hi ${name}! We are actively searching for your ${part}${vehicle ? " for your " + vehicle : ""} across our supplier network. We will update you shortly.\n\nTrack your request: cape-parts-finder.vercel.app/track\n\nCape Parts Finder`,
-      quoted:    `Hi ${name}! Great news - we found your ${part}! Please reply and we will send you the price and details right away.\n\nTrack your request: cape-parts-finder.vercel.app/track\n\nCape Parts Finder`,
+      searching: `Hi ${name}! We are actively searching for your ${part}${vehicle ? " for your " + vehicle : ""} across our supplier network. We will update you shortly.\n\nTrack your request: capepartsfinder.co.za/track\n\nCape Parts Finder`,
+      quoted:    `Hi ${name}! Great news - we found your ${part}! Please reply and we will send you the price and details right away.\n\nTrack your request: capepartsfinder.co.za/track\n\nCape Parts Finder`,
       ordered:   `Hi ${name}, your ${part} has been ordered and is on its way! We will update you once ready for delivery.\n\nCape Parts Finder`,
-      delivered: `Hi ${name}! Your ${part} has been delivered successfully. We hope everything is perfect!\n\nWe would love a quick review: cape-parts-finder.vercel.app/review\n\nThank you for choosing Cape Parts Finder!`,
+      delivered: `Hi ${name}! Your ${part} has been delivered successfully. We hope everything is perfect!\n\nWe would love a quick review: capepartsfinder.co.za/review\n\nThank you for choosing Cape Parts Finder!`,
       followup:  `Hi ${name}! Just checking in on your ${part} request${vehicle ? " for your " + vehicle : ""}. Are you still looking for this part? We are here to help!\n\nCape Parts Finder`,
     };
     return messages[template] || messages.new;
@@ -943,11 +943,11 @@ const msgs: Record<string, string> = {
             <div className="p-5">
               <div className="rounded-xl p-3 mb-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <p className="text-[12px] text-gray-300 leading-relaxed">
-                  Hi {reviewModal.customer_name}, thank you for your order! We hope your {reviewModal.part_needed} is exactly what you needed. We would really appreciate if you could leave us a quick review: cape-parts-finder.vercel.app/review - It only takes 30 seconds! Cape Parts Finder
+                  Hi {reviewModal.customer_name}, thank you for your order! We hope your {reviewModal.part_needed} is exactly what you needed. We would really appreciate if you could leave us a quick review: capepartsfinder.co.za/review - It only takes 30 seconds! Cape Parts Finder
                 </p>
               </div>
               <div className="flex gap-2">
-                <a href={"https://wa.me/" + (reviewModal.phone_number || "").replace(/\D/g, "") + "?text=" + encodeURIComponent("Hi " + (reviewModal.customer_name || "there") + ", thank you for your order! We hope your " + (reviewModal.part_needed || "part") + " is exactly what you needed. We would really appreciate if you could leave us a quick review: cape-parts-finder.vercel.app/review - It only takes 30 seconds! Cape Parts Finder")}
+                <a href={"https://wa.me/" + (reviewModal.phone_number || "").replace(/\D/g, "") + "?text=" + encodeURIComponent("Hi " + (reviewModal.customer_name || "there") + ", thank you for your order! We hope your " + (reviewModal.part_needed || "part") + " is exactly what you needed. We would really appreciate if you could leave us a quick review: capepartsfinder.co.za/review - It only takes 30 seconds! Cape Parts Finder")}
                   target="_blank" rel="noopener noreferrer"
                   onClick={() => setReviewModal(null)}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold no-underline text-white"

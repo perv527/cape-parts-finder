@@ -46,7 +46,7 @@ export default function ReviewsAdminPage() {
   }
 
   function copyReviewLink() {
-    navigator.clipboard.writeText("https://cape-parts-finder.vercel.app/review");
+    navigator.clipboard.writeText("https://capepartsfinder.co.za/review");
     alert("Review link copied! Send it to customers after delivery.");
   }
 
@@ -143,7 +143,7 @@ export default function ReviewsAdminPage() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <p className="font-semibold text-white text-[13px] mb-0.5">Send review link to customers</p>
-              <p className="text-[12px] font-mono" style={{ color: "#fb923c" }}>cape-parts-finder.vercel.app/review</p>
+              <p className="text-[12px] font-mono" style={{ color: "#fb923c" }}>capepartsfinder.co.za/review</p>
             </div>
             <div className="flex gap-2">
               <button onClick={copyReviewLink}
@@ -151,7 +151,7 @@ export default function ReviewsAdminPage() {
                 style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", color: "#fb923c" }}>
                 Copy Link
               </button>
-              <a href={"https://wa.me/?text=" + encodeURIComponent("Hi! Please leave us a review at: https://cape-parts-finder.vercel.app/review — it only takes 30 seconds and helps us a lot! Cape Parts Finder")}
+              <a href={"https://wa.me/?text=" + encodeURIComponent("Hi! Please leave us a review at: https://capepartsfinder.co.za/review — it only takes 30 seconds and helps us a lot! Cape Parts Finder")}
                 target="_blank" rel="noopener noreferrer"
                 className="px-3 py-1.5 rounded-lg text-[12px] font-medium no-underline"
                 style={{ background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366" }}>

@@ -133,7 +133,7 @@ export default function SalesPage() {
       + "</table></div></div>"
       + "<div class='disclaimer'><p>This is an official tax invoice issued by Cape Parts Finder. Parts supplied are subject to supplier warranty only. Cape Parts Finder acts as intermediary and accepts no liability for fitment or compatibility issues. This invoice confirms payment received in full.</p></div>"
       + "<div class='footer'><div class='footer-left'><div class='fb'>Cape Parts Finder</div><div class='ft'>Connecting you with quality parts across Cape Town</div></div>"
-      + "<div class='footer-right'><div class='fo'>+27 69 686 3952</div><div>cape-parts-finder.vercel.app</div><div>Cape Town, South Africa</div></div></div>"
+      + "<div class='footer-right'><div class='fo'>+27 69 686 3952</div><div>capepartsfinder.co.za</div><div>Cape Town, South Africa</div></div></div>"
       + "</div></body></html>";
 
     const win = window.open("", "_blank");

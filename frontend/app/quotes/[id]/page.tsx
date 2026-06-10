@@ -317,7 +317,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     </div>
     <div class="footer-right">
       <div class="fo">+27 69 686 3952</div>
-      <div>cape-parts-finder.vercel.app</div>
+      <div>capepartsfinder.co.za</div>
       <div>Cape Town, South Africa</div>
     </div>
   </div>
@@ -591,7 +591,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     </div>
     <div class="footer-right">
       <div class="fo">+27 69 686 3952</div>
-      <div>cape-parts-finder.vercel.app</div>
+      <div>capepartsfinder.co.za</div>
       <div>Cape Town, South Africa</div>
     </div>
   </div>
