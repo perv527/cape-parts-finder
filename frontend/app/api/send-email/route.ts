@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
           <a href="https://www.capepartsfinder.co.za/quotes/${requestId}" style="display: inline-block; margin-top: 16px; background: #f97316; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">View Request →</a>
         </div>
       `;
-    }
 
     } else if (type === "quote_ready") {
       subject = `Your quote is ready — ${partNeeded} | Cape Parts Finder`;

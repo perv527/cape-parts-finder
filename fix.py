@@ -1,6 +1,4 @@
-﻿c=open("frontend/app/admin/page.tsx",encoding="utf-8").read()
-old="    if (request && getStatusMessage(request,"
-new="    // Send status emails\n    if (request && request.email) {\n      if (status === \"Quoted\") {\n        fetch(\"/api/send-email\", { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ type: \"quote_ready\", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||\"\")+\" \"+(request.vehicle_make||\"\")+\" \"+(request.vehicle_model||\"\")).trim(), phone: request.phone_number }) }).catch(()=>{});\n      } else if (status === \"Delivered\") {\n        fetch(\"/api/send-email\", { method: \"POST\", headers: { \"Content-Type\": \"application/json\" }, body: JSON.stringify({ type: \"delivered\", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||\"\")+\" \"+(request.vehicle_make||\"\")+\" \"+(request.vehicle_model||\"\")).trim(), phone: request.phone_number }) }).catch(()=>{});\n      }\n    }\n    if (request && getStatusMessage(request,"
-c=c.replace(old,new,1)
-open("frontend/app/admin/page.tsx","w",encoding="utf-8").write(c)
-print("Done:", "quote_ready" in c)
+﻿c=open("frontend/app/api/send-email/route.ts",encoding="utf-8").read()
+c=c.replace("    }\n\n    } else if (type === \"quote_ready\")","\n    } else if (type === \"quote_ready\")",1)
+open("frontend/app/api/send-email/route.ts","w",encoding="utf-8").write(c)
+print("Done")
