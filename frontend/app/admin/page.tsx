@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
+import { logAction } from "@/lib/auditClient";
 
 const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
 
@@ -151,6 +152,7 @@ const msgs: Record<string, string> = {
     if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
     fetchRequests();
     setUpdatingId(null);
+    logAction("status_update", "parts_requests", String(id), { status });
     // Send status emails
     if (request && request.email) {
       if (status === "Quoted") {
@@ -173,6 +175,7 @@ const msgs: Record<string, string> = {
     const ids = Array.from(selectedIds);
     await Promise.all(ids.map(id => supabase.from("parts_requests").update({ status: bulkStatus }).eq("id", id)));
     setSelectedIds(new Set());
+    logAction("bulk_status_update", "parts_requests", ids.join(","), { status: bulkStatus });
     fetchRequests();
     setBulkUpdating(false);
   }
@@ -234,6 +237,7 @@ const msgs: Record<string, string> = {
   async function deleteRequest(id: number) {
     if (!confirm("Delete this request?")) return;
     await supabase.from("parts_requests").delete().eq("id", id);
+    logAction("delete_request", "parts_requests", String(id));
     fetchRequests();
   }
 
