@@ -5,7 +5,7 @@ const ipMap = new Map<string, { count: number; ts: number }>();
 const WINDOW_MS = 24 * 60 * 60 * 1000;
 const MAX_PER_IP = 5;
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   if (req.nextUrl.pathname === '/api/submit-request') {
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
     const now = Date.now();
