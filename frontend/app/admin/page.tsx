@@ -151,6 +151,14 @@ const msgs: Record<string, string> = {
     if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
     fetchRequests();
     setUpdatingId(null);
+    // Send status emails
+    if (request && request.email) {
+      if (status === "Quoted") {
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "quote_ready", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||"")+" "+(request.vehicle_make||"")+" "+(request.vehicle_model||"")).trim(), phone: request.phone_number }) }).catch(()=>{});
+      } else if (status === "Delivered") {
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "delivered", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||"")+" "+(request.vehicle_make||"")+" "+(request.vehicle_model||"")).trim(), phone: request.phone_number }) }).catch(()=>{});
+      }
+    }
     if (request && getStatusMessage(request, status)) {
       setNotifyModal({ request: { ...request, status }, status });
     }
