@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSettings } from "@/lib/settings";
 import { supabase } from "@/lib/supabase";
 import { logAction } from "@/lib/auditClient";
+import { UndoToast } from "@/components/UndoToast";
 
 const STATUS_OPTIONS = ["New", "Searching", "Quoted", "Ordered", "Delivered", "Closed"];
 
@@ -35,6 +36,7 @@ export default function AdminPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkStatus, setBulkStatus] = useState("Searching");
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [undoSnapshot, setUndoSnapshot] = useState<{id:number,status:string}[]|null>(null);
   const [broadcastModal, setBroadcastModal] = useState(false);
   const [broadcastMsg, setBroadcastMsg] = useState("");
   const [broadcastSending, setBroadcastSending] = useState(false);
@@ -169,11 +171,19 @@ const msgs: Record<string, string> = {
     }
   }
 
+  async function undoBulkUpdate() {
+    if (!undoSnapshot) return;
+    await Promise.all(undoSnapshot.map(r => supabase.from("parts_requests").update({ status: r.status }).eq("id", r.id)));
+    setUndoSnapshot(null);
+    fetchRequests();
+  }
   async function bulkUpdateStatus() {
     if (selectedIds.size === 0) return;
     setBulkUpdating(true);
     const ids = Array.from(selectedIds);
+    const snapshot = requests.filter(r => ids.includes(r.id)).map(r => ({id:r.id,status:r.status}));
     await Promise.all(ids.map(id => supabase.from("parts_requests").update({ status: bulkStatus }).eq("id", id)));
+    setUndoSnapshot(snapshot);
     setSelectedIds(new Set());
     logAction("bulk_status_update", "parts_requests", ids.join(","), { status: bulkStatus });
     fetchRequests();
@@ -406,7 +416,8 @@ const msgs: Record<string, string> = {
           <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           <p className="text-gray-300 text-sm font-medium">Loading Dashboard...</p>
         </div>
-      </main>
+      {undoSnapshot && <UndoToast onUndo={undoBulkUpdate} onDismiss={() => setUndoSnapshot(null)} />}
+    </main>
     );
   }
 
@@ -1163,6 +1174,7 @@ const msgs: Record<string, string> = {
           <button onClick={() => setSessionWarning(false)} className="text-gray-600 cursor-pointer text-lg" style={{ background: "none", border: "none" }}>×</button>
         </div>
       )}
+      
     </main>
   );
 }
