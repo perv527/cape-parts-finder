@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useSettings } from "@/lib/settings";
+import { queueRequest, retryPendingRequests } from "@/lib/offlineQueue";
+import { queueRequest, retryPendingRequests } from "@/lib/offlineQueue";
 import { supabase } from "@/lib/supabase";
 
 const VEHICLE_MAKES = ["Audi","BMW","Chevrolet","Chrysler","Citroen","Datsun","Fiat","Ford","GWM","Haval","Honda","Hyundai","Isuzu","Jeep","Kia","Land Rover","Mahindra","Mazda","Mercedes-Benz","MG","Mini","Mitsubishi","Nissan","Opel","Peugeot","Polo","Renault","Subaru","Suzuki","Toyota","Volkswagen","Volvo","Other"];
@@ -107,6 +109,30 @@ export default function Home() {
 
     setLoading(true);
     try {
+      // Offline check - queue if no connection
+      if (!navigator.onLine) {
+        await queueRequest({ ...formData });
+        alert("You are offline. Your request has been saved and will be submitted automatically when you reconnect.");
+        setLoading(false);
+        return;
+      }
+      // Retry any previously queued requests
+      retryPendingRequests(async (payload) => {
+        const { error } = await supabase.from("parts_requests").insert([payload]);
+        return !error;
+      }).catch(() => {});
+      // Offline check - queue if no connection
+      if (!navigator.onLine) {
+        await queueRequest({ ...formData });
+        alert("You are offline. Your request has been saved and will be submitted automatically when you reconnect.");
+        setLoading(false);
+        return;
+      }
+      // Retry any previously queued requests
+      retryPendingRequests(async (payload) => {
+        const { error } = await supabase.from("parts_requests").insert([payload]);
+        return !error;
+      }).catch(() => {});
       // Rate limiting - max 3 requests per phone per 24 hours
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data: recent } = await supabase.from("parts_requests").select("id")
