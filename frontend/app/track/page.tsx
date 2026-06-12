@@ -76,6 +76,10 @@ export default function TrackPage() {
     await supabase.from("parts_requests").update({ status: "Closed" }).eq("id", req.id);
     setCancelling(null);
     setCancelledIds((prev: number[]) => [...prev, req.id]);
+    const msg = encodeURIComponent("Hi " + (req.customer_name || "there") + "! We noticed you cancelled your request for " + req.part_needed + ". Need help finding it? Reply and we'll try again for you.");
+    window.open("https://wa.me/27696863952?text=" + msg);
+    const msg = encodeURIComponent("Hi " + (req.customer_name || "there") + "! We noticed you cancelled your request for " + req.part_needed + ". Need help finding it? Reply and we'll try again for you.");
+    window.open("https://wa.me/27696863952?text=" + msg);
   }
 
   return (
