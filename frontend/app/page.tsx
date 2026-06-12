@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useSettings } from "@/lib/settings";
 import { queueRequest, retryPendingRequests } from "@/lib/offlineQueue";
-import { queueRequest, retryPendingRequests } from "@/lib/offlineQueue";
+
 import { supabase } from "@/lib/supabase";
 
 const VEHICLE_MAKES = ["Audi","BMW","Chevrolet","Chrysler","Citroen","Datsun","Fiat","Ford","GWM","Haval","Honda","Hyundai","Isuzu","Jeep","Kia","Land Rover","Mahindra","Mazda","Mercedes-Benz","MG","Mini","Mitsubishi","Nissan","Opel","Peugeot","Polo","Renault","Subaru","Suzuki","Toyota","Volkswagen","Volvo","Other"];
