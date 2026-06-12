@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { OfflineBanner } from "@/components/OfflineBanner";`nimport SchemaOrg from "@/components/SchemaOrg";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import SchemaOrg from "@/components/SchemaOrg";
 
 export const metadata: Metadata = {
   title: "Cape Parts Finder | Find Car Parts in Cape Town",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
   },
 };
 
-const schemaOrg = {`"@context`":`"https://schema.org`",`"@type`":`"AutoPartsStore`",`"name`":`"Cape Parts Finder`",`"url`":`"https://www.capepartsfinder.co.za`",`"telephone`":`"+27696863952`",`"address`":{`"@type`":`"PostalAddress`",`"addressLocality`":`"Cape Town`",`"addressRegion`":`"Western Cape`",`"addressCountry`":`"ZA`"},`"description`":`"Cape Parts Finder sources vehicle parts for Cape Town customers via a trusted supplier network.`"};
+;
 export default function RootLayout({
   children,
 }: {
