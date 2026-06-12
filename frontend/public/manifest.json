@@ -2,7 +2,8 @@
   "name": "Cape Parts Finder",
   "short_name": "Parts Finder",
   "description": "Find car parts fast in Cape Town",
-  "start_url": "/admin",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
   "theme_color": "#f97316",
@@ -23,14 +24,14 @@
   ],
   "shortcuts": [
     {
-      "name": "New Requests",
-      "url": "/admin",
-      "description": "View new requests"
+      "name": "Track My Request",
+      "url": "/track",
+      "description": "Track your parts request"
     },
     {
-      "name": "Add Sale",
-      "url": "/sales",
-      "description": "Record a sale"
+      "name": "Find Parts",
+      "url": "/",
+      "description": "Submit a new parts request"
     }
   ]
 }
