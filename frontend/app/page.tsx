@@ -220,7 +220,7 @@ export default function Home() {
       setTimeout(() => window.open(waUrl, "_blank"), 2000);
 
       // Admin notification email
-      fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_notification", to: "safri38@outlook.com", customerName: sanitized.customer_name, partNeeded: sanitized.part_needed, vehicle: (sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model).trim(), phone: sanitized.phone_number }) }).catch(() => {});
+      fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_notification", to: "safri38+parts@outlook.com", customerName: sanitized.customer_name, partNeeded: sanitized.part_needed, vehicle: (sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model).trim(), phone: sanitized.phone_number }) }).catch(() => {});
 
     } catch (err) { alert("Something went wrong. Please try again."); }
     setLoading(false);
