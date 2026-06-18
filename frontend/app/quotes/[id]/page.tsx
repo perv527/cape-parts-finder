@@ -240,7 +240,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
 .footer-right{text-align:right;}
 .footer-right div{font-size:8.5px;color:#aaa;line-height:1.85;}
 .footer-right .fo{color:#14b8a6;font-weight:700;font-size:10px;}
-@media print{@page{size:A4;margin:10mm;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:20px 30px;}}
+@media print{@page{size:A4;margin:8mm;}body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{padding:14px 20px;}}
 </style>
 </head>
 <body>
@@ -381,10 +381,10 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; font-size: 11.5px; line-height: 1.45; }
-    .page { max-width: 720px; margin: 0 auto; padding: 36px 44px; }
+    .page { max-width: 720px; margin: 0 auto; padding: 18px 28px; }
 
     /* ── HEADER ── */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
     .logo-wrap { display: flex; align-items: center; gap: 13px; }
     .logo-box { width: 42px; height: 42px; background: #f97316; border-radius: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .logo-box svg { width: 21px; height: 21px; }
@@ -396,13 +396,13 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     .quote-meta { font-size: 10px; color: #aaa; margin-top: 5px; line-height: 1.8; }
 
     /* ── ACCENT LINE ── */
-    .accent-line { height: 1.5px; background: linear-gradient(90deg, #f97316 0%, #fdba74 50%, #fff 100%); margin-bottom: 20px; }
+    .accent-line { height: 1.5px; background: linear-gradient(90deg, #f97316 0%, #fdba74 50%, #fff 100%); margin-bottom: 12px; }
 
     /* ── SECTION HEADING ── */
     .sec { font-size: 7.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 2.5px; color: #ccc; margin-bottom: 10px; }
 
     /* ── INFO PANELS ── */
-    .panels { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+    .panels { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #e8e8e8; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
     .panel { padding: 13px 18px; }
     .panel:first-child { border-right: 1px solid #e8e8e8; }
     .panel-row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
@@ -411,14 +411,14 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
     .pv { font-size: 11px; font-weight: 600; color: #1a1a1a; text-align: right; max-width: 60%; }
 
     /* ── PART BLOCK ── */
-    .part-block { padding: 14px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .part-name { font-size: 19px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; text-transform: capitalize; }
+    .part-block { padding: 8px 0; border-top: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .part-name { font-size: 14px; font-weight: 900; color: #0a0a0a; letter-spacing: -0.5px; text-transform: capitalize; }
     .part-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
     .part-extra { font-size: 10.5px; color: #777; margin-top: 6px; font-style: italic; }
     .pref-badge { flex-shrink: 0; margin-top: 4px; border: 1px solid #f97316; border-radius: 20px; padding: 3px 11px; font-size: 10px; font-weight: 700; color: #f97316; white-space: nowrap; letter-spacing: 0.3px; }
 
     /* ── PRICING ── */
-    .pricing-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 18px; align-items: start; }
+    .pricing-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 12px; align-items: start; }
     .price-table { width: 100%; border-collapse: collapse; }
     .price-table td { padding: 7px 0; font-size: 11.5px; vertical-align: baseline; }
     .price-table tr + tr td { border-top: 1px solid #f0f0f0; }
