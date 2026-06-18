@@ -1039,6 +1039,7 @@ const msgs: Record<string, string> = {
             </div>
           </div>
         </div>
+      )}
 
       {/* QUICK SALE MODAL */}
       {quickSaleModal && (

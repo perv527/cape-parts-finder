@@ -93,8 +93,9 @@ export default function Home() {
         img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
         img.src = objectUrl;
       });
-    } except Exception:
-      return file
+    } catch {
+      return file;
+    }
   }
 
   async function handleSubmit() {
