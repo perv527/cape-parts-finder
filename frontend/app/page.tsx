@@ -64,13 +64,12 @@ export default function Home() {
   }
 
   async function compressImage(file: File): Promise<File> {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (e) => {
+    try {
+      const objectUrl = URL.createObjectURL(file);
+      return await new Promise((resolve) => {
         const img = new Image();
-        img.src = e.target?.result as string;
         img.onload = () => {
+          URL.revokeObjectURL(objectUrl);
           const canvas = document.createElement("canvas");
           const MAX = 1200;
           let w = img.width;
@@ -85,15 +84,17 @@ export default function Home() {
           ctx?.drawImage(img, 0, 0, w, h);
           canvas.toBlob((blob) => {
             if (blob) {
-              const compressed = new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() });
-              resolve(compressed);
+              resolve(new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg", lastModified: Date.now() }));
             } else {
               resolve(file);
             }
           }, "image/jpeg", 0.75);
         };
-      };
-    });
+        img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+        img.src = objectUrl;
+      });
+    } except Exception:
+      return file
   }
 
   async function handleSubmit() {
@@ -216,7 +217,8 @@ export default function Home() {
         "\nPreference: " + formData.part_preference +
         (formData.area ? "\nArea: " + formData.area : "") +
         (formData.referral_source ? "\nFrom: " + formData.referral_source : "");
-      const waUrl = "https://wa.me/" + settings.whatsapp_number + "?text=" + encodeURIComponent(waMsg);
+      const waPhone = settings.whatsapp_number.replace(/\D/g, "");
+      const waUrl = "https://wa.me/" + waPhone + "?text=" + encodeURIComponent(waMsg);
       setTimeout(() => window.open(waUrl, "_blank"), 2000);
 
       // Admin notification email

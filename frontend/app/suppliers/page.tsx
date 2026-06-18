@@ -171,6 +171,7 @@ function SuppliersContent() {
   function editSupplier(supplier: any) {
     setFormData({ name: supplier.name || "", contact_person: supplier.contact_person || "", whatsapp_number: supplier.whatsapp_number || "", email: supplier.email || "", area: supplier.area || "", speciality: supplier.speciality || "" });
     setEditingId(supplier.id); setShowForm(true);
+  setTimeout(() => { document.getElementById("supplier-form-top")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, 100);
   }
 
   function resetForm() {
@@ -358,7 +359,7 @@ function SuppliersContent() {
 
           {/* ADD/EDIT FORM */}
           {showForm && (
-            <div className="rounded-2xl p-5 mb-5" style={cardStyle}>
+            <div id="supplier-form-top" className="rounded-2xl p-5 mb-5" style={cardStyle}>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-bold text-[15px] text-white">{editingId ? "Edit Supplier" : "Add New Supplier"}</h2>
                 <button onClick={resetForm} className="text-gray-500 hover:text-white text-xl cursor-pointer bg-transparent border-none">×</button>
