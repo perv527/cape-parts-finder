@@ -35,13 +35,25 @@ export default function Home() {
   const [success, setSuccess] = useState(false);
   const [photos, setPhotos] = useState<File[]>([]);
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    customer_name: "", phone_number: "", email: "", area: "",
-    vehicle_make: "", vehicle_model: "", vehicle_year: "",
-    engine_size: "", vin_number: "",
-    part_needed: "", part_preference: "Aftermarket", extra_details: "",
-    referral_source: "",
+  const [savedProfile, setSavedProfile] = useState(false);
+  const [formData, setFormData] = useState(() => {
+    try {
+      const p = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("cpf_profile") || "{}") : {};
+      return {
+        customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "",
+        vehicle_make: "", vehicle_model: "", vehicle_year: "",
+        engine_size: "", vin_number: "",
+        part_needed: "", part_preference: "Aftermarket", extra_details: "",
+        referral_source: "",
+      };
+    } catch { return { customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", engine_size: "", vin_number: "", part_needed: "", part_preference: "Aftermarket", extra_details: "", referral_source: "" }; }
   });
+  useEffect(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem("cpf_profile") || "{}");
+      if (p.customer_name || p.phone_number) setSavedProfile(true);
+    } catch {}
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -191,6 +203,7 @@ export default function Home() {
       const { error } = await supabase.from("parts_requests").insert([{ ...sanitized, photo_url, photo_urls }]);
       if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
       setSuccess(true);
+      try { localStorage.setItem("cpf_profile", JSON.stringify({ customer_name: sanitized.customer_name, phone_number: sanitized.phone_number, email: sanitized.email, area: sanitized.area })); setSavedProfile(true); } catch {}
 
 
       // Send confirmation email to customer
@@ -414,6 +427,12 @@ export default function Home() {
                 {/* STEP 1 - Contact */}
                 {step === 1 && (
                   <>
+                    {savedProfile && (
+                      <div className="flex items-center justify-between rounded-xl px-3 py-2.5 mb-1" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
+                        <span className="text-[12px] text-green-400">Details pre-filled from your last request</span>
+                        <button type="button" onClick={() => { try { localStorage.removeItem("cpf_profile"); } catch {} setSavedProfile(false); setFormData(prev => ({ ...prev, customer_name: "", phone_number: "", email: "", area: "" })); }} className="text-[11px] text-gray-500 cursor-pointer hover:text-gray-300" style={{ background: "none", border: "none" }}>Clear</button>
+                      </div>
+                    )}
                     <div>
                       <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Full Name *</label>
                       <input name="customer_name" value={formData.customer_name} onChange={handleChange}
@@ -421,8 +440,17 @@ export default function Home() {
                     </div>
                     <div>
                       <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">WhatsApp Number *</label>
-                      <input name="phone_number" value={formData.phone_number} onChange={handleChange}
-                        placeholder="e.g. 082 123 4567" type="tel" className={inputCls} style={inputStyle} />
+                      <input name="phone_number" value={formData.phone_number}
+                        onChange={e => {
+                          let v = e.target.value.replace(/[^0-9+]/g, "");
+                          if (!v.startsWith("+27")) {
+                            v = v.replace(/^(0*27*|0*)/, "");
+                            v = "+27" + v;
+                          }
+                          if (v.length > 12) v = v.slice(0, 12);
+                          setFormData(prev => ({ ...prev, phone_number: v }));
+                        }}
+                        placeholder="+27 82 123 4567" type="tel" className={inputCls} style={inputStyle} />
                     </div>
                     <div>
                       <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Email (optional)</label>
