@@ -52,7 +52,21 @@ export default function Home() {
     try {
       const p = JSON.parse(localStorage.getItem("cpf_profile") || "{}");
       if (p.customer_name || p.phone_number) {
-        setFormData(prev => ({ ...prev, customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "", vehicle_make: p.vehicle_make || "", vehicle_model: p.vehicle_model || "", vehicle_year: p.vehicle_year || "", engine_size: p.engine_size || "" }));
+        setFormData({
+          customer_name: p.customer_name || "",
+          phone_number: p.phone_number || "",
+          email: p.email || "",
+          area: p.area || "",
+          vehicle_make: p.vehicle_make || "",
+          vehicle_model: p.vehicle_model || "",
+          vehicle_year: p.vehicle_year || "",
+          engine_size: p.engine_size || "",
+          vin_number: "",
+          part_needed: "",
+          part_preference: "Aftermarket",
+          extra_details: "",
+          referral_source: "",
+        });
         setSavedProfile(true);
       }
     } catch {}
@@ -520,7 +534,7 @@ export default function Home() {
                   <>
                     <div>
                       <label className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Vehicle Make *</label>
-                      <select name="vehicle_make" value={formData.vehicle_make} onChange={handleChange}
+                      <select id="vehicle_make" name="vehicle_make" value={formData.vehicle_make} onChange={handleChange}
                         className={inputCls} style={{ ...inputStyle, color: formData.vehicle_make ? "white" : "#6b7280" }}>
                         <option value="" style={{ background: "#1a1a1a" }}>Select make</option>
                         {VEHICLE_MAKES.map(m => <option key={m} value={m} style={{ background: "#1a1a1a" }}>{m}</option>)}
@@ -564,7 +578,7 @@ export default function Home() {
                       <div className="grid grid-cols-3 gap-2">
                         {["New", "Aftermarket", "Any"].map(p => (
                           <button key={p} type="button" onClick={() => setFormData(f => ({ ...f, part_preference: p }))}
-                            className="py-2.5 rounded-xl text-[13px] font-semibold cursor-pointer transition"
+                            className="py-2 rounded-xl text-[11px] font-semibold cursor-pointer transition"
                             style={formData.part_preference === p
                               ? { background: "linear-gradient(135deg,#f97316,#ea580c)", color: "white", border: "none" }
                               : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
@@ -619,7 +633,7 @@ export default function Home() {
                 />
 
                 {/* Navigation buttons */}
-                <div className="flex gap-3 pt-2">
+                <div className="flex gap-3 pt-2" style={{ position: "relative", zIndex: 1 }}>
                   {step > 1 && (
                     <button type="button" onClick={() => setStep(s => s - 1)}
                       className="px-5 py-3 rounded-xl text-[14px] font-semibold cursor-pointer transition"
@@ -630,7 +644,11 @@ export default function Home() {
                   {step < 3 ? (
                     <>
                     {!canProceed() && getMissingFields().length > 0 && (
-                      <div className="w-full text-center text-[12px] mb-1" style={{ color: "#f97316" }}>Please fill in: {getMissingFields().join(", ")}</div>
+                      <div className="w-full mb-2 rounded-xl px-3 py-2" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}>
+                        <p className="text-[12px] font-semibold" style={{ color: "#fb923c", margin: 0 }}>
+                          Required: {getMissingFields().join(" and ")}
+                        </p>
+                      </div>
                     )}
                     <button type="button" onClick={() => setStep(s => s + 1)} disabled={!canProceed()}
                       className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
@@ -641,7 +659,9 @@ export default function Home() {
                   ) : (
                     <>
                     {!canProceed() && step === 3 && (
-                      <div className="w-full text-center text-[12px] mb-1" style={{ color: "#f97316" }}>Please fill in: Part Needed</div>
+                      <div className="w-full mb-2 rounded-xl px-3 py-2" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}>
+                        <p className="text-[12px] font-semibold" style={{ color: "#fb923c", margin: 0 }}>Required: Part Needed — please describe the part you are looking for</p>
+                      </div>
                     )}
                     <button type="button" onClick={handleSubmit} disabled={loading || !canProceed()}
                       className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
