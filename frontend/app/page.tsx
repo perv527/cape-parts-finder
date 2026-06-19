@@ -639,6 +639,7 @@ export default function Home() {
                     </button>
                     </>
                   ) : (
+                    <>
                     {!canProceed() && step === 3 && (
                       <div className="w-full text-center text-[12px] mb-1" style={{ color: "#f97316" }}>Please fill in: Part Needed</div>
                     )}
