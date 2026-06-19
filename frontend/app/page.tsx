@@ -16,6 +16,11 @@ export default function Home() {
   }, []);
   const [loading, setLoading] = useState(false);
   const [honeypot, setHoneypot] = useState("");
+  const [toast, setToast] = useState<{msg: string; type: "error"|"success"|"info"} | null>(null);
+  function showToast(msg: string, type: "error"|"success"|"info" = "error") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 4000);
+  }
 
   function sanitize(val: string) {
     return val.replace(/<[^>]*>/g, "").replace(/[<>"';&]/g, "").trim().slice(0, 500);
@@ -133,7 +138,7 @@ export default function Home() {
 
     // Phone validation
     if (!isValidSAPhone(formData.phone_number)) {
-      alert("Please enter a valid South African phone number (e.g. 082 123 4567)");
+      showToast("Please enter a valid South African phone number (e.g. 082 123 4567)"); return;
       setLoading(false);
       return;
     }
@@ -143,7 +148,7 @@ export default function Home() {
       // Offline check - queue if no connection
       if (!navigator.onLine) {
         await queueRequest({ ...formData });
-        alert("You are offline. Your request has been saved and will be submitted automatically when you reconnect.");
+        showToast("You are offline. Your request has been saved and will be submitted automatically when you reconnect.", "info");
         setLoading(false);
         return;
       }
@@ -155,7 +160,7 @@ export default function Home() {
       // Offline check - queue if no connection
       if (!navigator.onLine) {
         await queueRequest({ ...formData });
-        alert("You are offline. Your request has been saved and will be submitted automatically when you reconnect.");
+        showToast("You are offline. Your request has been saved and will be submitted automatically when you reconnect.", "info");
         setLoading(false);
         return;
       }
@@ -170,9 +175,7 @@ export default function Home() {
         .eq("phone_number", formData.phone_number.replace(/\s|-/g, ""))
         .gte("created_at", since);
       if (recent && recent.length >= 3) {
-        alert("You have submitted 3 requests in the last 24 hours. Please wait before submitting again.");
-        setLoading(false);
-        return;
+        showToast("You have submitted 3 requests in the last 24 hours. Please wait before submitting again."); setLoading(false); return;
       }
 
       // Sanitize all inputs
@@ -218,7 +221,7 @@ export default function Home() {
       const photo_url = uploadedUrls[0] || "";
       const photo_urls = uploadedUrls;
       const { error } = await supabase.from("parts_requests").insert([{ ...sanitized, photo_url, photo_urls }]);
-      if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
+      if (error) { showToast("Something went wrong. Please try again."); setLoading(false); return; }
       setSuccess(true);
       try { localStorage.setItem("cpf_profile", JSON.stringify({ customer_name: sanitized.customer_name, phone_number: sanitized.phone_number, email: sanitized.email, area: sanitized.area, vehicle_make: sanitized.vehicle_make, vehicle_model: sanitized.vehicle_model, vehicle_year: sanitized.vehicle_year, engine_size: sanitized.engine_size })); setSavedProfile(true); } catch {}
 
@@ -255,13 +258,19 @@ export default function Home() {
       // Admin notification email
       fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_notification", to: "safri38+parts@outlook.com", customerName: sanitized.customer_name, partNeeded: sanitized.part_needed, vehicle: (sanitized.vehicle_year + " " + sanitized.vehicle_make + " " + sanitized.vehicle_model).trim(), phone: sanitized.phone_number }) }).catch(() => {});
 
-    } catch (err) { alert("Something went wrong. Please try again."); }
+    } catch (err) { showToast("Something went wrong. Please try again."); }
     setLoading(false);
   }
 
   const inputCls = "w-full rounded-xl px-4 py-3 text-[14px] outline-none transition text-white placeholder-gray-500";
   const inputStyle = { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" };
   const inputFocus = "focus:border-orange-500/50 focus:bg-white/8";
+
+  const toastColors = {
+    error: { bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", text: "#f87171", icon: "M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" },
+    success: { bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.3)", text: "#4ade80", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+    info: { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.3)", text: "#60a5fa", icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+  };
 
   if (success) return (
     <main style={{ minHeight: "100vh", background: "#0a0a0a" }} className="flex items-center justify-center p-4">
@@ -307,6 +316,15 @@ export default function Home() {
         <div style={{ position: "absolute", bottom: "-10%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 70%)" }} />
       </div>
 
+      {toast && (
+        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", zIndex: 9999, width: "calc(100% - 32px)", maxWidth: 420 }}>
+          <div style={{ background: toastColors[toast.type].bg, border: "1px solid " + toastColors[toast.type].border, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={toastColors[toast.type].text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 1 }}><path d={toastColors[toast.type].icon}/></svg>
+            <p style={{ color: toastColors[toast.type].text, fontSize: 13, lineHeight: 1.5, margin: 0, flex: 1 }}>{toast.msg}</p>
+            <button onClick={() => setToast(null)} style={{ background: "none", border: "none", color: toastColors[toast.type].text, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: 0, opacity: 0.7 }}>✕</button>
+          </div>
+        </div>
+      )}
       <div style={{ position: "relative", zIndex: 1 }}>
         {/* NAV */}
         <nav style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,10,10,0.8)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 50 }}>
@@ -621,6 +639,9 @@ export default function Home() {
                     </button>
                     </>
                   ) : (
+                    {!canProceed() && step === 3 && (
+                      <div className="w-full text-center text-[12px] mb-1" style={{ color: "#f97316" }}>Please fill in: Part Needed</div>
+                    )}
                     <button type="button" onClick={handleSubmit} disabled={loading || !canProceed()}
                       className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
                       style={{ background: loading ? "rgba(249,115,22,0.5)" : "linear-gradient(135deg,#f97316,#ea580c)", border: "none", boxShadow: "0 4px 20px rgba(249,115,22,0.3)" }}>
