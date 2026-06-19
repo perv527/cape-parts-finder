@@ -36,22 +36,20 @@ export default function Home() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [step, setStep] = useState(1);
   const [savedProfile, setSavedProfile] = useState(false);
-  const [formData, setFormData] = useState(() => {
-    try {
-      const p = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("cpf_profile") || "{}") : {};
-      return {
-        customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "",
-        vehicle_make: "", vehicle_model: "", vehicle_year: "",
-        engine_size: "", vin_number: "",
-        part_needed: "", part_preference: "Aftermarket", extra_details: "",
-        referral_source: "",
-      };
-    } catch { return { customer_name: "", phone_number: "", email: "", area: "", vehicle_make: "", vehicle_model: "", vehicle_year: "", engine_size: "", vin_number: "", part_needed: "", part_preference: "Aftermarket", extra_details: "", referral_source: "" }; }
+  const [formData, setFormData] = useState({
+    customer_name: "", phone_number: "", email: "", area: "",
+    vehicle_make: "", vehicle_model: "", vehicle_year: "",
+    engine_size: "", vin_number: "",
+    part_needed: "", part_preference: "Aftermarket", extra_details: "",
+    referral_source: "",
   });
   useEffect(() => {
     try {
       const p = JSON.parse(localStorage.getItem("cpf_profile") || "{}");
-      if (p.customer_name || p.phone_number) setSavedProfile(true);
+      if (p.customer_name || p.phone_number) {
+        setFormData(prev => ({ ...prev, customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "" }));
+        setSavedProfile(true);
+      }
     } catch {}
   }, []);
 
