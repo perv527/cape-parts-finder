@@ -428,9 +428,12 @@ export default function Home() {
                 {step === 1 && (
                   <>
                     {savedProfile && (
-                      <div className="flex items-center justify-between rounded-xl px-3 py-2.5 mb-1" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
-                        <span className="text-[12px] text-green-400">Details pre-filled from your last request</span>
-                        <button type="button" onClick={() => { try { localStorage.removeItem("cpf_profile"); } catch {} setSavedProfile(false); setFormData(prev => ({ ...prev, customer_name: "", phone_number: "", email: "", area: "" })); }} className="text-[11px] text-gray-500 cursor-pointer hover:text-gray-300" style={{ background: "none", border: "none" }}>Clear</button>
+                      <div className="rounded-xl px-3 py-2.5 mb-2" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
+                        <p className="text-[12px] text-green-400 mb-2">Your details are pre-filled. Edit anything you need to change.</p>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => setSavedProfile(false)} className="flex-1 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer transition" style={{ background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.25)", color: "#4ade80" }}>Keep info</button>
+                          <button type="button" onClick={() => { try { localStorage.removeItem("cpf_profile"); } catch {} setSavedProfile(false); setFormData(prev => ({ ...prev, customer_name: "", phone_number: "+27", email: "", area: "" })); }} className="flex-1 py-1.5 rounded-lg text-[12px] font-semibold cursor-pointer transition" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>Clear all</button>
+                        </div>
                       </div>
                     )}
                     <div>
@@ -443,9 +446,11 @@ export default function Home() {
                       <input name="phone_number" value={formData.phone_number}
                         onChange={e => {
                           let v = e.target.value.replace(/[^0-9+]/g, "");
+                          if (v === "" || v === "+") { setFormData(prev => ({ ...prev, phone_number: "+27" })); return; }
                           if (!v.startsWith("+27")) {
-                            v = v.replace(/^(0*27*|0*)/, "");
-                            v = "+27" + v;
+                            v = v.replace(/^0+/, "");
+                            if (!v.startsWith("27")) v = "27" + v;
+                            v = "+" + v;
                           }
                           if (v.length > 12) v = v.slice(0, 12);
                           setFormData(prev => ({ ...prev, phone_number: v }));
