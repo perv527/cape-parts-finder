@@ -47,7 +47,7 @@ export default function Home() {
     try {
       const p = JSON.parse(localStorage.getItem("cpf_profile") || "{}");
       if (p.customer_name || p.phone_number) {
-        setFormData(prev => ({ ...prev, customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "" }));
+        setFormData(prev => ({ ...prev, customer_name: p.customer_name || "", phone_number: p.phone_number || "", email: p.email || "", area: p.area || "", vehicle_make: p.vehicle_make || "", vehicle_model: p.vehicle_model || "", vehicle_year: p.vehicle_year || "", engine_size: p.engine_size || "" }));
         setSavedProfile(true);
       }
     } catch {}
@@ -71,6 +71,25 @@ export default function Home() {
     if (step === 2) return formData.vehicle_make.trim() && formData.vehicle_model.trim();
     if (step === 3) return formData.part_needed.trim();
     return true;
+  }
+
+  function getMissingFields() {
+    if (step === 1) {
+      const missing = [];
+      if (!formData.customer_name.trim()) missing.push("Full Name");
+      if (!formData.phone_number.trim() || formData.phone_number === "+27") missing.push("WhatsApp Number");
+      return missing;
+    }
+    if (step === 2) {
+      const missing = [];
+      if (!formData.vehicle_make.trim()) missing.push("Vehicle Make");
+      if (!formData.vehicle_model.trim()) missing.push("Model");
+      return missing;
+    }
+    if (step === 3) {
+      if (!formData.part_needed.trim()) return ["Part Needed"];
+    }
+    return [];
   }
 
   async function compressImage(file: File): Promise<File> {
@@ -201,7 +220,7 @@ export default function Home() {
       const { error } = await supabase.from("parts_requests").insert([{ ...sanitized, photo_url, photo_urls }]);
       if (error) { alert("Something went wrong. Please try again."); setLoading(false); return; }
       setSuccess(true);
-      try { localStorage.setItem("cpf_profile", JSON.stringify({ customer_name: sanitized.customer_name, phone_number: sanitized.phone_number, email: sanitized.email, area: sanitized.area })); setSavedProfile(true); } catch {}
+      try { localStorage.setItem("cpf_profile", JSON.stringify({ customer_name: sanitized.customer_name, phone_number: sanitized.phone_number, email: sanitized.email, area: sanitized.area, vehicle_make: sanitized.vehicle_make, vehicle_model: sanitized.vehicle_model, vehicle_year: sanitized.vehicle_year, engine_size: sanitized.engine_size })); setSavedProfile(true); } catch {}
 
 
       // Send confirmation email to customer
@@ -591,11 +610,16 @@ export default function Home() {
                     </button>
                   )}
                   {step < 3 ? (
+                    <>
+                    {!canProceed() && getMissingFields().length > 0 && (
+                      <div className="w-full text-center text-[12px] mb-1" style={{ color: "#f97316" }}>Please fill in: {getMissingFields().join(", ")}</div>
+                    )}
                     <button type="button" onClick={() => setStep(s => s + 1)} disabled={!canProceed()}
                       className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
                       style={{ background: canProceed() ? "linear-gradient(135deg,#f97316,#ea580c)" : "rgba(249,115,22,0.3)", border: "none", boxShadow: canProceed() ? "0 4px 20px rgba(249,115,22,0.3)" : "none" }}>
                       Continue →
                     </button>
+                    </>
                   ) : (
                     <button type="button" onClick={handleSubmit} disabled={loading || !canProceed()}
                       className="flex-1 py-3 rounded-xl text-[14px] font-bold cursor-pointer transition text-white"
