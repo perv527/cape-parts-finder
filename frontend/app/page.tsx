@@ -647,6 +647,7 @@ export default function Home() {
                       style={{ background: loading ? "rgba(249,115,22,0.5)" : "linear-gradient(135deg,#f97316,#ea580c)", border: "none", boxShadow: "0 4px 20px rgba(249,115,22,0.3)" }}>
                       {loading ? (photos.length > 0 ? `Uploading ${photos.length} photo${photos.length > 1 ? "s" : ""}...` : "Submitting...") : "Submit Request 🔧"}
                     </button>
+                    </>
                   )}
                 </div>
               </div>
