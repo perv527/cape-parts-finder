@@ -437,7 +437,7 @@ const msgs: Record<string, string> = {
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center flex-shrink-0" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px] hidden md:block">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[13px] hidden sm:block">CPF</span>
             </div>
 
             {/* Nav links - scrollable */}

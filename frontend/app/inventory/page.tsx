@@ -139,7 +139,7 @@ export default function InventoryPage() {
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
               </svg>
             </div>
-            <span className="font-bold text-white text-[14px] hidden sm:block">Cape Parts Finder</span>
+            <span className="font-bold text-white text-[13px] hidden sm:block">CPF</span>
           </div>
           <div className="flex gap-0.5 overflow-x-auto scrollbar-hide flex-1 mx-1">
             {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" }, { label: "Inventory", href: "/inventory", active: true }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }].map((n) => (
