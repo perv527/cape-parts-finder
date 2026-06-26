@@ -151,16 +151,18 @@ const msgs: Record<string, string> = {
     setUpdatingId(id);
     const request = requests.find(r => r.id === id);
     const { error } = await supabase.from("parts_requests").update({ status }).eq("id", id);
-    if (error) { alert("Failed to update status"); setUpdatingId(null); return; }
+    if (error) { console.error("Failed to update status", error); setUpdatingId(null); return; }
     fetchRequests();
     setUpdatingId(null);
     logAction("status_update", "parts_requests", String(id), { status });
     // Send status emails
-    if (request && request.email) {
+    const emailTo = request?.email;
+    if (emailTo) {
+      const v = ((request?.vehicle_year||"")+" "+(request?.vehicle_make||"")+" "+(request?.vehicle_model||"")).trim();
       if (status === "Quoted") {
-        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "quote_ready", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||"")+" "+(request.vehicle_make||"")+" "+(request.vehicle_model||"")).trim(), phone: request.phone_number }) }).catch(()=>{});
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "quote_ready", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
       } else if (status === "Delivered") {
-        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "delivered", to: request.email, customerName: request.customer_name, partNeeded: request.part_needed, vehicle: ((request.vehicle_year||"")+" "+(request.vehicle_make||"")+" "+(request.vehicle_model||"")).trim(), phone: request.phone_number }) }).catch(()=>{});
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "delivered", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
       }
     }
     if (request && getStatusMessage(request, status)) {
