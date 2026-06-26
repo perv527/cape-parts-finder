@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from '@supabase/supabase-js';
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -117,14 +117,14 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    const logClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
     if (!res.ok) {
       const err = await res.text();
       console.error('Resend error:', err);
-      await logClient.from('email_log').insert({ to_address: to, subject, type, status: 'failed', error: err });
+
       return NextResponse.json({ error: err }, { status: 500 });
     }
-    await logClient.from('email_log').insert({ to_address: to, subject, type, status: 'sent', error: null });
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Email error:", err);
