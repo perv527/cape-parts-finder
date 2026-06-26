@@ -156,6 +156,7 @@ const msgs: Record<string, string> = {
     setUpdatingId(null);
     logAction("status_update", "parts_requests", String(id), { status });
     // Send status emails
+    console.log("Email debug:", { requestFound: !!request, email: request?.email, status });
     const emailTo = request?.email;
     if (emailTo) {
       const v = ((request?.vehicle_year||"")+" "+(request?.vehicle_make||"")+" "+(request?.vehicle_model||"")).trim();
