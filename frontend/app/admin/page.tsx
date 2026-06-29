@@ -389,6 +389,7 @@ const msgs: Record<string, string> = {
     }]);
     if (error) { alert("Failed to save sale"); setSavingQuickSale(false); return; }
     await supabase.from("parts_requests").update({ status: "Delivered" }).eq("id", quickSaleModal.id);
+    if (quickSaleModal?.email) { fetch("/api/send-email", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ type: "delivered", to: quickSaleModal.email, customerName: quickSaleModal.customer_name||"", partNeeded: quickSaleModal.part_needed||"", vehicle: "", phone: quickSaleModal.phone_number||"" }) }).catch(console.error); }
     setSavingQuickSale(false);
     setQuickSaleModal(null);
     setQuickSalePrice("");
