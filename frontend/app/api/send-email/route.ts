@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       subject = `We received your request for ${partNeeded} — Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 32px; text-align: center;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ea580c;"><tr><td style="padding: 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Your Trusted Auto Parts Network</p>
           </div>
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
             </div>
             <p style="color: #6b7280; font-size: 13px; margin-bottom: 0;">Questions? WhatsApp us at <a href="https://wa.me/27696863952" style="color: #f97316;">+27 69 686 3952</a></p>
           </div>
-          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; background: #f9fafb; text-align: center;">
             <p style="margin: 0; color: #6b7280; font-size: 12px;">Cape Parts Finder · Cape Town · <a href="https://www.capepartsfinder.co.za" style="color: #6b7280;">capepartsfinder.co.za</a></p>
           </div>
         </div>
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       subject = `Your quote is ready — ${partNeeded} | Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #f97316, #ea580c); padding: 32px; text-align: center;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ea580c;"><tr><td style="padding: 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Your Trusted Auto Parts Network</p>
           </div>
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
             </div>
             <p style="color: #6b7280; font-size: 13px;">Questions? WhatsApp us at <a href="https://wa.me/27696863952" style="color: #f97316;">+27 69 686 3952</a></p>
           </div>
-          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; background: #f9fafb; text-align: center;">
             <p style="margin: 0; color: #6b7280; font-size: 12px;">Cape Parts Finder · Cape Town · <a href="https://www.capepartsfinder.co.za" style="color: #6b7280;">capepartsfinder.co.za</a></p>
           </div>
         </div>
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       subject = `Your ${partNeeded} has been delivered — Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 32px; text-align: center;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background: #16a34a;"><tr><td style="padding: 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Delivery Complete</p>
           </div>
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
             </div>
             <p style="color: #6b7280; font-size: 13px;">Need another part? Visit <a href="https://www.capepartsfinder.co.za" style="color: #f97316;">capepartsfinder.co.za</a></p>
           </div>
-          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <div style="padding: 16px 32px; border-top: 1px solid #e5e7eb; background: #f9fafb; text-align: center;">
             <p style="margin: 0; color: #6b7280; font-size: 12px;">Cape Parts Finder · Cape Town · <a href="https://www.capepartsfinder.co.za" style="color: #6b7280;">capepartsfinder.co.za</a></p>
           </div>
         </div>
