@@ -17,19 +17,19 @@ export async function POST(req: NextRequest) {
       subject = `We received your request for ${partNeeded} — Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ea580c;"><tr><td style="padding: 32px; text-align: center;">
+          <div style="background: #ea580c; padding: 28px 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Your Trusted Auto Parts Network</p>
           </div>
           <div style="padding: 32px;">
-            <h2 style="color: #1a1a1a; margin-top: 0;">Hi ${customerName}!</h2>
+            <h2 style="color: #111827; margin-top: 0;">Hi ${customerName}!</h2>
             <p style="color: #4b5563; line-height: 1.6;">We received your request for a <strong style="color: #f97316;">${partNeeded}</strong>${vehicle ? ` for your ${vehicle}` : ""}. We are now searching our supplier network.</p>
-            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin: 24px 0;">
+            <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 20px; margin: 24px 0;">
               <p style="margin: 0 0 8px; color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">What happens next</p>
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">We will contact you on <strong style="color: white;">${phone}</strong> via WhatsApp within 2-4 hours with a quote.</p>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">We will contact you on <strong style="color: #111827;">${phone}</strong> via WhatsApp within 2-4 hours with a quote.</p>
             </div>
             <div style="background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0; color: #4ade80; font-size: 13px;">Track your request anytime at <a href="https://www.capepartsfinder.co.za/track" style="color: #f97316;">capepartsfinder.co.za/track</a></p>
+              <p style="margin: 0; color: #16a34a; font-size: 13px;">Track your request anytime at <a href="https://www.capepartsfinder.co.za/track" style="color: #f97316;">capepartsfinder.co.za/track</a></p>
             </div>
             <p style="color: #6b7280; font-size: 13px; margin-bottom: 0;">Questions? WhatsApp us at <a href="https://wa.me/27696863952" style="color: #f97316;">+27 69 686 3952</a></p>
           </div>
@@ -57,19 +57,19 @@ export async function POST(req: NextRequest) {
       subject = `Your quote is ready — ${partNeeded} | Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background: #ea580c;"><tr><td style="padding: 32px; text-align: center;">
+          <div style="background: #ea580c; padding: 28px 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Your Trusted Auto Parts Network</p>
           </div>
           <div style="padding: 32px;">
-            <h2 style="color: #1a1a1a; margin-top: 0;">Great news, ${customerName}!</h2>
+            <h2 style="color: #111827; margin-top: 0;">Great news, ${customerName}!</h2>
             <p style="color: #4b5563; line-height: 1.6;">We found your <strong style="color: #f97316;">${partNeeded}</strong>${vehicle ? " for your " + vehicle : ""}. We will be sending you the price and details via WhatsApp shortly.</p>
             <div style="background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.2); border-radius: 12px; padding: 20px; margin: 24px 0;">
               <p style="margin: 0 0 8px; color: #fb923c; font-size: 13px; font-weight: bold;">What to expect</p>
-              <p style="margin: 0; color: #6b7280; font-size: 14px;">Check your WhatsApp on <strong style="color: white;">${phone}</strong> for the quote details. Reply to accept or ask any questions.</p>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">Check your WhatsApp on <strong style="color: #111827;">${phone}</strong> for the quote details. Reply to accept or ask any questions.</p>
             </div>
             <div style="background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-              <p style="margin: 0; color: #4ade80; font-size: 13px;">Track your request at <a href="https://www.capepartsfinder.co.za/track" style="color: #f97316;">capepartsfinder.co.za/track</a></p>
+              <p style="margin: 0; color: #16a34a; font-size: 13px;">Track your request at <a href="https://www.capepartsfinder.co.za/track" style="color: #f97316;">capepartsfinder.co.za/track</a></p>
             </div>
             <p style="color: #6b7280; font-size: 13px;">Questions? WhatsApp us at <a href="https://wa.me/27696863952" style="color: #f97316;">+27 69 686 3952</a></p>
           </div>
@@ -82,12 +82,12 @@ export async function POST(req: NextRequest) {
       subject = `Your ${partNeeded} has been delivered — Cape Parts Finder`;
       html = `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; background: #ffffff; color: #1a1a1a; border-radius: 16px; overflow: hidden;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background: #16a34a;"><tr><td style="padding: 32px; text-align: center;">
+          <div style="background: #16a34a; padding: 28px 32px; text-align: center;">
             <h1 style="margin: 0; font-size: 24px; color: white;">Cape Parts Finder</h1>
             <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">Delivery Complete</p>
           </div>
           <div style="padding: 32px;">
-            <h2 style="color: #1a1a1a; margin-top: 0;">Your part has arrived, ${customerName}!</h2>
+            <h2 style="color: #111827; margin-top: 0;">Your part has arrived, ${customerName}!</h2>
             <p style="color: #4b5563; line-height: 1.6;">Your <strong style="color: #4ade80;">${partNeeded}</strong>${vehicle ? " for your " + vehicle : ""} has been successfully delivered. We hope everything is perfect!</p>
             <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center;">
               <p style="margin: 0 0 12px; color: #4ade80; font-size: 15px; font-weight: bold;">Happy with your part?</p>
