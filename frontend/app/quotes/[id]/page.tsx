@@ -751,18 +751,18 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
             </div>
 
             {supplierPrice > 0 && (
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-3 gap-1 mb-4">
                 <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
-                  <p className="text-[16px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
+                  <p className="text-[13px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.6)" }}>Your Markup</p>
-                  <p className="text-[16px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
+                  <p className="text-[13px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.7)" }}>Customer Price</p>
-                <p className="text-[16px] font-black" style={{ color: "#4ade80" }}>
+                <p className="text-[13px] font-black" style={{ color: "#4ade80" }}>
                   {price && markup ? "R" + (Number(price) * (1 + Number(markup) / 100)).toFixed(2) : "—"}
                 </p>
                 </div>
@@ -812,11 +812,11 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
-                      <p className="text-[16px] font-black text-white">R{quote.supplier_price}</p>
+                      <p className="text-[13px] font-black text-white">R{quote.supplier_price}</p>
                     </div>
                     <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.12)" }}>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.6)" }}>Customer Price</p>
-                      <p className="text-[16px] font-black" style={{ color: "#4ade80" }}>R{quote.marked_up_price}</p>
+                      <p className="text-[13px] font-black" style={{ color: "#4ade80" }}>R{quote.marked_up_price}</p>
                     </div>
                   </div>
 
