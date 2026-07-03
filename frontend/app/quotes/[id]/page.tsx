@@ -646,10 +646,10 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
               <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center" style={{ boxShadow: "0 0 16px rgba(249,115,22,0.35)" }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
               </div>
-              <span className="font-bold text-white text-[14px]">Cape Parts Finder</span>
+              <span className="font-bold text-white text-[13px] hidden sm:block">CPF</span>
             </div>
-            <div className="flex gap-1">
-              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Analytics", href: "/analytics" }].map((n) => (
+            <div className="flex gap-0.5 overflow-x-auto flex-1 mx-1">
+              {[{ label: "Requests", href: "/admin" }, { label: "Suppliers", href: "/suppliers" }, { label: "Sales", href: "/sales" }, { label: "Customers", href: "/customers" }, { label: "Inventory", href: "/inventory" }, { label: "Expenses", href: "/expenses" }, { label: "Analytics", href: "/analytics" }, { label: "Reminders", href: "/reminders" }, { label: "Reviews", href: "/reviews-admin" }, { label: "Watchlist", href: "/watchlist" }, { label: "Settings", href: "/settings" }].map((n) => (
                 <a key={n.href} href={n.href} className="px-3.5 py-1.5 rounded-lg text-[13px] no-underline font-medium transition"
                   style={{ color: "rgba(255,255,255,0.4)", border: "1px solid transparent" }}>{n.label}</a>
               ))}
@@ -727,7 +727,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                     <p className="text-[11px] text-gray-500">{aiSuggestion.reason}</p>
                   </div>
                 )}
-                <div className="flex gap-1.5 mb-1.5 flex-wrap">
+                <div className="flex gap-0.5 overflow-x-auto flex-1 mx-1.5 mb-1.5 flex-wrap">
                   {["10","15","20","25","30"].map(m => (
                     <button key={m} type="button" onClick={() => setMarkup(m)}
                       className="px-2 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition"
@@ -754,15 +754,15 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
               <div className="grid grid-cols-3 gap-3 mb-4">
                 <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
-                  <p className="text-[18px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
+                  <p className="text-[16px] font-black text-white">R{supplierPrice.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.12)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(249,115,22,0.6)" }}>Your Markup</p>
-                  <p className="text-[18px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
+                  <p className="text-[16px] font-black" style={{ color: "#fb923c" }}>R{markupAmt.toFixed(2)}</p>
                 </div>
                 <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.15)" }}>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.7)" }}>Customer Price</p>
-                <p className="text-[22px] font-black" style={{ color: "#4ade80" }}>
+                <p className="text-[16px] font-black" style={{ color: "#4ade80" }}>
                   {price && markup ? "R" + (Number(price) * (1 + Number(markup) / 100)).toFixed(2) : "—"}
                 </p>
                 </div>
@@ -812,11 +812,11 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.25)" }}>Supplier Cost</p>
-                      <p className="text-[22px] font-black text-white">R{quote.supplier_price}</p>
+                      <p className="text-[16px] font-black text-white">R{quote.supplier_price}</p>
                     </div>
                     <div className="rounded-xl p-4" style={{ background: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.12)" }}>
                       <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(34,197,94,0.6)" }}>Customer Price</p>
-                      <p className="text-[22px] font-black" style={{ color: "#4ade80" }}>R{quote.marked_up_price}</p>
+                      <p className="text-[16px] font-black" style={{ color: "#4ade80" }}>R{quote.marked_up_price}</p>
                     </div>
                   </div>
 
@@ -990,7 +990,7 @@ body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:#fff;color
                 </div>
               </div>
               <div>
-                <div className="flex gap-1.5 mb-2 flex-wrap">
+                <div className="flex gap-0.5 overflow-x-auto flex-1 mx-1.5 mb-2 flex-wrap">
                   {["10","15","20","25","30"].map(m => (
                     <button key={m} type="button" onClick={() => setEditMarkup(m)}
                       className="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition"
