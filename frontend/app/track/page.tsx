@@ -31,20 +31,9 @@ export default function TrackPage() {
     setLoading(true);
     setSearched(false);
 
-    const cleaned = phone.replace(/\D/g, "");
-    const variants = [cleaned, "27" + cleaned.replace(/^0/, ""), "0" + cleaned.replace(/^27/, "")];
-
-    const { data } = await supabase
-      .from("parts_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    const matched = (data || []).filter(r => {
-      const rCleaned = (r.phone_number || "").replace(/\D/g, "");
-      return variants.some(v => rCleaned === v || rCleaned.endsWith(v) || v.endsWith(rCleaned));
-    });
-
-    setRequests(matched);
+    const res = await fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone }) });
+    const json = await res.json();
+    setRequests(json.requests || []);
     setSearched(true);
     setLoading(false);
   }
