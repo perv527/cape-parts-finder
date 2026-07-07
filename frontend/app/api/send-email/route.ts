@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic";
 
 
 export async function POST(req: NextRequest) {
   try {
     const { type, to, customerName, partNeeded, vehicle, phone, requestId } = await req.json();
+
+    const adminTypes = ["quote_ready", "delivered"];
+    const publicTypes = ["customer_confirmation", "admin_notification"];
+    if (adminTypes.includes(type)) {
+      const token = (req.headers.get("authorization") || "").replace(/^Bearer /i, "");
+      if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const authClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+      const { data: { user }, error: authError } = await authClient.auth.getUser(token);
+      if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    } else if (publicTypes.includes(type)) {
+      const origin = req.headers.get("origin") || "";
+      const allowed = ["https://www.capepartsfinder.co.za", "https://capepartsfinder.co.za"];
+      if (!allowed.includes(origin)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    } else {
+      return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+    }
 
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) {

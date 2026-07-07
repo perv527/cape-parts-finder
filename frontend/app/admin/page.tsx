@@ -158,11 +158,13 @@ const msgs: Record<string, string> = {
     // Send status emails
     const emailTo = request?.email;
     if (emailTo) {
+      const { data: { session: emailSession } } = await supabase.auth.getSession();
+      const emailAuth = { "Content-Type": "application/json", "Authorization": "Bearer " + (emailSession?.access_token || "") };
       const v = ((request?.vehicle_year||"")+" "+(request?.vehicle_make||"")+" "+(request?.vehicle_model||"")).trim();
       if (status === "Quoted") {
-        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "quote_ready", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
+        fetch("/api/send-email", { method: "POST", headers: emailAuth, body: JSON.stringify({ type: "quote_ready", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
       } else if (status === "Delivered") {
-        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "delivered", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
+        fetch("/api/send-email", { method: "POST", headers: emailAuth, body: JSON.stringify({ type: "delivered", to: emailTo, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: v, phone: request?.phone_number||"" }) }).catch(console.error);
       }
     }
     if (request && getStatusMessage(request, status)) {
@@ -389,7 +391,7 @@ const msgs: Record<string, string> = {
     }]);
     if (error) { alert("Failed to save sale"); setSavingQuickSale(false); return; }
     await supabase.from("parts_requests").update({ status: "Delivered" }).eq("id", quickSaleModal.id);
-    if (quickSaleModal?.email) { fetch("/api/send-email", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ type: "delivered", to: quickSaleModal.email, customerName: quickSaleModal.customer_name||"", partNeeded: quickSaleModal.part_needed||"", vehicle: "", phone: quickSaleModal.phone_number||"" }) }).catch(console.error); }
+    if (quickSaleModal?.email) { const { data: { session: qsSession } } = await supabase.auth.getSession(); fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (qsSession?.access_token || "") }, body: JSON.stringify({ type: "delivered", to: quickSaleModal.email, customerName: quickSaleModal.customer_name||"", partNeeded: quickSaleModal.part_needed||"", vehicle: "", phone: quickSaleModal.phone_number||"" }) }).catch(console.error); }
     setSavingQuickSale(false);
     setQuickSaleModal(null);
     setQuickSalePrice("");
