@@ -183,14 +183,6 @@ export default function Home() {
         const { error } = await supabase.from("parts_requests").insert([payload]);
         return !error;
       }).catch(() => {});
-      // Rate limiting - max 3 requests per phone per 24 hours
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: recent } = await supabase.from("parts_requests").select("id")
-        .eq("phone_number", formData.phone_number.replace(/\s|-/g, ""))
-        .gte("created_at", since);
-      if (recent && recent.length >= 3) {
-        showToast("You have submitted 3 requests in the last 24 hours. Please wait before submitting again."); setLoading(false); return;
-      }
 
       // Sanitize all inputs
       const sanitized = {
@@ -234,8 +226,9 @@ export default function Home() {
 
       const photo_url = uploadedUrls[0] || "";
       const photo_urls = uploadedUrls;
-      const { error } = await supabase.from("parts_requests").insert([{ ...sanitized, photo_url, photo_urls }]);
+      const { data: rpcResult, error } = await supabase.rpc("submit_parts_request", { payload: { ...sanitized, photo_url, photo_urls } });
       if (error) { showToast("Something went wrong. Please try again."); setLoading(false); return; }
+      if (rpcResult && rpcResult.error === "RATE_LIMIT") { showToast("You have submitted 3 requests in the last 24 hours. Please wait before submitting again."); setLoading(false); return; }
       setSuccess(true);
       try { localStorage.setItem("cpf_profile", JSON.stringify({ customer_name: sanitized.customer_name, phone_number: sanitized.phone_number, email: sanitized.email, area: sanitized.area, vehicle_make: sanitized.vehicle_make, vehicle_model: sanitized.vehicle_model, vehicle_year: sanitized.vehicle_year, engine_size: sanitized.engine_size })); setSavedProfile(true); } catch {}
 
