@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization") || "";
+    const token = authHeader.replace(/^Bearer /i, "");
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authClient = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+    const { data: { user }, error: authError } = await authClient.auth.getUser(token);
+    if (authError || !user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const { partName, vehicle, supplierPrice, pastSales } = await req.json();
 
     const salesContext = pastSales && pastSales.length > 0

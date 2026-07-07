@@ -71,9 +71,10 @@ export default function QuotesPage() {
     setAiSuggestion(null);
     try {
       const vehicle = `${request?.vehicle_year || ""} ${request?.vehicle_make || ""} ${request?.vehicle_model || ""}`.trim();
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/suggest-price", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (session?.access_token || "") },
         body: JSON.stringify({
           partName: request?.part_needed || "part",
           vehicle,
