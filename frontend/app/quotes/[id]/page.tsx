@@ -108,6 +108,11 @@ export default function QuotesPage() {
       }]);
       if (error) { alert("Failed to save quote"); return; }
       await supabase.from("parts_requests").update({ status: "Quoted" }).eq("id", requestId);
+      if (request?.email) {
+        const { data: { session: qSession } } = await supabase.auth.getSession();
+        const qVehicle = ((request?.vehicle_year||"")+" "+(request?.vehicle_make||"")+" "+(request?.vehicle_model||"")).trim();
+        fetch("/api/send-email", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (qSession?.access_token || "") }, body: JSON.stringify({ type: "quote_ready", to: request.email, customerName: request?.customer_name||"", partNeeded: request?.part_needed||"", vehicle: qVehicle, phone: request?.phone_number||"" }) }).catch(console.error);
+      }
       setPrice(""); setSupplierId(""); setNote(""); setQuoteImage(null);
       fetchData();
     } catch (err: any) { alert("Error: " + err.message); }
