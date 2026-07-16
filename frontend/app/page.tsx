@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import { useSettings } from "@/lib/settings";
 import { queueRequest, retryPendingRequests } from "@/lib/offlineQueue";
@@ -34,7 +34,7 @@ export default function Home() {
 
   useEffect(() => {
     supabase.from("reviews").select("customer_name,rating,comment,part_sourced,created_at")
-      .gte("rating", 4).order("created_at", { ascending: false }).limit(5)
+      .eq("approved", true).gte("rating", 4).order("created_at", { ascending: false }).limit(5)
       .then(({ data }) => setReviews(data || []));
   }, []);
   const [success, setSuccess] = useState(false);
