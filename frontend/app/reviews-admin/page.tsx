@@ -12,6 +12,8 @@ export default function ReviewsAdminPage() {
   const router = useRouter();
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -26,6 +28,26 @@ export default function ReviewsAdminPage() {
     setReviews(data || []);
     setLoading(false);
   }
+
+  async function setApproved(id: number, approved: boolean) {
+    setUpdatingId(id);
+    const { error } = await supabase.from("reviews").update({ approved }).eq("id", id);
+    if (!error) setReviews(prev => prev.map(r => r.id === id ? { ...r, approved } : r));
+    setUpdatingId(null);
+  }
+
+  async function deleteReview(id: number) {
+    if (!window.confirm("Delete this review permanently? This cannot be undone.")) return;
+    setUpdatingId(id);
+    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    if (!error) setReviews(prev => prev.filter(r => r.id !== id));
+    setUpdatingId(null);
+  }
+
+  const pendingCount = reviews.filter(r => !r.approved).length;
+  const visibleReviews = reviews.filter(r =>
+    filter === "all" ? true : filter === "pending" ? !r.approved : r.approved
+  );
 
   const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const dist = [1,2,3,4,5].map(n => ({ n, count: reviews.filter(r => r.rating === n).length }));
@@ -104,7 +126,7 @@ export default function ReviewsAdminPage() {
             { label: "Total Reviews", value: reviews.length, color: "#fb923c" },
             { label: "Avg Rating", value: avgRating > 0 ? avgRating.toFixed(1) + " ⭐" : "—", color: "#fbbf24" },
             { label: "5 Star", value: dist[4].count, color: "#4ade80" },
-            { label: "1-2 Star", value: dist[0].count + dist[1].count, color: "#f87171" },
+            { label: "Pending", value: pendingCount, color: pendingCount > 0 ? "#fbbf24" : "#4ade80" },
           ].map(s => (
             <div key={s.label} style={cardStyle} className="p-4">
               <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "rgba(255,255,255,0.3)" }}>{s.label}</div>
@@ -161,6 +183,25 @@ export default function ReviewsAdminPage() {
           </div>
         </div>
 
+        {/* FILTER TABS */}
+        {reviews.length > 0 && (
+          <div className="flex gap-2 mb-4">
+            {([
+              { key: "all", label: `All (${reviews.length})` },
+              { key: "pending", label: `Pending (${pendingCount})` },
+              { key: "approved", label: `Approved (${reviews.length - pendingCount})` },
+            ] as const).map(t => (
+              <button key={t.key} onClick={() => setFilter(t.key)}
+                className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition"
+                style={filter === t.key
+                  ? { background: "rgba(249,115,22,0.12)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.25)" }
+                  : { background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* REVIEWS LIST */}
         {reviews.length === 0 ? (
           <div style={cardStyle} className="p-12 text-center">
@@ -170,8 +211,8 @@ export default function ReviewsAdminPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {reviews.map(r => (
-              <div key={r.id} style={cardStyle} className="p-4">
+            {visibleReviews.map(r => (
+              <div key={r.id} style={{ ...cardStyle, opacity: r.approved ? 1 : 0.92, borderColor: r.approved ? "rgba(255,255,255,0.07)" : "rgba(251,191,36,0.25)" }} className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[16px] font-black flex-shrink-0"
                     style={{ background: `${COLORS[r.rating]}20`, color: COLORS[r.rating] }}>
@@ -182,12 +223,35 @@ export default function ReviewsAdminPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-white text-[14px]">{r.customer_name}</span>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${COLORS[r.rating]}15`, color: COLORS[r.rating], border: `1px solid ${COLORS[r.rating]}30` }}>{LABELS[r.rating]}</span>
+                        {!r.approved && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgba(251,191,36,0.12)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)" }}>PENDING</span>
+                        )}
                       </div>
                       <span className="text-[11px] text-gray-600">{new Date(r.created_at).toLocaleDateString("en-ZA", { day: "numeric", month: "short", year: "numeric" })}</span>
                     </div>
                     <Stars rating={r.rating} size={13} />
                     {r.part_sourced && <p className="text-[12px] text-gray-500 mt-1">Part: {r.part_sourced}</p>}
                     {r.comment && <p className="text-[13px] text-gray-300 mt-2 leading-relaxed">"{r.comment}"</p>}
+                    <div className="flex gap-2 mt-3">
+                      {r.approved ? (
+                        <button onClick={() => setApproved(r.id, false)} disabled={updatingId === r.id}
+                          className="px-3 py-1.5 rounded-lg text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                          style={{ background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.55)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          {updatingId === r.id ? "..." : "Hide from site"}
+                        </button>
+                      ) : (
+                        <button onClick={() => setApproved(r.id, true)} disabled={updatingId === r.id}
+                          className="px-3 py-1.5 rounded-lg text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                          style={{ background: "rgba(34,197,94,0.12)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.25)" }}>
+                          {updatingId === r.id ? "..." : "Approve → publish"}
+                        </button>
+                      )}
+                      <button onClick={() => deleteReview(r.id)} disabled={updatingId === r.id}
+                        className="px-3 py-1.5 rounded-lg text-[11px] font-semibold cursor-pointer disabled:opacity-50"
+                        style={{ background: "rgba(239,68,68,0.08)", color: "#f87171", border: "1px solid rgba(239,68,68,0.2)" }}>
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
